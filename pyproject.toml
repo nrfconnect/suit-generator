@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools", "wheel", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "suit-generator"
+authors = [
+    {name = "Robert Stypa", email = "robert.stypa@nordicsemi.no"},
+]
+description = "SUIT envelope generator and parser"
+readme = "README.md"
+requires-python = ">=3.8"
+keywords = ["suit", "envelope", "cbor"]
+license = {text = "Apache 2.0"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dynamic = ["version","dependencies"]
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[project.scripts]
+suit-generator = "suit_generator.cli:main"
+
+[tool.setuptools_scm]
+write_to="suit_generator/_version.py"
