@@ -31,6 +31,7 @@ def parse_arguments() -> Tuple:
     cmd_create_arg_parser.add_argument(
         "--input-format",
         default="AUTO",
+        choices=["json", "yaml", "AUTO"],
         help="Type of input file, types are recognized by extension (.yaml, .json). "
         "Use this parameter if file extension does not match.",
     )
@@ -49,13 +50,14 @@ def parse_arguments() -> Tuple:
     cmd_parse_arg_parser.add_argument(
         "--output-format",
         default="AUTO",
+        choices=["json", "yaml", "AUTO"],
         help="Type of output file, types are recognized by extension (.yaml, .json). "
         "Use this parameter if file extension does not match.",
     )
     # KEYS_CMD command
     cmd_keys_arg_parser = subparsers.add_parser(KEYS_CMD, help="Create pair of signing keys.")
     cmd_keys_arg_parser.add_argument("--output-file", required=True, help="Prefix for output files.")
-    cmd_keys_arg_parser.add_argument("--type", required=True, default="secp256r1", help="Output file.")
+    cmd_keys_arg_parser.add_argument("--key-type", required=True, default="secp256r1", help="Output key file type.")
     # SIGN_CMD command
     cmd_sign_arg_parser = subparsers.add_parser(SIGN_CMD, help="Sign manifest")
     cmd_sign_arg_parser.add_argument("--input-file", required=True, help="Input SUIT file")

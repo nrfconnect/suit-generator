@@ -26,14 +26,14 @@ class InputOutputMixin:
             json.dump(data, fh)
 
     @classmethod
-    def from_yaml_file(cls, file_name):
+    def from_yaml_file(cls, file_name) -> dict:
         """Read yaml file and return dict."""
         with open(file_name, "r") as fh:
             data = yaml.load(fh)
         return data
 
     @classmethod
-    def to_yaml_file(cls, file_name, data):
+    def to_yaml_file(cls, file_name, data) -> None:
         """Write dict content into yaml file."""
         with open(file_name, "w") as fh:
             yaml.dump(data, fh)

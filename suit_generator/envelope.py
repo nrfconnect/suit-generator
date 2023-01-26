@@ -69,3 +69,7 @@ class SuitEnvelope(InputOutputMixin):
             self._envelope = self.from_json_file(file_name)
         elif input_type.lower() == ".yaml":
             self._envelope = self.from_yaml_file(file_name)
+        elif input_type.lower() == "suit":
+            raise NotImplementedError("Support for SUIT file type is not implemented.")
+        else:
+            raise FileTypeException(f"{input_type} is not supported.")

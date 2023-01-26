@@ -1,11 +1,9 @@
-"""Main script for setuptools."""
-##########################################################################################
-# Copyright (c) 2015 - 2022 Nordic Semiconductor ASA. All Rights Reserved.
 #
-# The information contained herein is confidential property of Nordic Semiconductor ASA.
-# The use, copying, transfer or disclosure of such information is prohibited except by
-# express written agreement with Nordic Semiconductor ASA.
-##########################################################################################
+# Copyright (c) 2023 Nordic Semiconductor ASA
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+"""Main script for setuptools."""
 
 import setuptools
 

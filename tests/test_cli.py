@@ -23,15 +23,30 @@ def monkey_patched_parse_arguments(cmd):
     return cmd, args
 
 
-def monkey_patched_main(*args, **kwargs):
-    """Monkey patched CMD main."""
+def monkey_patched_main_create(input_file: str, input_format: str, output_file: str):
+    """Monkey patched CMD create main."""
+    pass
+
+
+def monkey_patched_main_keys(output_file: str, type: str):
+    """Monkey patched CMD keys main."""
+    pass
+
+
+def monkey_patched_main_parse(input_file: str, output_file: str, output_format: str):
+    """Monkey patched CMD parse main."""
+    pass
+
+
+def monkey_patched_main_sign(input_file: str, output_file: str, private_key: str):
+    """Monkey patched CMD sign main."""
     pass
 
 
 def test_cli_create(monkeypatch):
     """Test cli create mapping."""
     # monkey patch executor and argument parser and test cli executor dictionary
-    monkeypatch.setattr("suit_generator.cli.cmd_create.main.__code__", monkey_patched_main.__code__)
+    monkeypatch.setattr("suit_generator.cli.cmd_create.main", monkey_patched_main_create)
     parse_args = partial(monkey_patched_parse_arguments, "create")
     monkeypatch.setattr("suit_generator.args.parse_arguments", parse_args)
     try:
@@ -43,7 +58,7 @@ def test_cli_create(monkeypatch):
 def test_cli_parse(monkeypatch):
     """Test cli parse mapping."""
     # monkey patch executor and argument parser and test cli executor dictionary
-    monkeypatch.setattr("suit_generator.cli.cmd_create.main.__code__", monkey_patched_main.__code__)
+    monkeypatch.setattr("suit_generator.cli.cmd_create.main", monkey_patched_main_parse)
     parse_args = partial(monkey_patched_parse_arguments, "create")
     monkeypatch.setattr("suit_generator.args.parse_arguments", parse_args)
     try:
@@ -55,7 +70,7 @@ def test_cli_parse(monkeypatch):
 def test_cli_keys(monkeypatch):
     """Test cli keys mapping."""
     # monkey patch executor and argument parser and test cli executor dictionary
-    monkeypatch.setattr("suit_generator.cli.cmd_keys.main.__code__", monkey_patched_main.__code__)
+    monkeypatch.setattr("suit_generator.cli.cmd_keys.main", monkey_patched_main_keys)
     parse_args = partial(monkey_patched_parse_arguments, "keys")
     monkeypatch.setattr("suit_generator.args.parse_arguments", parse_args)
     try:
@@ -67,7 +82,7 @@ def test_cli_keys(monkeypatch):
 def test_cli_sign(monkeypatch):
     """Test cli sign mapping."""
     # monkey patch executor and argument parser and test cli executor dictionary
-    monkeypatch.setattr("suit_generator.cli.cmd_sign.main.__code__", monkey_patched_main.__code__)
+    monkeypatch.setattr("suit_generator.cli.cmd_sign.main", monkey_patched_main_sign)
     parse_args = partial(monkey_patched_parse_arguments, "sign")
     monkeypatch.setattr("suit_generator.args.parse_arguments", parse_args)
     try:
@@ -79,7 +94,7 @@ def test_cli_sign(monkeypatch):
 def test_cli_not_existing_cmd_mapping(monkeypatch):
     """Test cli not existing mapping."""
     # monkey patch executor and argument parser and test cli executor dictionary
-    monkeypatch.setattr("suit_generator.cli.cmd_keys.main.__code__", monkey_patched_main.__code__)
+    monkeypatch.setattr("suit_generator.cli.cmd_keys.main", monkey_patched_main_create)
     parse_args = partial(monkey_patched_parse_arguments, "not_existing_mapping")
     monkeypatch.setattr("suit_generator.args.parse_arguments", parse_args)
     with raises(KeyError):
