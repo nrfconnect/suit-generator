@@ -36,11 +36,6 @@ def parse_arguments() -> Tuple:
         "Use this parameter if file extension does not match.",
     )
     cmd_create_arg_parser.add_argument("--output-file", required=True, help="Output SUIT file.")
-    cmd_create_arg_parser.add_argument(
-        "--start-point",
-        required=False,
-        help="Definition from which element output CBOR shall be created, i.e. generation of command sequence only",
-    )
     # PARSE_CMD command
     cmd_parse_arg_parser = subparsers.add_parser(PARSE_CMD, help="Parse SUIT envelope.")
     cmd_parse_arg_parser.add_argument("--input-file", required=True, help="Input SUIT file.")
