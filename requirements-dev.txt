@@ -1,0 +1,2 @@
+build
+setuptools>=65.6.3

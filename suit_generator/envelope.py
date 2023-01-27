@@ -46,14 +46,8 @@ class SuitEnvelope(InputOutputMixin):
             # if AUTO mode used, check file extension and remove dot at the beginning
             output_type = pathlib.Path(file_name).suffix[1:]
 
-        if output_type.lower() == "json":
-            self.to_json_file(file_name, self._envelope)
-        elif output_type.lower() == "yaml":
-            self.to_yaml_file(file_name, self._envelope)
-        elif output_type.lower() == "suit":
-            raise NotImplementedError("Support for SUIT file type is not implemented.")
-        else:
-            raise FileTypeException(f"{output_type} is not supported.")
+        dump_method = self.get_serializer(output_type)
+        dump_method(file_name, self._envelope)
 
     def load(self, file_name: str, input_type: str = "AUTO") -> None:
         """Create internal envelope object from one of the supported file types.
@@ -63,13 +57,7 @@ class SuitEnvelope(InputOutputMixin):
 
         """
         if input_type == "AUTO":
-            input_type = pathlib.Path(file_name).suffix
+            input_type = pathlib.Path(file_name).suffix[1:]
 
-        if input_type.lower() == ".json":
-            self._envelope = self.from_json_file(file_name)
-        elif input_type.lower() == ".yaml":
-            self._envelope = self.from_yaml_file(file_name)
-        elif input_type.lower() == "suit":
-            raise NotImplementedError("Support for SUIT file type is not implemented.")
-        else:
-            raise FileTypeException(f"{input_type} is not supported.")
+        load_method = self.get_deserializer(input_type)
+        load_method(file_name)

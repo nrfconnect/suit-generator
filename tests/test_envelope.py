@@ -7,6 +7,7 @@
 import json
 import pytest
 from suit_generator.envelope import SuitEnvelope
+from suit_generator.inputOutput import FileTypeException
 
 TEST_JSON_STRING = """{
     "SUIT_Envelope_Tagged":
@@ -221,6 +222,36 @@ def test_write_to_json(mocker_json_open):
     envelope = SuitEnvelope()
     envelope._envelope = json.dumps(TEST_JSON_STRING)
     try:
-        envelope.dump("some_ouptut_json_file.json")
+        envelope.dump("some_output_json_file.json")
     except Exception:
         assert False, "Not possible to write json file from internal envelope representation."
+
+
+def test_write_to_xml_auto_negative(mocker_json_open):
+    """Test if not supported file extension if properly recognized."""
+    envelope = SuitEnvelope()
+    envelope._envelope = json.dumps(TEST_JSON_STRING)
+    with pytest.raises(FileTypeException):
+        envelope.dump("some_output_json_file.xml")
+
+
+def test_read_from_xml_auto_negative(mocker_json_open):
+    """est if not supported file exception if properly recognized."""
+    envelope = SuitEnvelope()
+    with pytest.raises(FileTypeException):
+        envelope.load("some_json_file.xml")
+
+
+def test_write_to_xml_negative(mocker_json_open):
+    """Test if not supported file output_type if properly recognized."""
+    envelope = SuitEnvelope()
+    envelope._envelope = json.dumps(TEST_JSON_STRING)
+    with pytest.raises(FileTypeException):
+        envelope.dump("some_output_json_file.xml", output_type="xml")
+
+
+def test_read_from_xml_negative(mocker_json_open):
+    """est if not supported file input_type if properly recognized."""
+    envelope = SuitEnvelope()
+    with pytest.raises(FileTypeException):
+        envelope.load("some_json_file.xml", input_type="xml")
