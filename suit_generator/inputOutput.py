@@ -35,7 +35,7 @@ class InputOutputMixin:
     def to_json_file(cls, file_name: str, data: dict) -> None:
         """Write dict content into json file."""
         with open(file_name, "w") as fh:
-            json.dump(data, fh)
+            json.dump(data, fh, sort_keys=False)
 
     @classmethod
     def from_yaml_file(cls, file_name) -> dict:
@@ -48,7 +48,7 @@ class InputOutputMixin:
     def to_yaml_file(cls, file_name, data) -> None:
         """Write dict content into yaml file."""
         with open(file_name, "w") as fh:
-            yaml.dump(data, fh)
+            yaml.dump(data, fh, sort_keys=False)
 
     def get_serializer(self, output_type: str) -> Callable:
         """Return serialize method."""
