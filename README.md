@@ -26,3 +26,5 @@ python setup.py --version
 git tag vX.Y.Z
 python -m build
 ```
+
+ci-test
