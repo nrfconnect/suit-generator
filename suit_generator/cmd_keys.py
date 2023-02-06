@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 """CMD_KEYS CLI command entry point."""
-from suit_generator.logger import log_call
 
 
 class KeyGenerator:
@@ -15,7 +14,6 @@ class KeyGenerator:
         pass
 
 
-@log_call
 def main(output_file: str, key_type: str) -> None:
     """Create signing keys.
 

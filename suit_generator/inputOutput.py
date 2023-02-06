@@ -20,9 +20,9 @@ class FileTypeException(Exception):
 class InputOutputMixin:
     """Input and output extensions."""
 
-    SERIALIZERS = {"json": "to_json_file", "yaml": "to_yaml_file"}
+    SERIALIZERS = {"json": "to_json_file", "yaml": "to_yaml_file", "suit": "to_suit_file"}
 
-    DESERIALIZERS = {"json": "from_json_file", "yaml": "from_yaml_file"}
+    DESERIALIZERS = {"json": "from_json_file", "yaml": "from_yaml_file", "suit": "from_suit_file"}
 
     @classmethod
     def from_json_file(cls, file_name: str) -> dict:
@@ -49,6 +49,15 @@ class InputOutputMixin:
         """Write dict content into yaml file."""
         with open(file_name, "w") as fh:
             yaml.dump(data, fh, sort_keys=False)
+
+    @classmethod
+    def from_suit_file(cls, file_name) -> dict:
+        """Read suit file and return dict."""
+        pass
+
+    def to_suit_file(self, file_name, data) -> None:
+        """Write dict content into suit file."""
+        pass
 
     def get_serializer(self, output_type: str) -> Callable:
         """Return serialize method."""
