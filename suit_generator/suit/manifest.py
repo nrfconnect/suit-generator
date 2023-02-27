@@ -222,7 +222,6 @@ class SuitDependencyMetadata(SuitKeyValue):
     metadata = Metadata(map={suit_dependency_prefix: SuitComponentIdentifier})
 
 
-# TODO: refactoring required, _parameters to remove.
 class SuitDependencies(SuitKeyValueUnnamed):
     """Representation of SUIT dependencies."""
 

@@ -8,9 +8,24 @@
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """
 from __future__ import annotations
-import cbor2
 from dataclasses import dataclass
 from suit_generator.logger import log_call
+
+import cbor2
+
+
+def check_input_type(input_type, msg):
+    """Decorate method to handle wrong argument type."""
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            if (args[1] is not None) and (not isinstance(args[1], input_type)):
+                raise ValueError(msg)
+            return func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 @dataclass
@@ -28,20 +43,6 @@ class Metadata:
     children: list | None = None
     tag: Tag | None = None
     map: dict | None = None
-
-
-def check_input_type(input_type, msg):
-    """Decorate method to handle wrong argument type."""
-
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            if (args[1] is not None) and (not isinstance(args[1], input_type)):
-                raise ValueError(msg)
-            return func(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
 
 
 class SuitObject:

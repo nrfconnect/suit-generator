@@ -7,7 +7,7 @@
 import json
 import pytest
 from suit_generator.envelope import SuitEnvelope
-from suit_generator.inputOutput import FileTypeException
+from suit_generator.input_output import FileTypeException
 
 TEST_SUIT_STRING_AUTHENTICATINON_WRAPPER = (
     "d86ba2025827815824822f58206658ea560262696dd1f13b782239a064da"

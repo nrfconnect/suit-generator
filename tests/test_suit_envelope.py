@@ -48,7 +48,7 @@ def test_parse_unsigned_envelope():
 
 @pytest.mark.skip(reason="Signed envelopes are not supported")
 def test_parse_signed_envelope():
-    """Test if is possible to parse complete unsigned envelope."""
+    """Test if is possible to parse complete signed envelope."""
     envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(envelope_2_signed))
     assert envelope.metadata.tag.name == "SUIT_Envelope_Tagged"
     assert envelope.metadata.tag.value == 107
