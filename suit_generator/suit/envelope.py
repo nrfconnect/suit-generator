@@ -17,10 +17,10 @@ from suit_generator.suit.types.keys import suit_manifest, suit_authentication_wr
 class SuitEnvelope(SuitKeyValue):
     """Representation of SUIT_Envelope item."""
 
-    metadata = Metadata(map={suit_manifest: SuitManifest, suit_authentication_wrapper: SuitAuthenticationWrapper})
+    _metadata = Metadata(map={suit_manifest: SuitManifest, suit_authentication_wrapper: SuitAuthenticationWrapper})
 
 
 class SuitEnvelopeTagged(SuitTag):
     """Representation of SUIT_Envelope_Tagged item."""
 
-    metadata = Metadata(children=[SuitEnvelope], tag=Tag(107, "SUIT_Envelope_Tagged"))
+    _metadata = Metadata(children=[SuitEnvelope], tag=Tag(107, "SUIT_Envelope_Tagged"))

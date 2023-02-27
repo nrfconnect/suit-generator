@@ -70,7 +70,7 @@ class SuitHash:
 class SuitCoseHashAlg(SuitEnum):
     """Representation of COSE hash algorithm map."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         children=[
             cose_alg_sha_256,
             cose_alg_shake128,
@@ -90,7 +90,7 @@ class SuitDigetsBytes(SuitHex):
 class SuitDigestRaw(SuitTupleNamed):
     """Representation of SUIT digests bytes in raw form."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={
             "suit-digest-algorithm-id": SuitCoseHashAlg,
             "suit-digest-bytes": SuitDigetsBytes,
@@ -134,7 +134,7 @@ class SuitDigestExt:
 class SuitDigest(SuitUnion):
     """Representation of SUIT digest."""
 
-    metadata = Metadata(children=[SuitDigestRaw, SuitDigestExt])
+    _metadata = Metadata(children=[SuitDigestRaw, SuitDigestExt])
 
 
 class SuitDigestBstr(SuitDigest):
@@ -146,13 +146,13 @@ class SuitDigestBstr(SuitDigest):
 class SuitcoseSignAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
-    metadata = Metadata(children=[cose_alg_es_256])
+    _metadata = Metadata(children=[cose_alg_es_256])
 
 
 class SuitHeaderMap(SuitKeyValue):
     """Representation of SUIT header map."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={
             suit_cose_algorithm_id: SuitcoseSignAlg,
             suit_cose_key_id: SuitBstr,
@@ -163,7 +163,7 @@ class SuitHeaderMap(SuitKeyValue):
 class SuitHeaderData(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         children=[
             SuitKeyValue,
             SuitHeaderMap,
@@ -188,7 +188,7 @@ class SuitCwtPayload(SuitKeyValue):
 class CoseSign1Payload(SuitUnion):
     """Representation of COSE_Sign1_payload item."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         children=[
             SuitNull,
             SuitCwtPayload,
@@ -199,7 +199,7 @@ class CoseSign1Payload(SuitUnion):
 class CoseSign1(SuitTupleNamed):
     """Representation of COSE_Sign1 item."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={
             "protected": SuitHeaderMap,
             "unprotected": SuitHeaderData,
@@ -212,28 +212,28 @@ class CoseSign1(SuitTupleNamed):
 class CoseSign1Tagged(SuitTag):
     """Representation of COSE_Sign1_Tagged item."""
 
-    metadata = Metadata(children=[CoseSign1], tag=Tag(18, "COSE_Sign1_Tagged"))
+    _metadata = Metadata(children=[CoseSign1], tag=Tag(18, "COSE_Sign1_Tagged"))
 
 
 class SuitAuthenticationBlock(SuitUnion):
     """Representation of SuitAuthentication_Block item."""
 
-    metadata = Metadata(children=[CoseSign1Tagged])
+    _metadata = Metadata(children=[CoseSign1Tagged])
 
 
 class SuitAuthenticationUnsigned(SuitTupleNamed):
     """Representation of SuitAuthentication item."""
 
-    metadata = Metadata(map={"SuitDigest": SuitDigestBstr})
+    _metadata = Metadata(map={"SuitDigest": SuitDigestBstr})
 
 
 class SuitAuthentication(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    metadata = Metadata(children=[SuitDigest])
+    _metadata = Metadata(children=[SuitDigest])
 
 
 class SuitAuthenticationWrapper(SuitTupleNamed):
     """Representation of SUIT authentication wrapper."""
 
-    metadata = Metadata(map={"SuitAuthentication": SuitAuthentication})
+    _metadata = Metadata(map={"SuitAuthentication": SuitAuthentication})

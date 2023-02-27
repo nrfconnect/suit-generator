@@ -74,7 +74,7 @@ from suit_generator.suit.types.keys import (
 class SuitIndex(SuitUnion):
     """Representation of SUIT index value."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         children=[
             SuitUint,
             SuitBool,
@@ -86,7 +86,7 @@ class SuitIndex(SuitUnion):
 class SuitRepPolicyBits(SuitEnum):
     """Representation of SUIT reporting policy bits."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         children=[
             suit_send_record_success,
             suit_send_record_failure,
@@ -140,7 +140,7 @@ class SuitImageSize(SuitUint):
 class SuitParameters(SuitKeyValue):
     """Representation of SUIT parameters."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={
             suit_parameter_vendor_identifier: SuitUUID,
             suit_parameter_class_identifier: SuitUUID,
@@ -161,7 +161,7 @@ class SuitParameters(SuitKeyValue):
 class SuitDirective(SuitKeyValueTupple):
     """Representation of SUIT directive."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={
             suit_directive_set_component_index: SuitIndex,
             suit_directive_try_each: SuitList,
@@ -181,7 +181,7 @@ class SuitDirective(SuitKeyValueTupple):
 class SuitCondition(SuitKeyValueTupple):
     """Representation of SUIT condition."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={
             suit_condition_vendor_identifier: SuitRepPolicy,
             suit_condition_class_identifier: SuitRepPolicy,
@@ -201,50 +201,50 @@ class SuitCommand(SuitUnion):
     Suit union is an abstract element represents alternatives.
     """
 
-    metadata = Metadata(children=[SuitCondition, SuitDirective])
+    _metadata = Metadata(children=[SuitCondition, SuitDirective])
 
 
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    metadata = Metadata(children=[SuitTstr, SuitUint, SuitBstr])
+    _metadata = Metadata(children=[SuitTstr, SuitUint, SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):
     """Representation of SUIT component identifier."""
 
-    metadata = Metadata(children=[SuitComponentIdentifierPart])
+    _metadata = Metadata(children=[SuitComponentIdentifierPart])
 
 
 class SuitDependencyMetadata(SuitKeyValue):
     """Representation of SUIT dependency metadata."""
 
-    metadata = Metadata(map={suit_dependency_prefix: SuitComponentIdentifier})
+    _metadata = Metadata(map={suit_dependency_prefix: SuitComponentIdentifier})
 
 
 class SuitDependencies(SuitKeyValueUnnamed):
     """Representation of SUIT dependencies."""
 
-    metadata = Metadata(map={SuitUint: SuitDependencyMetadata})
+    _metadata = Metadata(map={SuitUint: SuitDependencyMetadata})
 
 
 class SuitComponents(SuitList):
     """Representation of SUIT components."""
 
-    metadata = Metadata(children=[SuitComponentIdentifier])
+    _metadata = Metadata(children=[SuitComponentIdentifier])
 
 
 class SuitCommandSequence(SuitList):
     """Representation of SUIT command sequence."""
 
-    metadata = Metadata(children=[SuitCommand])
+    _metadata = Metadata(children=[SuitCommand])
     _group = 2
 
 
 class SuitCommon(SuitKeyValue):
     """Representation of SUIT common."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={
             suit_dependencies: SuitDependencies,
             suit_components: SuitComponents,
@@ -256,6 +256,6 @@ class SuitCommon(SuitKeyValue):
 class SuitManifest(SuitKeyValue):
     """Representation of SUIT manifest."""
 
-    metadata = Metadata(
+    _metadata = Metadata(
         map={suit_manifest_version: SuitUint, suit_manifest_sequence_number: SuitUint, suit_common: SuitCommon}
     )

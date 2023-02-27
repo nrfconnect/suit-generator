@@ -29,8 +29,8 @@ envelope_2_signed = (
 def test_parse_unsigned_envelope():
     """Test if is possible to parse complete unsigned envelope."""
     envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(envelope_1_unsigned))
-    assert envelope.metadata.tag.name == "SUIT_Envelope_Tagged"
-    assert envelope.metadata.tag.value == 107
+    assert envelope._metadata.tag.name == "SUIT_Envelope_Tagged"
+    assert envelope._metadata.tag.value == 107
     # fixme: remove/rework this ugly objects structure value.value.value - since it's not readable at all
     #   possible solutions:
     #    - method to solve full path, envelope.get_object(root, 'suit-authentication-wrapper') - ref to xml structures

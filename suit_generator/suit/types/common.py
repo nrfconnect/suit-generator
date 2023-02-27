@@ -49,7 +49,7 @@ class SuitObject:
     """SUIT basic object."""
 
     value = None
-    metadata = None
+    _metadata = None
 
     def __init__(self, value):
         """Initialize object."""
@@ -85,14 +85,14 @@ class SuitEnum(SuitObject):
     def __init__(self, value):
         """Initialize object."""
         if value is not None:
-            if value not in [i.name for i in self.metadata.children]:
+            if value not in [i.name for i in self._metadata.children]:
                 raise ValueError(f"Unknown key for enum: {value}")
         super().__init__(value)
 
     @classmethod
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
-        if child := [i for i in cls.metadata.children if i.id == cbor2.loads(cbstr)]:
+        if child := [i for i in cls._metadata.children if i.id == cbor2.loads(cbstr)]:
             return cls(child[0].name)
         else:
             raise ValueError(f"Key {cbstr.hex()} not found")
@@ -155,7 +155,7 @@ class SuitUnion(SuitObject):
     @check_input_type(bytes, "Wrong input type!")
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed object."""
-        for child in cls.metadata.children:
+        for child in cls._metadata.children:
             try:
                 value = child.from_cbor(cbstr)
                 break
@@ -178,7 +178,7 @@ class SuitTupleNamed(SuitObject):
         if not isinstance(value_list := cbor2.loads(cbstr), list):
             raise ValueError(f"Expected list with values, received: {value_list}")
 
-        children = list(cls.metadata.map.values())
+        children = list(cls._metadata.map.values())
         children.reverse()
         value = [children.pop().from_cbor(cls.ensure_cbor(v)) for v in value_list]
         return cls(value)
@@ -189,7 +189,7 @@ class SuitKeyValue(SuitObject):
 
     @classmethod
     def _get_method_and_name(cls, key):
-        metadata_entry = [[k, v] for k, v in cls.metadata.map.items() if k.id == key]
+        metadata_entry = [[k, v] for k, v in cls._metadata.map.items() if k.id == key]
         return (metadata_entry[0][0], metadata_entry[0][1]) if metadata_entry else None
 
     @classmethod
@@ -220,7 +220,7 @@ class SuitKeyValueUnnamed(SuitObject):
         if not isinstance(kv_dict, dict):
             raise ValueError(f"Expected key-value storage, received: {kv_dict}")
         for k, v in kv_dict.items():
-            for c_k, c_v in cls.metadata.map.items():
+            for c_k, c_v in cls._metadata.map.items():
                 try:
                     key = c_k.from_cbor(cbor2.dumps(k))
                     value = c_v.from_cbor(cbor2.dumps(v))
@@ -280,9 +280,9 @@ class SuitTag(SuitObject):
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
         cbor = cbor2.loads(cbstr)
-        if cls.metadata.tag.value != cbor.tag:
+        if cls._metadata.tag.value != cbor.tag:
             raise ValueError(f"CBOR tag not found in: {cbor}")
-        return cls(cbor2.CBORTag(cbor.tag, cls.metadata.children[0].from_cbor(cbor2.dumps(cbor.value))))
+        return cls(cbor2.CBORTag(cbor.tag, cls._metadata.children[0].from_cbor(cbor2.dumps(cbor.value))))
 
 
 class SuitList(SuitObject):
@@ -298,9 +298,9 @@ class SuitList(SuitObject):
             raise ValueError(f"Unable to construct list from: {values}")
         # TODO: to refactor or remove
         if cls._group is not None:
-            values = [values[i : i + cls._group] for i in range(0, len(values), cls._group)]
+            values = [values[i: i + cls._group] for i in range(0, len(values), cls._group)]
         value = (
-            [cls.metadata.children[0].from_cbor(cls.ensure_cbor(v)) for v in values] if cls.metadata.children else None
+            [cls._metadata.children[0].from_cbor(cls.ensure_cbor(v)) for v in values] if cls._metadata.children else None
         )
         return cls(tuple(value))
 
@@ -308,7 +308,7 @@ class SuitList(SuitObject):
 class SuitListUint(SuitList):
     """Representation of uint list."""
 
-    metadata = Metadata(children=[SuitInt])
+    _metadata = Metadata(children=[SuitInt])
 
 
 class SuitBitfield(SuitObject):
