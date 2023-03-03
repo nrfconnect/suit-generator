@@ -556,6 +556,20 @@ class cose_alg_es_256(suit_key):
     name = "cose-alg-es-256"
 
 
+class cose_alg_es_384(suit_key):
+    """Cose algorithm metadata."""
+
+    id = -35
+    name = "cose-alg-es-384"
+
+
+class cose_alg_es_521(suit_key):
+    """Cose algorithm metadata."""
+
+    id = -36
+    name = "cose-alg-es-521"
+
+
 class suit_send_record_success(suit_key):
     """Reporting policy bit."""
 

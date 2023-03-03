@@ -123,7 +123,7 @@ class SuitObject:
     def value(self):
         """Link to dynamically created SUIT attribute."""
         for item in self.__dict__:
-            if "Suit" in item:
+            if "Suit" in item or "Cose" in item:
                 return getattr(self, item)
         else:
             raise ValueError("Not possible to get value!")
@@ -233,7 +233,7 @@ class SuitUnion(SuitObject):
             except ValueError:
                 pass
         else:
-            raise ValueError("Not possible ")
+            raise ValueError("Not possible")
         return cls(value)
 
     def to_cbor(self):
@@ -269,8 +269,12 @@ class SuitTupleNamed(SuitObject):
             raise ValueError(f"Expected list with values, received: {value_list}")
 
         children = list(cls._metadata.map.values())
-        children.reverse()
-        value = [children.pop().from_cbor(cls.ensure_cbor(v)) for v in value_list]
+        value = []
+        for index, child in enumerate(children):
+            try:
+                value.append(child.from_cbor(cls.ensure_cbor(value_list[index])))
+            except IndexError:
+                raise ValueError("Not possible to parse data")
         return cls(value)
 
     def to_cbor(self):

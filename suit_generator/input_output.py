@@ -33,7 +33,7 @@ class InputOutputMixin:
         return data
 
     @classmethod
-    def to_json_file(cls, file_name: str, data: dict) -> None:
+    def to_json_file(cls, file_name: str, data: dict, *args) -> None:
         """Write dict content into json file."""
         with open(file_name, "w") as fh:
             json.dump(data, fh, sort_keys=False)
@@ -46,7 +46,7 @@ class InputOutputMixin:
         return data
 
     @classmethod
-    def to_yaml_file(cls, file_name, data) -> None:
+    def to_yaml_file(cls, file_name, data, *args) -> None:
         """Write dict content into yaml file."""
         with open(file_name, "w") as fh:
             yaml.dump(data, fh, sort_keys=False)
@@ -59,11 +59,15 @@ class InputOutputMixin:
             suit = SuitEnvelopeTagged.from_cbor(data)
             return suit.to_obj()
 
-    def to_suit_file(self, file_name, data) -> None:
+    def to_suit_file(self, file_name, data, private_key=None) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
             suit_obj = SuitEnvelopeTagged.from_obj(data)
             suit_obj.update_digest()
+            if private_key:
+                with open(private_key, "rb") as pk_fh:
+                    pk_data = pk_fh.read()
+                suit_obj.sign(pk_data)
             fh.write(suit_obj.to_cbor())
 
     def get_serializer(self, output_type: str) -> Callable:

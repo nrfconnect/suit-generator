@@ -41,6 +41,7 @@ from suit_generator.suit.types.keys import (
     cose_alg_sha_512,
     cose_alg_shake256,
     cose_alg_es_256,
+    cose_alg_es_384,
 )
 
 
@@ -141,7 +142,7 @@ class SuitDigest(SuitUnion):
 class SuitcoseSignAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
-    _metadata = Metadata(children=[cose_alg_es_256])
+    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384])
 
 
 class SuitHeaderMap(SuitKeyValue):
@@ -180,6 +181,19 @@ class SuitCwtPayload(SuitKeyValue):
     }
 
 
+class CoseSigStructure(SuitTupleNamed):
+    """Representation of COSE Sig_structure."""
+
+    _metadata = Metadata(
+        map={
+            "context": SuitTstr,
+            "body_protected": cbstr(SuitHeaderMap),
+            "external_add": SuitHex,
+            "payload": cbstr(SuitDigestRaw),
+        }
+    )
+
+
 class CoseSign1Payload(SuitUnion):
     """Representation of COSE_Sign1_payload item."""
 
@@ -196,10 +210,10 @@ class CoseSign1(SuitTupleNamed):
 
     _metadata = Metadata(
         map={
-            "protected": SuitHeaderMap,
+            "protected": cbstr(SuitHeaderMap),
             "unprotected": SuitHeaderData,
             "payload": CoseSign1Payload,
-            "signature": SuitBstr,
+            "signature": SuitHex,
         }
     )
 
@@ -207,13 +221,21 @@ class CoseSign1(SuitTupleNamed):
 class CoseSign1Tagged(SuitTag):
     """Representation of COSE_Sign1_Tagged item."""
 
-    _metadata = Metadata(children=[CoseSign1], tag=Tag(18, "COSE_Sign1_Tagged"))
+    _metadata = Metadata(children=[CoseSign1], tag=Tag(18, "CoseSign1Tagged"))
 
 
 class SuitAuthenticationBlock(SuitUnion):
     """Representation of SuitAuthentication_Block item."""
 
     _metadata = Metadata(children=[CoseSign1Tagged])
+
+
+class SuitAuthenticationSigned(SuitTupleNamed):
+    """Representation of SuitAuthentication item."""
+
+    _metadata = Metadata(
+        map={"SuitDigest": cbstr(SuitDigest), "SuitAuthenticationBlock": cbstr(SuitAuthenticationBlock)}
+    )
 
 
 class SuitAuthenticationUnsigned(SuitTupleNamed):
@@ -225,7 +247,7 @@ class SuitAuthenticationUnsigned(SuitTupleNamed):
 class SuitAuthentication(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[SuitAuthenticationUnsigned])
+    _metadata = Metadata(children=[SuitAuthenticationSigned, SuitAuthenticationUnsigned])
 
 
 class SuitAuthenticationWrapper(SuitTupleNamed):

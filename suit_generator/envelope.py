@@ -35,7 +35,7 @@ class SuitEnvelope(InputOutputMixin):
         """Initialize SUIT envelope."""
         self._envelope = None
 
-    def dump(self, file_name: str | None = None, output_type: str = "AUTO") -> None:
+    def dump(self, file_name: str | None = None, output_type: str = "AUTO", *, private_key=None) -> None:
         """Dump internal envelope object into one of the supported file types or objects (yaml, json, cbor).
 
         :param file_name: input file path
@@ -47,7 +47,7 @@ class SuitEnvelope(InputOutputMixin):
             output_type = pathlib.Path(file_name).suffix[1:]
 
         dump_method = self.get_serializer(output_type)
-        dump_method(file_name, self._envelope)
+        dump_method(file_name, self._envelope, private_key)
 
     def load(self, file_name: str, input_type: str = "AUTO") -> None:
         """Create internal envelope object from one of the supported file types.

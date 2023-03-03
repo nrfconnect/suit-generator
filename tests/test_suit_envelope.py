@@ -6,6 +6,8 @@
 """Unit tests for SUIT internal envelope representation."""
 import pytest
 import binascii
+
+from suit_generator.suit.authentication import CoseSigStructure
 from suit_generator.suit.envelope import SuitEnvelopeTagged
 from suit_generator.suit.types.keys import (
     suit_authentication_wrapper,
@@ -14,8 +16,28 @@ from suit_generator.suit.types.keys import (
     suit_manifest_version,
     suit_common,
     suit_integrated_payloads,
+    suit_cose_algorithm_id,
 )
 from deepdiff import DeepDiff
+from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
+
+PRIVATE_KEYS = {
+    "ES_256": b"""-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCCbgTEad8JOIU8sg
+IJUKm7Lle0358XoaxNfbs4nqd4WhRANCAATt0J6l7OTtvmwI50cJVZo4KcUxMyJ7
+9PARbowFLQIODsPg2Df0wm/BKIAvRTgaIytt1dooYABdq+Kgg9vvOFUT
+-----END PRIVATE KEY-----""",
+    "ES_384": b"""-----BEGIN PRIVATE KEY-----
+MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDCw/iNctq9pFyKI/fem
+p/CmNMyMyMnM29D4aajftXjkJQJv/ei/jTWFV5RbyBQiU8mhZANiAATp3RsCAE7E
+C+9ywexwCwCqFS5thWjpXJfcrN+KaqRJ65H5r1cHmZB7sLj/qIPgclrNWA+qau7H
+SybGG+k1OCi30FZSSo7Ozv8jarYr8NvoQnyI6+01Mo5TaOqC9a+41p8=
+-----END PRIVATE KEY-----
+""",
+}
 
 TEST_DATA = {
     "ENVELOPE_1_UNSIGNED": (
@@ -262,15 +284,23 @@ def test_parse_unsigned_envelope_parse_and_dump(input_envelope):
     assert envelope.to_cbor().hex() == TEST_DATA[input_envelope]
 
 
-@pytest.mark.skip(reason="Signed envelopes are not supported")
 def test_parse_signed_envelope():
     """Test if is possible to parse complete signed envelope."""
     envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA["ENVELOPE_5_SIGNED"]))
-    assert envelope.metadata.tag.name == "SUIT_Envelope_Tagged"
-    assert envelope.metadata.tag.value == 107
-    assert envelope.value.value.value is dict
+    assert envelope._metadata.tag.name == "SUIT_Envelope_Tagged"
+    assert envelope._metadata.tag.value == 107
+    assert type(envelope.SuitEnvelopeTagged.value.SuitEnvelope) is dict
     assert suit_authentication_wrapper in envelope.value.value.value.keys()
     assert suit_manifest in envelope.value.value.value.keys()
+    assert (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication.SuitAuthenticationSigned[0]
+        .SuitDigest.SuitDigestRaw[0]
+        .SuitCoseHashAlg
+        == "cose-alg-sha-256"
+    )
+    for required_item in [suit_manifest_sequence_number, suit_manifest_version, suit_common]:
+        assert required_item in envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest.keys()
 
 
 def test_conversion_obj_to_cbor():
@@ -409,3 +439,79 @@ def test_digest_update_after_value_change():
         .value
     )
     assert digest_bytes_after_update.hex() != digest_bytes_before_update.hex()
+
+
+@pytest.mark.parametrize(
+    "private_key",
+    ["ES_256", "ES_384"],
+)
+def test_envelope_signing(private_key):
+    """Test if is possible to sign manifest."""
+    envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
+    envelope.update_digest()
+    envelope.sign(PRIVATE_KEYS[private_key])
+    assert envelope is not None
+    assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope
+    assert hasattr(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper], "SuitAuthentication")
+    # fixme: try to remove this double SuitAuthentication
+    assert hasattr(
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[
+            suit_authentication_wrapper
+        ].SuitAuthentication.SuitAuthentication,
+        "SuitAuthenticationSigned",
+    )
+    assert (
+        len(
+            envelope.SuitEnvelopeTagged.value.SuitEnvelope[
+                suit_authentication_wrapper
+            ].SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned
+        )
+        == 2
+    )
+    assert hasattr(
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[
+            suit_authentication_wrapper
+        ].SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned[0],
+        "SuitDigest",
+    )
+
+
+def test_envelope_sign_and_verify():
+    """Test if is possible to sign manifest and signature can be verified properly."""
+    envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
+    digest_object = (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication.value[0]
+        .SuitDigest.to_obj()
+    )
+    envelope.sign(PRIVATE_KEYS["ES_256"])
+    signature = (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
+        .SuitHex
+    )
+    # extract r and s from signature and decode_signature
+    int_sig = int.from_bytes(signature, byteorder="big")
+    r = int_sig >> (32 * 8)
+    s = int_sig & sum([0xFF << x * 8 for x in range(0, 32)])
+    dss_signature = encode_dss_signature(r, s)
+    # fixme: SuitAuthentication twice
+    algorithm_name = (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
+        .SuitHeaderMap[suit_cose_algorithm_id]
+        .value
+    )
+    cose_structure = CoseSigStructure.from_obj(
+        {
+            "context": "Signature1",
+            "body_protected": {"suit-cose-algorithm-id": algorithm_name},
+            "external_add": "",
+            "payload": digest_object,
+        }
+    )
+    binary_data = cose_structure.to_cbor()
+    public_key = load_pem_private_key(PRIVATE_KEYS["ES_256"], None).public_key()
+    public_key.verify(dss_signature, binary_data, ec.ECDSA(hashes.SHA256()))
