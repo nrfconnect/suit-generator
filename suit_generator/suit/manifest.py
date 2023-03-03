@@ -23,8 +23,9 @@ from suit_generator.suit.types.common import (
     SuitListUint,
     SuitBitfield,
     SuitEnum,
+    cbor,
 )
-from suit_generator.suit.authentication import SuitDigestBstr
+from suit_generator.suit.authentication import SuitDigest
 from suit_generator.suit.types.keys import (
     suit_parameter_vendor_identifier,
     suit_parameter_class_identifier,
@@ -68,6 +69,24 @@ from suit_generator.suit.types.keys import (
     suit_send_record_failure,
     suit_send_sysinfo_success,
     suit_send_sysinfo_failure,
+    suit_reference_uri,
+    suit_validate,
+    suit_load,
+    suit_invoke,
+    suit_payload_fetch,
+    suit_install,
+    suit_text_manifest_description,
+    suit_text_manifest_json_source,
+    suit_text_manifest_yaml_source,
+    suit_text_update_description,
+    suit_text_vendor_name,
+    suit_text_model_name,
+    suit_text_vendor_domain,
+    suit_text_model_info,
+    suit_text_component_description,
+    suit_text_component_version,
+    suit_uninstall,
+    suit_text,
 )
 
 
@@ -144,7 +163,7 @@ class SuitParameters(SuitKeyValue):
         map={
             suit_parameter_vendor_identifier: SuitUUID,
             suit_parameter_class_identifier: SuitUUID,
-            suit_parameter_image_digest: SuitDigestBstr,
+            suit_parameter_image_digest: cbor(SuitDigest),
             suit_parameter_component_slot: SuitUint,
             suit_parameter_strict_order: SuitBool,
             suit_parameter_soft_failure: SuitBool,
@@ -207,13 +226,53 @@ class SuitCommand(SuitUnion):
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[SuitTstr, SuitUint, SuitBstr])
+    _metadata = Metadata(children=[cbor(SuitTstr), cbor(SuitUint), SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):
     """Representation of SUIT component identifier."""
 
     _metadata = Metadata(children=[SuitComponentIdentifierPart])
+
+
+class SuitTextComponentKeys(SuitKeyValue):
+    """Representation of SUIT component keys."""
+
+    _metadata = Metadata(
+        map={
+            suit_text_vendor_name: SuitTstr,
+            suit_text_model_name: SuitTstr,
+            suit_text_vendor_domain: SuitTstr,
+            suit_text_model_info: SuitTstr,
+            suit_text_component_description: SuitTstr,
+            suit_text_component_version: SuitTstr,
+        }
+    )
+
+
+class SuitTextKeys(SuitEnum):
+    """Representation of SUIT keys."""
+
+    _metadata = Metadata(
+        children=[
+            suit_text_manifest_description,
+            suit_text_update_description,
+            suit_text_manifest_json_source,
+            suit_text_manifest_yaml_source,
+        ]
+    )
+
+
+class SuitTextMap(SuitKeyValueUnnamed):
+    """Representation of SUIT text map."""
+
+    _metadata = Metadata(map={SuitComponentIdentifier: SuitTextComponentKeys, SuitTextKeys: SuitTstr})
+
+
+class SuitSeverableText(SuitUnion):
+    """Representation of SUIT severable text."""
+
+    _metadata = Metadata(children=[SuitDigest, SuitTextMap])
 
 
 class SuitDependencyMetadata(SuitKeyValue):
@@ -241,6 +300,12 @@ class SuitCommandSequence(SuitList):
     _group = 2
 
 
+class SuitSeverableCommandSequence(SuitUnion):
+    """Representation of SUIT severable command sequence."""
+
+    _metadata = Metadata(children=[cbor(SuitCommandSequence), SuitDigest])
+
+
 class SuitCommon(SuitKeyValue):
     """Representation of SUIT common."""
 
@@ -248,7 +313,7 @@ class SuitCommon(SuitKeyValue):
         map={
             suit_dependencies: SuitDependencies,
             suit_components: SuitComponents,
-            suit_shared_sequence: SuitCommandSequence,
+            suit_shared_sequence: cbor(SuitCommandSequence),
         }
     )
 
@@ -257,5 +322,17 @@ class SuitManifest(SuitKeyValue):
     """Representation of SUIT manifest."""
 
     _metadata = Metadata(
-        map={suit_manifest_version: SuitUint, suit_manifest_sequence_number: SuitUint, suit_common: SuitCommon}
+        map={
+            suit_manifest_version: SuitUint,
+            suit_manifest_sequence_number: SuitUint,
+            suit_common: cbor(SuitCommon),
+            suit_reference_uri: SuitTstr,
+            suit_validate: cbor(SuitCommandSequence),
+            suit_load: cbor(SuitCommandSequence),
+            suit_invoke: cbor(SuitCommandSequence),
+            suit_payload_fetch: SuitSeverableCommandSequence,
+            suit_install: SuitSeverableCommandSequence,
+            suit_text: SuitSeverableText,
+            suit_uninstall: cbor(SuitCommandSequence),
+        }
     )
