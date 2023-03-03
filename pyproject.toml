@@ -40,3 +40,8 @@ inherit = false
 # D104: Missing docstring in public package
 ignore = ["D208","D203","D212","D213","D105","D104"]
 match = "^(?!test).*py"
+
+[tool.pytest.ini_options]
+log_cli = false
+log_cli_level = "DEBUG"
+log_cli_format = "%(asctime)s:%(levelname)s:%(message)s"

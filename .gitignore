@@ -2,3 +2,8 @@
 /venv/*
 /.idea/*
 /suit_generator.egg-info/*
+/coverage/*
+*/.coverage
+.coverage
+/dist/*
+/dist/*

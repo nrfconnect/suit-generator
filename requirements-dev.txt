@@ -1,3 +1,5 @@
+pytest
+pytest-mock
 build
 setuptools>=65.6.3
 black

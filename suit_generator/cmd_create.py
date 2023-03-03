@@ -5,13 +5,11 @@
 #
 """CMD_CREATE CLI command entry point."""
 from suit_generator.envelope import SuitEnvelope
-from suit_generator.logger import log_call
 import logging
 
 log = logging.getLogger(__name__)
 
 
-@log_call
 def main(input_file: str, input_format: str, output_file: str) -> None:
     """Create SUIT envelope.
 
