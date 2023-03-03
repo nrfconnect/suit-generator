@@ -82,7 +82,7 @@ class SuitCoseHashAlg(SuitEnum):
     )
 
 
-class SuitDigetsBytes(SuitHex):
+class SuitDigestBytes(SuitHex):
     """Representation of SUIT digests bytes."""
 
     pass
@@ -94,7 +94,7 @@ class SuitDigestRaw(SuitTupleNamed):
     _metadata = Metadata(
         map={
             "suit-digest-algorithm-id": SuitCoseHashAlg,
-            "suit-digest-bytes": SuitDigetsBytes,
+            "suit-digest-bytes": SuitDigestBytes,
         }
     )
 
@@ -222,13 +222,19 @@ class SuitAuthenticationUnsigned(SuitTupleNamed):
     _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest)})
 
 
+# class SuitAuthentication(SuitUnion):
+#     """Abstract element to define possible sub-elements."""
+#
+#     _metadata = Metadata(children=[SuitDigest])
+
+
 class SuitAuthentication(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[SuitDigest])
+    _metadata = Metadata(children=[SuitAuthenticationUnsigned])
 
 
 class SuitAuthenticationWrapper(SuitTupleNamed):
     """Representation of SUIT authentication wrapper."""
 
-    _metadata = Metadata(map={"SuitAuthentication": cbstr(SuitAuthentication)})
+    _metadata = Metadata(map={"SuitAuthentication": SuitAuthentication})

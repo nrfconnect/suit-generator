@@ -6,6 +6,7 @@
 """Input and output extensions for storing objects as yaml, json or cbor."""
 from __future__ import annotations
 from typing import Callable
+from suit_generator.suit.envelope import SuitEnvelopeTagged
 import json
 import yaml
 
@@ -57,7 +58,10 @@ class InputOutputMixin:
 
     def to_suit_file(self, file_name, data) -> None:
         """Write dict content into suit file."""
-        pass
+        with open(file_name, "wb") as fh:
+            suit_obj = SuitEnvelopeTagged.from_obj(data)
+            suit_obj.update_digest()
+            fh.write(suit_obj.to_cbor())
 
     def get_serializer(self, output_type: str) -> Callable:
         """Return serialize method."""

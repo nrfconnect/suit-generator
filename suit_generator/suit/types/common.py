@@ -8,10 +8,13 @@
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """
 from __future__ import annotations
+
+import json
 from dataclasses import dataclass
 from suit_generator.logger import log_call
 import functools
 import cbor2
+import binascii
 
 
 @dataclass
@@ -49,7 +52,7 @@ def cbstr(cls):
     according to the specification above suit-common shall be stored as cbor byte string - cbor decorator might be
     used here to avoid creation of two different internal representations one stored in plain form and one store
     in cbor encoded form:
-        suit_common: cbstr(SuitCommon)
+        suit_common: cbor(SuitCommon)
 
     """
 
@@ -69,6 +72,27 @@ def cbstr(cls):
             return cbor2.dumps(super().to_cbor())
 
     return Cbstr
+
+
+def bstr(cls):
+    """Decorate method to dump value as bytes."""
+
+    class Bstr(cls):
+        """Decorator implementation."""
+
+        def __init__(self, *args, **kwargs):
+            """Init object.
+
+            Init object and wrap to look like original cls.
+            """
+            functools.update_wrapper(Bstr, cls, updated=[])
+            super().__init__(*args, **kwargs)
+
+        def to_cbor(self):
+            """Dump to bytes."""
+            return cbor2.dumps(self.value.encode())
+
+    return Bstr
 
 
 class SuitObject:
@@ -107,8 +131,9 @@ class SuitObject:
         """Dump SUIT representation to cbor."""
         return cbor2.dumps(self.value)
 
-    @staticmethod
-    def ensure_cbor(data):
+    # @staticmethod
+    @classmethod
+    def ensure_cbor(cls, data):
         """Ensure data cbor encoded."""
         return cbor2.dumps(data) if not isinstance(data, bytes) else data
 
@@ -153,21 +178,31 @@ class SuitNull(SuitObject):
 class SuitInt(SuitObject):
     """Representation of int type."""
 
-
-class SuitIntBstr(SuitInt):
-    """Representation of int type."""
-
-    def to_cbor(self):
-        """Dump SUIT representation to cbor encoded bytes."""
-        return cbor2.dumps(super().to_cbor())
+    def __init__(self, value):
+        """Init object."""
+        if (value is not None) and (not isinstance(value, int)):
+            raise ValueError(f"Unable to create int from {value}")
+        super().__init__(value)
 
 
 class SuitUint(SuitInt):
     """Representation of unsigned int type."""
 
+    def __init__(self, value):
+        """Init object."""
+        if (value is not None) and ((not isinstance(value, int)) or (value < 0)):
+            raise ValueError(f"Unable to create unsigned int from {value}")
+        super().__init__(value)
+
 
 class SuitBool(SuitObject):
     """Representation of boolean type."""
+
+    def __init__(self, value):
+        """Init object."""
+        if (value is not None) and (not isinstance(value, bool)):
+            raise ValueError(f"Unable to create bool from {value}")
+        super().__init__(value)
 
 
 # TODO: maybe is worth to remove suit union at all and add configuration, required occurrences etc. as a metadata
@@ -192,6 +227,20 @@ class SuitUnion(SuitObject):
         """Dump SUIT representation to cbor encoded bytes."""
         return self.value.to_cbor()
 
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        value = None
+        for c in cls._metadata.children:
+            try:
+                value = c.from_obj(obj)
+                break
+            except ValueError:
+                pass
+        if value is None:
+            raise ValueError(f"Unable to parse input: {obj}")
+        return cls(value)
+
 
 class SuitTupleNamed(SuitObject):
     """Representation of named tuple."""
@@ -214,13 +263,26 @@ class SuitTupleNamed(SuitObject):
             data.append(cbor2.loads(v.to_cbor()))
         return cbor2.dumps(data)
 
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        value = []
+        if not isinstance(obj, dict):
+            raise ValueError(f"Expected dict, received: {obj}")
+        for k, c in cls._metadata.map.items():
+            if k not in obj.keys():
+                raise ValueError(f"Incomplete list. Missing: {k}")
+            else:
+                value.append(c.from_obj(obj[k]))
+        return cls(value)
+
 
 class SuitKeyValue(SuitObject):
     """Representation of key value items."""
 
     @classmethod
-    def _get_method_and_name(cls, key):
-        metadata_entry = [[k, v] for k, v in cls._metadata.map.items() if k.id == key]
+    def _get_method_and_name(cls, key, attribute="id"):
+        metadata_entry = [[k, v] for k, v in cls._metadata.map.items() if getattr(k, attribute) == key]
         return (metadata_entry[0][0], metadata_entry[0][1]) if metadata_entry else None
 
     @classmethod
@@ -232,7 +294,7 @@ class SuitKeyValue(SuitObject):
         if not isinstance(kv_dict, dict):
             raise ValueError(f"Expected key-value storage, received: {kv_dict}")
         for k, v in kv_dict.items():
-            if not (child := cls._get_method_and_name(k)):
+            if not (child := cls._get_method_and_name(k, "id")):
                 # TODO SuitManifest does not support all required elements
                 continue
                 # raise ValueError(f'Not possible to get child for {k}')
@@ -241,8 +303,28 @@ class SuitKeyValue(SuitObject):
 
     def to_cbor(self):
         """Dump SUIT representation to cbor encoded bytes."""
-        data = {k.id: cbor2.loads(v.to_cbor()) for k, v in self.value.items()}
+        data = {}
+        for k, v in self.value.items():
+            if k.id < 0:
+                # for negative ids just combine subitem into parrent dictionary
+                data.update(cbor2.loads(v.to_cbor()))
+            else:
+                data[k.id] = cbor2.loads(v.to_cbor())
+        # data = {k.id: cbor2.loads(v.to_cbor()) for k, v in self.value.items()}
         return cbor2.dumps(data)
+
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        value = {}
+        if not isinstance(obj, dict):
+            raise ValueError(f"Unable to construct dict from: {obj}")
+        for k, v in obj.items():
+            if child := cls._get_method_and_name(k, "name"):
+                value[child[0]] = child[1].from_obj(v)
+            else:
+                raise ValueError(f"Unknown parameter: {k}")
+        return cls(value)
 
 
 class SuitKeyValueUnnamed(SuitObject):
@@ -284,9 +366,30 @@ class SuitKeyValueUnnamed(SuitObject):
             obj[key] = cbor2.loads(v[1].to_cbor())
         return cbor2.dumps(obj)
 
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        ret = {}
+        for k, v in obj.items():
+            for c_k, c_v in cls._metadata.map.items():
+                try:
+                    try:
+                        key = c_k.from_obj(json.loads(k))
+                    except ValueError:
+                        key = c_k.from_obj(k)
+                    except json.decoder.JSONDecodeError:
+                        key = c_k.from_obj(k)
+                    ret[k] = (key, c_v.from_obj(v))
+                    break
+                except ValueError:
+                    pass
+            else:
+                raise ValueError(f"Unable to parse key-value pair: {k}: {v}")
+        return cls(ret)
 
-class SuitKeyValueTupple(SuitKeyValue):
-    """Representation of key value tupple."""
+
+class SuitKeyValueTuple(SuitKeyValue):
+    """Representation of key value tuple."""
 
     @classmethod
     def from_cbor(cls, cbstr):
@@ -314,9 +417,21 @@ class SuitKeyValueTupple(SuitKeyValue):
 class SuitTstr(SuitObject):
     """Representation of text string."""
 
+    def __init__(self, value):
+        """Init object."""
+        if (value is not None) and (not isinstance(value, str)):
+            raise ValueError(f"Unable to create string from {value}")
+        super().__init__(value)
+
 
 class SuitBstr(SuitObject):
     """Representation of byte string."""
+
+    def __init__(self, value):
+        """Init object."""
+        if (value is not None) and (not isinstance(value, bytes)):
+            raise ValueError(f"Unable to create bytes from {value}")
+        super().__init__(value)
 
     @classmethod
     def from_cbor(cls, cbstr):
@@ -326,6 +441,13 @@ class SuitBstr(SuitObject):
     def to_cbor(self):
         """Dump SUIT representation to cbor encoded bytes."""
         return cbor2.dumps(self.value)
+
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        if not isinstance(obj, str):
+            raise ValueError(f"Expected hex string, received: {obj}")
+        return cls(binascii.a2b_hex(obj))
 
 
 class SuitHex(SuitBstr):
@@ -346,6 +468,15 @@ class SuitTag(SuitObject):
     def to_cbor(self):
         """Dump SUIT representation to cbor encoded bytes."""
         return cbor2.dumps(cbor2.CBORTag(self._metadata.tag.value, cbor2.loads(self.value.value.to_cbor())))
+
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        if cls._metadata.tag.name not in obj.keys():
+            raise ValueError(f"CBOR tag not found in: {obj}")
+        return cls(
+            cbor2.CBORTag(cls._metadata.tag.value, cls._metadata.children[0].from_obj(obj[cls._metadata.tag.name]))
+        )
 
 
 class SuitList(SuitObject):
@@ -385,6 +516,14 @@ class SuitList(SuitObject):
                 data.append(z)
         return cbor2.dumps(data)
 
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        value = []
+        for v in obj:
+            value.append(cls._metadata.children[0].from_obj(v))
+        return cls(tuple(value))
+
 
 class SuitListUint(SuitList):
     """Representation of uint list."""
@@ -420,3 +559,14 @@ class SuitBitfield(SuitObject):
         for bit in self.value:
             value += cbor2.loads(bit.to_cbor())
         return cbor2.dumps(value)
+
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        value = []
+        if not isinstance(obj, list):
+            raise ValueError(f"Unable to parse bitlist: {obj}")
+        for bit in obj:
+            bit_obj = cls._bit_class.from_obj(bit)
+            value.append(bit_obj)
+        return cls(value)
