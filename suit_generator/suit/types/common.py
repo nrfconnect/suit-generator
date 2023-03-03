@@ -298,9 +298,11 @@ class SuitList(SuitObject):
             raise ValueError(f"Unable to construct list from: {values}")
         # TODO: to refactor or remove
         if cls._group is not None:
-            values = [values[i: i + cls._group] for i in range(0, len(values), cls._group)]
+            values = [values[i : i + cls._group] for i in range(0, len(values), cls._group)]
         value = (
-            [cls._metadata.children[0].from_cbor(cls.ensure_cbor(v)) for v in values] if cls._metadata.children else None
+            [cls._metadata.children[0].from_cbor(cls.ensure_cbor(v)) for v in values]
+            if cls._metadata.children
+            else None
         )
         return cls(tuple(value))
 
