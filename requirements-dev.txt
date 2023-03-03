@@ -5,3 +5,4 @@ setuptools>=65.6.3
 black
 pydocstyle
 flake8
+deepdiff

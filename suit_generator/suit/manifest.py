@@ -243,6 +243,10 @@ class SuitComponentIdentifier(SuitList):
 
     _metadata = Metadata(children=[SuitComponentIdentifierPart])
 
+    def to_obj(self):
+        """Dump SUIT representation to object."""
+        return [v.to_obj() for v in self.value]
+
 
 class SuitTextComponentKeys(SuitKeyValue):
     """Representation of SUIT component keys."""
