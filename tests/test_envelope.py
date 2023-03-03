@@ -7,7 +7,16 @@
 import json
 import pytest
 from suit_generator.envelope import SuitEnvelope
-from suit_generator.inputOutput import FileTypeException
+from suit_generator.input_output import FileTypeException
+
+TEST_SUIT_STRING_AUTHENTICATINON_WRAPPER = (
+    "d86ba2025827815824822f58206658ea560262696dd1f13b782239a064da"
+    "7c6c5cbaf52fded428a6fc83c7e5af035871a50101020003585fa20281814"
+    "1000458568614a40150fa6b4a53d5ad5fdfbe9de663e4d41ffe02501492af"
+    "1425695e48bf429b2d51f2ab45035824822f582000112233445566778899a"
+    "abbccddeeff0123456789abcdeffedcba98765432100e1987d0010f020f07"
+    "4382030f0943821702"
+)
 
 TEST_JSON_STRING = """{
     "SUIT_Envelope_Tagged":
@@ -208,6 +217,14 @@ def mocker_json_open(mocker):
     mocker.patch(builtin_open, mocked_data)
 
 
+@pytest.fixture
+def mocker_suit_open(mocker):
+    """Mock JSON file open."""
+    mocked_data = mocker.mock_open(read_data=TEST_SUIT_STRING_AUTHENTICATINON_WRAPPER)
+    builtin_open = "builtins.open"
+    mocker.patch(builtin_open, mocked_data)
+
+
 def test_read_from_json(mocker_json_open):
     """Test if envelope can be created from json."""
     envelope = SuitEnvelope()
@@ -251,7 +268,7 @@ def test_write_to_xml_negative(mocker_json_open):
 
 
 def test_read_from_xml_negative(mocker_json_open):
-    """est if not supported file input_type if properly recognized."""
+    """Test if not supported file input_type if properly recognized."""
     envelope = SuitEnvelope()
     with pytest.raises(FileTypeException):
         envelope.load("some_json_file.xml", input_type="xml")

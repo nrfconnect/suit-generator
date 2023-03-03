@@ -17,7 +17,7 @@ Example usage:
         envelope.dump('output.json')
 """
 from __future__ import annotations
-from suit_generator.inputOutput import InputOutputMixin
+from suit_generator.input_output import InputOutputMixin
 import pathlib
 
 

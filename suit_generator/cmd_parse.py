@@ -5,10 +5,8 @@
 #
 """CMD_PARSE CLI command entry point."""
 from suit_generator.envelope import SuitEnvelope
-from suit_generator.logger import log_call
 
 
-@log_call
 def main(input_file: str, output_file: str, output_format: str) -> None:
     """Parse input file.
 

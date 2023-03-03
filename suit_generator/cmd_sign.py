@@ -6,7 +6,6 @@
 """CMD_SIGN CLI command entry point."""
 import logging
 from abc import ABC, abstractmethod
-from suit_generator.logger import log_call
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +27,6 @@ class LocalSigner(Signer):
         log.info(f"signing {input_file=} by {key=} and storing as {output_file=}")
 
 
-@log_call
 def main(input_file: str, output_file: str, private_key: str) -> None:
     """Sign SUIT manifest.
 
