@@ -18,7 +18,7 @@ def test_suit_authentication_wrapper_from_cbor_only_digest():
     assert suit_obj.value is not None
 
 
-def test_suit_authentication_wrapper_from_cbor_only_digest_parsing_dumping():
+def test_suit_authentication_wrapper_from_cbor_only_digest_parse_and_dump():
     """Check authentication-wrapper parsing for only digest in it."""
 
     suit_obj = SuitAuthenticationWrapper.from_cbor(binascii.a2b_hex(AUTHENTICATION_WRAPPER_DATA))
