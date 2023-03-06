@@ -2,8 +2,9 @@
 /venv/*
 /.idea/*
 /suit_generator.egg-info/*
+/suit_generator/_version.py
 /coverage/*
 */.coverage
 .coverage
 /dist/*
-/dist/*
+__pycache__

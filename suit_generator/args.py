@@ -9,6 +9,8 @@
 from argparse import ArgumentParser
 from typing import Tuple
 
+from suit_generator.cmd_keys import KeyGenerator
+
 PARSE_CMD = "parse"
 CREATE_CMD = "create"
 KEYS_CMD = "keys"
@@ -52,7 +54,41 @@ def parse_arguments() -> Tuple:
     # KEYS_CMD command
     cmd_keys_arg_parser = subparsers.add_parser(KEYS_CMD, help="Create pair of signing keys.")
     cmd_keys_arg_parser.add_argument("--output-file", required=True, help="Prefix for output files.")
-    cmd_keys_arg_parser.add_argument("--key-type", required=True, default="secp256r1", help="Output key file type.")
+    cmd_keys_arg_parser.add_argument(
+        "--type",
+        required=False,
+        default=KeyGenerator.default_key_type,
+        help=f"Output key file type. Default: {KeyGenerator.default_key_type}",
+        choices=KeyGenerator.supported_key_types.keys(),
+    )
+    cmd_keys_arg_parser.add_argument(
+        "--encoding",
+        required=False,
+        default=KeyGenerator.default_encoding,
+        help=f"Key encoding. Default: {KeyGenerator.default_encoding}",
+        choices=KeyGenerator.supported_encodings.keys(),
+    )
+    cmd_keys_arg_parser.add_argument(
+        "--private-format",
+        required=False,
+        default=KeyGenerator.default_private_format,
+        help=f"Private key format. Default: {KeyGenerator.default_private_format}",
+        choices=KeyGenerator.supported_private_formats.keys(),
+    )
+    cmd_keys_arg_parser.add_argument(
+        "--public-format",
+        required=False,
+        default=KeyGenerator.default_public_format,
+        help=f"Public key format. Default: {KeyGenerator.default_public_format}",
+        choices=KeyGenerator.supported_public_formats.keys(),
+    )
+    cmd_keys_arg_parser.add_argument(
+        "--encryption",
+        required=False,
+        default=KeyGenerator.default_encryption,
+        help=f"Key encryption. Default: {KeyGenerator.default_encryption}",
+        choices=KeyGenerator.supported_encryptions.keys(),
+    )
     # SIGN_CMD command
     cmd_sign_arg_parser = subparsers.add_parser(SIGN_CMD, help="Sign manifest")
     cmd_sign_arg_parser.add_argument("--input-file", required=True, help="Input SUIT file")
