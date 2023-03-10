@@ -31,7 +31,7 @@ class Metadata:
     map: dict | None = None
 
 
-def cbor(cls):
+def cbstr(cls):
     """Decorate method to dump value as cbor.
 
     Decorator might be used to cast SUIT internal element to cbor encoded in the output byte string.
@@ -49,11 +49,11 @@ def cbor(cls):
     according to the specification above suit-common shall be stored as cbor byte string - cbor decorator might be
     used here to avoid creation of two different internal representations one stored in plain form and one store
     in cbor encoded form:
-        suit_common: cbor(SuitCommon)
+        suit_common: cbstr(SuitCommon)
 
     """
 
-    class Cbor(cls):
+    class Cbstr(cls):
         """Decorator implementation."""
 
         def __init__(self, *args, **kwargs):
@@ -61,14 +61,14 @@ def cbor(cls):
 
             Init object and wrap to look like original cls.
             """
-            functools.update_wrapper(Cbor, cls, updated=[])
+            functools.update_wrapper(Cbstr, cls, updated=[])
             super().__init__(*args, **kwargs)
 
         def to_cbor(self):
             """Dump to cbor encoded byte string."""
             return cbor2.dumps(super().to_cbor())
 
-    return Cbor
+    return Cbstr
 
 
 class SuitObject:

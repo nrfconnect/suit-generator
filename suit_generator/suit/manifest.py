@@ -23,7 +23,7 @@ from suit_generator.suit.types.common import (
     SuitListUint,
     SuitBitfield,
     SuitEnum,
-    cbor,
+    cbstr,
 )
 from suit_generator.suit.authentication import SuitDigest
 from suit_generator.suit.types.keys import (
@@ -163,7 +163,7 @@ class SuitParameters(SuitKeyValue):
         map={
             suit_parameter_vendor_identifier: SuitUUID,
             suit_parameter_class_identifier: SuitUUID,
-            suit_parameter_image_digest: cbor(SuitDigest),
+            suit_parameter_image_digest: cbstr(SuitDigest),
             suit_parameter_component_slot: SuitUint,
             suit_parameter_strict_order: SuitBool,
             suit_parameter_soft_failure: SuitBool,
@@ -226,7 +226,7 @@ class SuitCommand(SuitUnion):
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[cbor(SuitTstr), cbor(SuitUint), SuitBstr])
+    _metadata = Metadata(children=[cbstr(SuitTstr), cbstr(SuitUint), SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):
@@ -303,7 +303,7 @@ class SuitCommandSequence(SuitList):
 class SuitSeverableCommandSequence(SuitUnion):
     """Representation of SUIT severable command sequence."""
 
-    _metadata = Metadata(children=[cbor(SuitCommandSequence), SuitDigest])
+    _metadata = Metadata(children=[cbstr(SuitCommandSequence), SuitDigest])
 
 
 class SuitCommon(SuitKeyValue):
@@ -313,7 +313,7 @@ class SuitCommon(SuitKeyValue):
         map={
             suit_dependencies: SuitDependencies,
             suit_components: SuitComponents,
-            suit_shared_sequence: cbor(SuitCommandSequence),
+            suit_shared_sequence: cbstr(SuitCommandSequence),
         }
     )
 
@@ -325,14 +325,14 @@ class SuitManifest(SuitKeyValue):
         map={
             suit_manifest_version: SuitUint,
             suit_manifest_sequence_number: SuitUint,
-            suit_common: cbor(SuitCommon),
+            suit_common: cbstr(SuitCommon),
             suit_reference_uri: SuitTstr,
-            suit_validate: cbor(SuitCommandSequence),
-            suit_load: cbor(SuitCommandSequence),
-            suit_invoke: cbor(SuitCommandSequence),
+            suit_validate: cbstr(SuitCommandSequence),
+            suit_load: cbstr(SuitCommandSequence),
+            suit_invoke: cbstr(SuitCommandSequence),
             suit_payload_fetch: SuitSeverableCommandSequence,
             suit_install: SuitSeverableCommandSequence,
             suit_text: SuitSeverableText,
-            suit_uninstall: cbor(SuitCommandSequence),
+            suit_uninstall: cbstr(SuitCommandSequence),
         }
     )

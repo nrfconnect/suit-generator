@@ -8,7 +8,7 @@
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """
 
-from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, cbor
+from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, cbstr
 from suit_generator.suit.authentication import SuitAuthenticationWrapper
 from suit_generator.suit.manifest import SuitManifest, SuitCommandSequence, SuitTextMap
 from suit_generator.suit.types.keys import (
@@ -27,12 +27,12 @@ class SuitEnvelope(SuitKeyValue):
     # TODO: add missing items
     _metadata = Metadata(
         map={
-            suit_manifest: cbor(SuitManifest),
-            suit_authentication_wrapper: cbor(SuitAuthenticationWrapper),
-            suit_dependency_resolution: cbor(SuitCommandSequence),
-            suit_payload_fetch: cbor(SuitCommandSequence),
-            suit_install: cbor(SuitCommandSequence),
-            suit_text: cbor(SuitTextMap),
+            suit_manifest: cbstr(SuitManifest),
+            suit_authentication_wrapper: cbstr(SuitAuthenticationWrapper),
+            suit_dependency_resolution: cbstr(SuitCommandSequence),
+            suit_payload_fetch: cbstr(SuitCommandSequence),
+            suit_install: cbstr(SuitCommandSequence),
+            suit_text: cbstr(SuitTextMap),
         }
     )
 
