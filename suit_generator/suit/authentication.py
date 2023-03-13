@@ -20,6 +20,7 @@ from suit_generator.suit.types.common import (
     SuitBstr,
     SuitTag,
     Tag,
+    cbstr,
 )
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
@@ -137,12 +138,6 @@ class SuitDigest(SuitUnion):
     _metadata = Metadata(children=[SuitDigestRaw, SuitDigestExt])
 
 
-class SuitDigestBstr(SuitDigest):
-    """Representation of SUIT digest byte string."""
-
-    pass
-
-
 class SuitcoseSignAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
@@ -224,7 +219,7 @@ class SuitAuthenticationBlock(SuitUnion):
 class SuitAuthenticationUnsigned(SuitTupleNamed):
     """Representation of SuitAuthentication item."""
 
-    _metadata = Metadata(map={"SuitDigest": SuitDigestBstr})
+    _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest)})
 
 
 class SuitAuthentication(SuitUnion):
@@ -236,4 +231,4 @@ class SuitAuthentication(SuitUnion):
 class SuitAuthenticationWrapper(SuitTupleNamed):
     """Representation of SUIT authentication wrapper."""
 
-    _metadata = Metadata(map={"SuitAuthentication": SuitAuthentication})
+    _metadata = Metadata(map={"SuitAuthentication": cbstr(SuitAuthentication)})

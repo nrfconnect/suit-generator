@@ -220,11 +220,158 @@ class suit_common(suit_key):
     name = "suit-common"
 
 
+class suit_reference_uri:
+    """suit-reference-uri metadata."""
+
+    id = 4
+    "suit-reference-uri"
+
+
 class suit_validate(suit_key):
     """suit-validate metadata."""
 
     id = 7
     name = "suit-validate"
+
+
+class suit_load(suit_key):
+    """suit-load metadata."""
+
+    id = 8
+    name = "suit-load"
+
+
+class suit_invoke(suit_key):
+    """suit-invoke metadata."""
+
+    id = 9
+    name = "suit-invoke"
+
+
+class suit_payload_fetch(suit_key):
+    """suit-payload-fetch metadata."""
+
+    id = 16
+    name = "suit-payload-fetch"
+
+
+class suit_install(suit_key):
+    """suit-install metadata."""
+
+    id = 17
+    name = "suit-install"
+
+
+class suit_text(suit_key):
+    """suit-install metadata."""
+
+    id = 23
+    name = "suit-text"
+
+
+class suit_integrated_payloads(suit_key):
+    """suit-integrated-payloads metadata."""
+
+    id = -1
+    name = "suit-integrated-payloads"
+
+
+class suit_integrated_dependencies(suit_key):
+    """suit-integrated-dependencies metadata."""
+
+    id = -2
+    name = "suit-integrated-dependencies"
+
+
+class suit_uninstall(suit_key):
+    """suit-uninstall metadata."""
+
+    id = 24
+    name = "suit_uninstall"
+
+
+class suit_text_manifest_description(suit_key):
+    """suit-text-manifest-description metadata."""
+
+    id = 1
+    name = "suit-text-manifest-description"
+
+
+class suit_text_update_description(suit_key):
+    """suit-text-update-description metadata."""
+
+    id = 2
+    name = "suit-text-update-description"
+
+
+class suit_text_manifest_json_source(suit_key):
+    """suit-text-manifest-json-source metadata."""
+
+    id = 3
+    name = "suit-text-manifest-json-source"
+
+
+class suit_text_manifest_yaml_source(suit_key):
+    """suit-text-manifest-yaml-source metadata."""
+
+    id = 4
+    name = "suit-text-manifest-yaml-source"
+
+
+class suit_text_vendor_name(suit_key):
+    """suit-text-vendor-name metadata."""
+
+    id = 1
+    name = "suit-text-vendor-name"
+
+
+class suit_text_model_name(suit_key):
+    """suit-text-model-name metadata."""
+
+    id = 2
+    name = "suit-text-model-name"
+
+
+class suit_text_vendor_domain(suit_key):
+    """suit-text-vendor-domain metadata."""
+
+    id = 3
+    name = "suit-text-vendor-domain"
+
+
+class suit_text_model_info(suit_key):
+    """suit-text-model-info metadata."""
+
+    id = 4
+    name = "suit-text-"
+
+
+class suit_text_component_description(suit_key):
+    """suit-text-component-description metadata."""
+
+    id = 5
+    name = "suit-text-component-description"
+
+
+class suit_text_component_version(suit_key):
+    """suit-text-component-version metadata."""
+
+    id = 6
+    name = "suit-text-component-version"
+
+
+class suit_delegation(suit_key):
+    """suit-delegation metadata."""
+
+    id = 1
+    name = "suit-delegation"
+
+
+class suit_authentication_wrapper(suit_key):
+    """suit-authentication-wrapper metadata."""
+
+    id = 2
+    name = "suit-authentication-wrapper"
 
 
 class suit_manifest(suit_key):
@@ -234,11 +381,11 @@ class suit_manifest(suit_key):
     name = "suit-manifest"
 
 
-class suit_authentication_wrapper(suit_key):
-    """suit-authentication-wrapper metadata."""
+class suit_dependency_resolution(suit_key):
+    """suit-dependency-resolution metadata."""
 
-    id = 2
-    name = "suit-authentication-wrapper"
+    id = 7
+    name = "suit-dependency-resolution"
 
 
 class suit_condition_vendor_identifier(suit_key):
