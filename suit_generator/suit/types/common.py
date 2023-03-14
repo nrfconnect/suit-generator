@@ -52,7 +52,7 @@ def cbstr(cls):
     according to the specification above suit-common shall be stored as cbor byte string - cbor decorator might be
     used here to avoid creation of two different internal representations one stored in plain form and one store
     in cbor encoded form:
-        suit_common: cbor(SuitCommon)
+        suit_common: cbstr(SuitCommon)
 
     """
 
@@ -131,9 +131,8 @@ class SuitObject:
         """Dump SUIT representation to cbor."""
         return cbor2.dumps(self.value)
 
-    # @staticmethod
-    @classmethod
-    def ensure_cbor(cls, data):
+    @staticmethod
+    def ensure_cbor(data):
         """Ensure data cbor encoded."""
         return cbor2.dumps(data) if not isinstance(data, bytes) else data
 

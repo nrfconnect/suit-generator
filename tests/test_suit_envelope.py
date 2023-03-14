@@ -251,6 +251,7 @@ def test_parse_unsigned_envelope(input_envelope):
     for required_item in [suit_manifest_sequence_number, suit_manifest_version, suit_common]:
         assert required_item in envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest.keys()
 
+
 @pytest.mark.parametrize("input_envelope", ["ENVELOPE_1_UNSIGNED", "ENVELOPE_2_UNSIGNED", "ENVELOPE_3_UNSIGNED"])
 def test_parse_unsigned_envelope_parse_and_dump(input_envelope):
     """Test if is possible to parse complete unsigned envelope."""

@@ -42,7 +42,7 @@ class InputOutputMixin:
     def from_yaml_file(cls, file_name) -> dict:
         """Read yaml file and return dict."""
         with open(file_name, "r") as fh:
-            data = yaml.load(fh)
+            data = yaml.load(fh, Loader=yaml.SafeLoader)
         return data
 
     @classmethod

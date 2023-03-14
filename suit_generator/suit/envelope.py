@@ -36,7 +36,7 @@ class SuitEnvelope(SuitKeyValue):
             suit_payload_fetch: cbstr(SuitCommandSequence),
             suit_install: cbstr(SuitCommandSequence),
             suit_text: cbstr(SuitTextMap),
-            suit_integrated_payloads: SuitIntegratedPayloadMap
+            suit_integrated_payloads: SuitIntegratedPayloadMap,
         }
     )
 

@@ -222,12 +222,6 @@ class SuitAuthenticationUnsigned(SuitTupleNamed):
     _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest)})
 
 
-# class SuitAuthentication(SuitUnion):
-#     """Abstract element to define possible sub-elements."""
-#
-#     _metadata = Metadata(children=[SuitDigest])
-
-
 class SuitAuthentication(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
