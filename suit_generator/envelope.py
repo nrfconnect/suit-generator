@@ -60,4 +60,4 @@ class SuitEnvelope(InputOutputMixin):
             input_type = pathlib.Path(file_name).suffix[1:]
 
         load_method = self.get_deserializer(input_type)
-        load_method(file_name)
+        self._envelope = load_method(file_name)

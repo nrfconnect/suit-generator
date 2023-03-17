@@ -210,7 +210,7 @@ class suit_shared_sequence(suit_key):
     """suit_shared_sequence metadata."""
 
     id = 4
-    name = "suit_shared_sequence"
+    name = "suit-shared-sequence"
 
 
 class suit_common(suit_key):
@@ -224,7 +224,7 @@ class suit_reference_uri:
     """suit-reference-uri metadata."""
 
     id = 4
-    "suit-reference-uri"
+    name = "suit-reference-uri"
 
 
 class suit_validate(suit_key):
@@ -343,7 +343,7 @@ class suit_text_model_info(suit_key):
     """suit-text-model-info metadata."""
 
     id = 4
-    name = "suit-text-"
+    name = "suit-text-model-info"
 
 
 class suit_text_component_description(suit_key):

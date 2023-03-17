@@ -34,6 +34,47 @@ TEST_DATA = {
     ),
 }
 
+TEST_DATA_FROM_OBJECT = {
+    "COMMON_DATA": {
+        "suit-components": [["M", 255, 235225088, 352256], ["M", 14, 772096000, 352256], ["D", 0]],
+        "suit-shared-sequence": [
+            {"suit-directive-set-component-index": 1},
+            {
+                "suit-directive-override-parameters": {
+                    "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
+                    "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                }
+            },
+            {
+                "suit-condition-vendor-identifier": [
+                    "suit-send-record-success",
+                    "suit-send-record-failure",
+                    "suit-send-sysinfo-success",
+                    "suit-send-sysinfo-failure",
+                ]
+            },
+            {"suit-condition-class-identifier": []},
+            {"suit-directive-set-component-index": True},
+            {
+                "suit-directive-override-parameters": {
+                    "suit-parameter-image-digest": {
+                        "suit-digest-algorithm-id": "cose-alg-sha-256",
+                        "suit-digest-bytes": {"file": "file.bin"},
+                    },
+                    "suit-parameter-image-size": {"file": "file.bin"},
+                }
+            },
+        ],
+    }
+}
+
+TEST_DATA_COMPONENT_IDENTIFIER_DATA = [
+    [0x0],
+    ["D", 0x0],
+    ["M", 14, 0x2E054000, 0x00056000],
+    ["M", 0xFF, 0x0E054000, 0x00056000],
+]
+
 
 @pytest.mark.parametrize(
     "suit_item, input_data",
@@ -72,3 +113,33 @@ def test_suit_item_parse_and_dump(suit_item, input_data):
     """Check SuitComponents parsing from cbor and dumping to cbor."""
     suit_obj = suit_item.from_cbor(binascii.a2b_hex(TEST_DATA[input_data]))
     assert suit_obj.to_cbor().hex() == TEST_DATA[input_data]
+
+
+@pytest.mark.parametrize(
+    "input_data",
+    [
+        [0x0],
+        ["D", 0x0],
+        ["M", 14, 0x2E054000, 0x00056000],
+        ["M", 0xFF, 0x0E054000, 0x00056000],
+        ["A", 0xFF, 0x00, 0xFF],
+        [0xBEEF, 0xFF, 0x00, 0xFF],
+    ],
+)
+def test_suit_component_identifier_from_object(input_data):
+    """Check SuitComponents parsing from cbor."""
+    suit_obj = SuitComponentIdentifier.from_obj(input_data)
+    assert hasattr(suit_obj, "SuitComponentIdentifier")
+    assert len(suit_obj.SuitComponentIdentifier) == len(input_data)
+    for index, _ in enumerate(input_data):
+        assert hasattr(suit_obj.SuitComponentIdentifier[index], "SuitComponentIdentifierPart")
+
+
+@pytest.mark.parametrize(
+    "input_data",
+    ["COMMON_DATA"],
+)
+def test_suit_common_from_obj(input_data):
+    suit_obj = SuitCommon.from_obj(TEST_DATA_FROM_OBJECT[input_data])
+    assert hasattr(suit_obj, "SuitCommon")
+    assert type(suit_obj.SuitCommon) is dict
