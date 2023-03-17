@@ -8,12 +8,13 @@
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """
 import uuid
+from os.path import getsize
 
 from suit_generator.suit.types.common import (
     SuitUint,
     SuitKeyValue,
     SuitKeyValueUnnamed,
-    SuitKeyValueTupple,
+    SuitKeyValueTuple,
     Metadata,
     SuitUnion,
     SuitList,
@@ -24,6 +25,7 @@ from suit_generator.suit.types.common import (
     SuitBitfield,
     SuitEnum,
     cbstr,
+    bstr,
 )
 from suit_generator.suit.authentication import SuitDigest
 from suit_generator.suit.types.keys import (
@@ -146,14 +148,21 @@ class SuitUUID(SuitBstr):
 class SuitImageSize(SuitUint):
     """Representation of SUIT image size parameter."""
 
-    @classmethod
-    def from_obj(cls, obj):
-        """Restore SUIT representation from passed object."""
-        pass
-
     def to_obj(self):
         """Dump SUIT representation to object."""
         return {"raw": super().to_obj()}
+
+    @classmethod
+    def from_obj(cls, obj):
+        """Restore SUIT representation from passed object."""
+        if not isinstance(obj, dict):
+            raise ValueError(f"Expected dict, received: {obj}")
+        if "raw" in obj.keys():
+            return super().from_obj(obj["raw"])
+        elif "file" in obj.keys():
+            return super().from_obj(getsize(obj["file"]))
+        else:
+            raise ValueError(f"Unable to parse image size: {obj}")
 
 
 class SuitParameters(SuitKeyValue):
@@ -177,7 +186,7 @@ class SuitParameters(SuitKeyValue):
     )
 
 
-class SuitDirective(SuitKeyValueTupple):
+class SuitDirective(SuitKeyValueTuple):
     """Representation of SUIT directive."""
 
     _metadata = Metadata(
@@ -197,7 +206,7 @@ class SuitDirective(SuitKeyValueTupple):
     )
 
 
-class SuitCondition(SuitKeyValueTupple):
+class SuitCondition(SuitKeyValueTuple):
     """Representation of SUIT condition."""
 
     _metadata = Metadata(
@@ -226,7 +235,7 @@ class SuitCommand(SuitUnion):
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[cbstr(SuitTstr), cbstr(SuitUint), SuitBstr])
+    _metadata = Metadata(children=[bstr(SuitTstr), cbstr(SuitUint), SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):
