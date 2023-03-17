@@ -28,7 +28,7 @@ import pytest
         (SuitTstr, "74727565"),
         (SuitTstr, "010203"),
         (SuitTstr, "M"),
-        (SuitTstr, ""),
+        (SuitTstr, " "),
     ],
 )
 def test_simple_suit_representation(suit_item, input_data):

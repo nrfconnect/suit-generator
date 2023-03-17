@@ -15,6 +15,7 @@ from suit_generator.logger import log_call
 import functools
 import cbor2
 import binascii
+from suit_generator.suit.types.keys import suit_integrated_payloads, suit_integrated_dependencies
 
 
 @dataclass
@@ -304,12 +305,10 @@ class SuitKeyValue(SuitObject):
         """Dump SUIT representation to cbor encoded bytes."""
         data = {}
         for k, v in self.value.items():
-            if k.id < 0:
-                # for negative ids just combine subitem into parrent dictionary
+            if k is suit_integrated_payloads or k is suit_integrated_dependencies:
                 data.update(cbor2.loads(v.to_cbor()))
             else:
                 data[k.id] = cbor2.loads(v.to_cbor())
-        # data = {k.id: cbor2.loads(v.to_cbor()) for k, v in self.value.items()}
         return cbor2.dumps(data)
 
     @classmethod
