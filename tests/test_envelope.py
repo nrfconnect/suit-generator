@@ -7,7 +7,6 @@
 import json
 import os
 import pathlib
-import shutil
 import deepdiff
 import pytest
 from cryptography.hazmat.primitives import hashes
