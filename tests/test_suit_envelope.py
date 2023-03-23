@@ -274,7 +274,7 @@ def test_parse_signed_envelope():
 
 
 def test_conversion_obj_to_cbor():
-    """Test if is possible to covert object to cbor."""
+    """Test if is possible to convert object to cbor."""
     envelope = SuitEnvelopeTagged.from_obj(TEST_INPUT_OBJECT_UNSIGNED)
     assert type(envelope.SuitEnvelopeTagged.value.SuitEnvelope) is dict
     assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope.keys()

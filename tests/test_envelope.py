@@ -465,17 +465,15 @@ def test_read_from_xml_negative(mocker_json_open):
 
 
 @pytest.fixture
-def setup_and_teardown():
+def setup_and_teardown(tmp_path_factory):
     """Create and cleanup environment."""
     # Setup environment
     #   - create temp directory
     #   - create input json files
     #   - create binary file
-    if pathlib.Path(TEMP_DIRECTORY).exists():
-        shutil.rmtree(TEMP_DIRECTORY)
-    os.mkdir(TEMP_DIRECTORY)
     start_directory = os.getcwd()
-    os.chdir(TEMP_DIRECTORY)
+    path = tmp_path_factory.mktemp(TEMP_DIRECTORY)
+    os.chdir(path)
     with open("envelope_1.json", "w") as fh:
         fh.write(TEST_JSON_STRING_UNSIGNED)
     with open("envelope_2.json", "w") as fh:
@@ -486,7 +484,6 @@ def setup_and_teardown():
     # Cleanup environment
     #   - remove temp directory
     os.chdir(start_directory)
-    shutil.rmtree(TEMP_DIRECTORY)
 
 
 def test_envelope_unsigned_creation(setup_and_teardown):

@@ -76,10 +76,10 @@ def cbstr(cls):
     return Cbstr
 
 
-def bstr(cls):
+def bchar(cls):
     """Decorate method to dump value as bytes."""
 
-    class Bstr(cls):
+    class Bchar(cls):
         """Decorator implementation."""
 
         def __init__(self, *args, **kwargs):
@@ -87,7 +87,7 @@ def bstr(cls):
 
             Init object and wrap to look like original cls.
             """
-            functools.update_wrapper(Bstr, cls, updated=[])
+            functools.update_wrapper(Bchar, cls, updated=[])
             super().__init__(*args, **kwargs)
 
         @classmethod
@@ -103,7 +103,7 @@ def bstr(cls):
             """Dump to bytes."""
             return cbor2.dumps(self.value.encode())
 
-    return Bstr
+    return Bchar
 
 
 class SuitObject:

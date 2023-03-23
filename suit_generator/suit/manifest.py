@@ -25,7 +25,7 @@ from suit_generator.suit.types.common import (
     SuitBitfield,
     SuitEnum,
     cbstr,
-    bstr,
+    bchar,
 )
 from suit_generator.suit.authentication import SuitDigest
 from suit_generator.suit.types.keys import (
@@ -235,7 +235,7 @@ class SuitCommand(SuitUnion):
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[bstr(SuitTstr), cbstr(SuitUint), SuitBstr])
+    _metadata = Metadata(children=[bchar(SuitTstr), cbstr(SuitUint), SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):
