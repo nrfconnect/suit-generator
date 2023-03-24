@@ -252,9 +252,7 @@ class SuitUnion(SuitObject):
 
     def to_obj(self):
         """Dump SUIT representation to object."""
-        if isinstance(self.value, str):
-            return self.value
-        return self.value.to_obj()
+        return self.value if isinstance(self.value, str) else self.value.to_obj()
 
 
 class SuitTupleNamed(SuitObject):
