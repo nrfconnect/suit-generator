@@ -587,10 +587,7 @@ class SuitList(SuitObject):
 
     def to_obj(self):
         """Dump SUIT representation to object."""
-        value = []
-        for v in self.value:
-            value.append(v.to_obj())
-        return value
+        return [v.to_obj() for v in self.value]
 
 
 class SuitListUint(SuitList):
