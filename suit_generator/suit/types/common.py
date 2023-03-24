@@ -15,7 +15,11 @@ from suit_generator.logger import log_call
 import functools
 import cbor2
 import binascii
+import logging
+
 from suit_generator.suit.types.keys import suit_integrated_payloads, suit_integrated_dependencies
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -321,7 +325,7 @@ class SuitKeyValue(SuitObject):
                     try:
                         value[item] = cls._metadata.map[item].from_cbor(cbor2.dumps({k: v}))
                     except ValueError:
-                        pass
+                        log.warning(f"Not possible to deserialize data for {k}")
             else:
                 value[child[0]] = child[1].from_cbor(cls.ensure_cbor(v))
         return cls(value)
@@ -428,7 +432,7 @@ class SuitKeyValueUnnamed(SuitObject):
 
     def to_obj(self):
         """Dump SUIT representation to object."""
-        return {k:v[1].to_obj() for k, v in self.value.items()}
+        return {k: v[1].to_obj() for k, v in self.value.items()}
 
 
 class SuitKeyValueTuple(SuitKeyValue):
