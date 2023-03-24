@@ -430,10 +430,7 @@ class SuitKeyValueUnnamed(SuitObject):
 
     def to_obj(self):
         """Dump SUIT representation to object."""
-        obj = {}
-        for k, v in self.value.items():
-            obj[k] = v[1].to_obj()
-        return obj
+        return {k:v[1].to_obj() for k, v in self.value.items()}
 
 
 class SuitKeyValueTuple(SuitKeyValue):
