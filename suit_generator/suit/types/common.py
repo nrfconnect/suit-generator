@@ -233,7 +233,7 @@ class SuitUnion(SuitObject):
             except ValueError:
                 pass
         else:
-            raise ValueError("Not possible")
+            raise ValueError("Not possible to deserialize data")
         return cls(value)
 
     def to_cbor(self):
