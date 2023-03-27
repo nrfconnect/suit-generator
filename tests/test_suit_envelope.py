@@ -15,6 +15,7 @@ from suit_generator.suit.types.keys import (
     suit_common,
     suit_integrated_payloads,
 )
+from deepdiff import DeepDiff
 
 TEST_DATA = {
     "ENVELOPE_1_UNSIGNED": (
@@ -233,8 +234,10 @@ BINARY_FILE = (
 )
 
 
-# TODO: ENVELOPE_6_UNSIGNED_COMPONENT_LIST disabled due to known bug parsing tstr in the component list
-@pytest.mark.parametrize("input_envelope", ["ENVELOPE_1_UNSIGNED", "ENVELOPE_2_UNSIGNED", "ENVELOPE_3_UNSIGNED"])
+@pytest.mark.parametrize(
+    "input_envelope",
+    ["ENVELOPE_1_UNSIGNED", "ENVELOPE_2_UNSIGNED", "ENVELOPE_3_UNSIGNED", "ENVELOPE_6_UNSIGNED_COMPONENT_LIST"],
+)
 def test_parse_unsigned_envelope(input_envelope):
     """Test if is possible to parse complete unsigned envelope."""
     envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA[input_envelope]))
@@ -271,7 +274,7 @@ def test_parse_signed_envelope():
 
 
 def test_conversion_obj_to_cbor():
-    # convert to internal representation
+    """Test if is possible to convert object to cbor."""
     envelope = SuitEnvelopeTagged.from_obj(TEST_INPUT_OBJECT_UNSIGNED)
     assert type(envelope.SuitEnvelopeTagged.value.SuitEnvelope) is dict
     assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope.keys()
@@ -286,15 +289,89 @@ def test_conversion_obj_to_cbor():
     for required_item in [suit_manifest_sequence_number, suit_manifest_version, suit_common]:
         assert required_item in envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest.keys()
     assert suit_integrated_payloads in envelope.SuitEnvelopeTagged.value.SuitEnvelope
-    # fixme: from_cbor does not recreate integrated payload properly
     binary_envelope = envelope.to_cbor()
     hex = binary_envelope.hex()
     assert hex is not None
-    # envelope2 = SuitEnvelopeTagged.from_cbor(binary_envelope)
-    # assert binary_envelope.hex() == envelope2.to_cbor().hex()
+    envelope2 = SuitEnvelopeTagged.from_cbor(binary_envelope)
+    assert binary_envelope.hex() == envelope2.to_cbor().hex()
+
+
+def test_conversion_obj_to_obj():
+    """Test if is possible to convert object to object."""
+    envelope = SuitEnvelopeTagged.from_obj(TEST_INPUT_OBJECT_UNSIGNED)
+    suit_obj = envelope.to_obj()
+    assert (
+        "raw"
+        in suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-common"]["suit-shared-sequence"][1][
+            "suit-directive-override-parameters"
+        ]["suit-parameter-vendor-identifier"]
+    )
+    assert (
+        "raw"
+        in suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-common"]["suit-shared-sequence"][5][
+            "suit-directive-override-parameters"
+        ]["suit-parameter-image-size"]
+    )
+    # exclude suit-integrated-payloads, suit-parameter-vendor-identifier and suit-parameter-image-size
+    # due to expected different output structure
+    diff = DeepDiff(
+        TEST_INPUT_OBJECT_UNSIGNED,
+        suit_obj,
+        exclude_paths=[
+            "root['SUIT_Envelope_Tagged']['suit-integrated-payloads']",
+            "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][1]"
+            "['suit-directive-override-parameters']['suit-parameter-vendor-identifier']",
+            "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][5]"
+            "['suit-directive-override-parameters']['suit-parameter-image-size']",
+        ],
+    )
+    assert diff == {}
+
+
+def test_conversion_obj_to_cbor_to_obj():
+    """Test if is possible to convert object to cbor to object."""
+    envelope = SuitEnvelopeTagged.from_obj(TEST_INPUT_OBJECT_UNSIGNED)
+    binary_envelope = envelope.to_cbor()
+    envelope2 = SuitEnvelopeTagged.from_cbor(binary_envelope)
+    suit_obj = envelope2.to_obj()
+    assert (
+        "raw"
+        in suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-common"]["suit-shared-sequence"][1][
+            "suit-directive-override-parameters"
+        ]["suit-parameter-vendor-identifier"]
+    )
+    assert (
+        "raw"
+        in suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-common"]["suit-shared-sequence"][5][
+            "suit-directive-override-parameters"
+        ]["suit-parameter-image-size"]
+    )
+    # exclude suit-integrated-payloads, suit-parameter-vendor-identifier and suit-parameter-image-size
+    # due to expected different output structure
+    diff = DeepDiff(
+        TEST_INPUT_OBJECT_UNSIGNED,
+        suit_obj,
+        exclude_paths=[
+            "root['SUIT_Envelope_Tagged']['suit-integrated-payloads']",
+            "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][1]"
+            "['suit-directive-override-parameters']['suit-parameter-vendor-identifier']",
+            "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][5]"
+            "['suit-directive-override-parameters']['suit-parameter-image-size']",
+        ],
+    )
+    assert diff == {}
+
+
+def test_conversion_obj_to_cbor_to_obj_to_cbor():
+    """Test if is possible to convert object to cbor to object to cbor."""
+    binary_envelope = SuitEnvelopeTagged.from_obj(TEST_INPUT_OBJECT_UNSIGNED).to_cbor()
+    suit_obj = SuitEnvelopeTagged.from_cbor(binary_envelope).to_obj()
+    binary_envelope_2 = SuitEnvelopeTagged.from_obj(suit_obj).to_cbor()
+    assert binary_envelope_2.hex() == binary_envelope.hex()
 
 
 def test_digest_update():
+    """Test if is possible to update digest."""
     envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
     digest_bytes_before_update = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
@@ -313,6 +390,7 @@ def test_digest_update():
 
 
 def test_digest_update_after_value_change():
+    """Test if is possible to update digest."""
     envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
     digest_bytes_before_update = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]

@@ -12,7 +12,7 @@ import logging
 import sys
 
 FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
-logging.basicConfig(stream=sys.stdout, level=logging.INFO, format=FORMAT)
+logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format=FORMAT)
 
 COMMAND_EXECUTORS = {
     args.PARSE_CMD: cmd_parse.main,

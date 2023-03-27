@@ -5,6 +5,7 @@
 #
 """SUIT envelope integrated payloads representation."""
 import pathlib
+import string
 
 from suit_generator.suit.types.common import SuitKeyValueUnnamed, SuitTstr, Metadata, SuitHex
 
@@ -19,14 +20,16 @@ class SuitIntegratedPayloadMap(SuitKeyValueUnnamed):
         """Restore SUIT representation from passed object."""
         ret = {}
         for k, v in obj.items():
+            if all(c in string.hexdigits for c in v):
+                data = v
+            elif pathlib.Path.is_file(pathlib.Path(v)):
+                with open(v, "rb") as fh:
+                    data = fh.read().hex().upper()
             for c_k, c_v in cls._metadata.map.items():
                 try:
-                    if pathlib.Path.is_file(pathlib.Path(v)):
-                        with open(v, "rb") as fh:
-                            data = fh.read().hex().upper()
-                            key = c_k.from_obj(k)
-                            ret[k] = (key, c_v.from_obj(data))
-                            break
+                    key = c_k.from_obj(k)
+                    ret[k] = (key, c_v.from_obj(data))
+                    break
                 except ValueError:
                     pass
             else:
