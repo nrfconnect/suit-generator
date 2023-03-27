@@ -162,4 +162,6 @@ class SuitEnvelopeTagged(SuitTag):
         suit_authentication.SuitAuthentication.SuitAuthenticationSigned[
             1
         ].SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3].SuitHex = signature
-        self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication = suit_authentication.SuitAuthentication
+        self.SuitEnvelopeTagged.value.SuitEnvelope[
+            suit_authentication_wrapper
+        ].SuitAuthentication = suit_authentication.SuitAuthentication

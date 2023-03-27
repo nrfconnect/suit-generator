@@ -454,9 +454,7 @@ def test_envelope_signing(private_key):
     assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope
     assert hasattr(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper], "SuitAuthentication")
     assert hasattr(
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[
-            suit_authentication_wrapper
-        ].SuitAuthentication,
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication,
         "SuitAuthenticationSigned",
     )
     assert (
