@@ -453,25 +453,24 @@ def test_envelope_signing(private_key):
     assert envelope is not None
     assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope
     assert hasattr(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper], "SuitAuthentication")
-    # fixme: try to remove this double SuitAuthentication
     assert hasattr(
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[
             suit_authentication_wrapper
-        ].SuitAuthentication.SuitAuthentication,
+        ].SuitAuthentication,
         "SuitAuthenticationSigned",
     )
     assert (
         len(
             envelope.SuitEnvelopeTagged.value.SuitEnvelope[
                 suit_authentication_wrapper
-            ].SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned
+            ].SuitAuthentication.SuitAuthenticationSigned
         )
         == 2
     )
     assert hasattr(
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[
             suit_authentication_wrapper
-        ].SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned[0],
+        ].SuitAuthentication.SuitAuthenticationSigned[0],
         "SuitDigest",
     )
 
@@ -487,7 +486,7 @@ def test_envelope_sign_and_verify():
     envelope.sign(PRIVATE_KEYS["ES_256"])
     signature = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-        .SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned[1]
+        .SuitAuthentication.SuitAuthenticationSigned[1]
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
         .SuitHex
     )
@@ -496,10 +495,9 @@ def test_envelope_sign_and_verify():
     r = int_sig >> (32 * 8)
     s = int_sig & sum([0xFF << x * 8 for x in range(0, 32)])
     dss_signature = encode_dss_signature(r, s)
-    # fixme: SuitAuthentication twice
     algorithm_name = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-        .SuitAuthentication.SuitAuthentication.SuitAuthenticationSigned[1]
+        .SuitAuthentication.SuitAuthenticationSigned[1]
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
         .SuitHeaderMap[suit_cose_algorithm_id]
         .value
