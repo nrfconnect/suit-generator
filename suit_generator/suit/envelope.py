@@ -37,7 +37,8 @@ class SuitEnvelope(SuitKeyValue):
             suit_install: cbstr(SuitCommandSequence),
             suit_text: cbstr(SuitTextMap),
             suit_integrated_payloads: SuitIntegratedPayloadMap,
-        }
+        },
+        embedded=[suit_integrated_payloads],
     )
 
 

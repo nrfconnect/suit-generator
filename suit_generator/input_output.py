@@ -54,7 +54,10 @@ class InputOutputMixin:
     @classmethod
     def from_suit_file(cls, file_name) -> dict:
         """Read suit file and return dict."""
-        pass
+        with open(file_name, "rb") as fh:
+            data = fh.read()
+            suit = SuitEnvelopeTagged.from_cbor(data)
+            return suit.to_obj()
 
     def to_suit_file(self, file_name, data) -> None:
         """Write dict content into suit file."""
