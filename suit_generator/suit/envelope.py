@@ -59,7 +59,12 @@ class KeyFactory:
 
     def _create_cose_es_signature(self, input_data):
         """Create ECDSA signature and return signature bytes."""
-        dss_signature = self._key.sign(input_data, ec.ECDSA(hashes.SHA256()))
+        hash_map = {
+            256: hashes.SHA256(),
+            384: hashes.SHA384(),
+            521: hashes.SHA512()
+        }
+        dss_signature = self._key.sign(input_data, ec.ECDSA(hash_map[self._key.key_size]))
         r, s = decode_dss_signature(dss_signature)
         return r.to_bytes(self._key.key_size // 8, byteorder="big") + s.to_bytes(
             self._key.key_size // 8, byteorder="big"
