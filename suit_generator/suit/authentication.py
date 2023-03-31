@@ -111,6 +111,10 @@ class SuitDigestExt:
     @classmethod
     def from_obj(cls, obj):
         """Restore SUIT representation from passed object."""
+        # fixme: workaround to handle suit-text (SuitTextMap) in the manifest, without this workaround obj has
+        #  additional suit-digest-bytes key which is not supported by suit-text (SuitTextMap)
+        if "suit-digest-algorithm-id" not in obj.keys():
+            cls(SuitDigestRaw.from_obj(obj))
         if not isinstance(obj, dict):
             raise ValueError(f"Expected dict, received: {obj}")
         if "suit-digest-bytes" not in obj.keys():
@@ -227,30 +231,10 @@ class CoseSign1Tagged(SuitTag):
 class SuitAuthenticationBlock(SuitUnion):
     """Representation of SuitAuthentication_Block item."""
 
-    _metadata = Metadata(children=[CoseSign1Tagged])
+    _metadata = Metadata(children=[cbstr(CoseSign1Tagged)])
 
 
-class SuitAuthenticationSigned(SuitTupleNamed):
-    """Representation of SuitAuthentication item."""
-
-    _metadata = Metadata(
-        map={"SuitDigest": cbstr(SuitDigest), "SuitAuthenticationBlock": cbstr(SuitAuthenticationBlock)}
-    )
-
-
-class SuitAuthenticationUnsigned(SuitTupleNamed):
-    """Representation of SuitAuthentication item."""
-
-    _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest)})
-
-
-class SuitAuthentication(SuitUnion):
+class SuitAuthentication(SuitTupleNamed):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[SuitAuthenticationSigned, SuitAuthenticationUnsigned])
-
-
-class SuitAuthenticationWrapper(SuitTupleNamed):
-    """Representation of SUIT authentication wrapper."""
-
-    _metadata = Metadata(map={"SuitAuthentication": SuitAuthentication})
+    _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest), "SuitAuthentication*": SuitAuthenticationBlock})

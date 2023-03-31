@@ -11,7 +11,7 @@ import binascii
 
 from suit_generator.suit.payloads import SuitIntegratedPayloadMap
 from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, cbstr
-from suit_generator.suit.authentication import SuitAuthentication, SuitHash, CoseSigStructure
+from suit_generator.suit.authentication import SuitAuthentication, SuitHash, CoseSigStructure, SuitAuthenticationBlock
 from suit_generator.suit.manifest import SuitManifest, SuitCommandSequence, SuitTextMap
 from suit_generator.suit.types.keys import (
     suit_manifest,
@@ -33,16 +33,16 @@ from suit_generator.exceptions import SignerError
 class KeyFactory:
     """Key factory implementation."""
 
-    def __init__(self, private_key):
+    def __init__(self, private_key: EllipticCurvePrivateKey):
         """Initialize object."""
         self._key = private_key
         self._sign = self._get_sign_method()
 
-    def sign(self, input_data):
+    def sign(self, input_data: bytes) -> bytes:
         """Create signature for provided data."""
         return self._sign(input_data)
 
-    def _get_sign_method(self):
+    def _get_sign_method(self) -> callable:
         """Return sign method based on key type."""
         if isinstance(self._key, EllipticCurvePrivateKey):
             return self._create_cose_es_signature
@@ -57,7 +57,7 @@ class KeyFactory:
         else:
             raise SignerError(f"Key {type(self._key)} not supported")
 
-    def _create_cose_es_signature(self, input_data):
+    def _create_cose_es_signature(self, input_data: bytes) -> bytes:
         """Create ECDSA signature and return signature bytes."""
         hash_map = {256: hashes.SHA256(), 384: hashes.SHA384(), 521: hashes.SHA512()}
         dss_signature = self._key.sign(input_data, ec.ECDSA(hash_map[self._key.key_size]))
@@ -92,55 +92,39 @@ class SuitEnvelopeTagged(SuitTag):
 
     def update_digest(self):
         """Update digest in the envelope."""
-        if hasattr(
-            self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication,
-            "SuitAuthenticationUnsigned",
-        ) or hasattr(
-            self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication,
-            "SuitAuthenticationSigned",
-        ):
-            alg = (
-                self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-                .SuitAuthentication.value[0]
-                .SuitDigest.SuitDigestRaw[0]
-                .value
-            )
-            manifest = self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].to_cbor()
-            hash_func = SuitHash(alg)
-            new_digest = binascii.a2b_hex(hash_func.hash(manifest))
-            self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication.value[
-                0
-            ].SuitDigest.SuitDigestRaw[1].SuitDigestBytes = new_digest
-        else:
-            raise Exception("Not possible to update digest!")
+        alg = (
+            self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+            .SuitAuthentication[0]
+            .SuitDigest.SuitDigestRaw[0]
+            .value
+        )
+        manifest = self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].to_cbor()
+        hash_func = SuitHash(alg)
+        new_digest = binascii.a2b_hex(hash_func.hash(manifest))
+        self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[
+            0
+        ].SuitDigest.SuitDigestRaw[1].SuitDigestBytes = new_digest
 
-    def _create_signed_authentication_wrapper(self, digest_object, algorithm_name):
+    def _create_authentication_block(self, algorithm_name: str) -> SuitAuthenticationBlock:
         """Create authentication wrapper."""
-        return SuitAuthentication.from_obj(
+        return SuitAuthenticationBlock.from_obj(
             {
-                "SuitDigest": digest_object,
-                "SuitAuthenticationBlock": {
-                    "CoseSign1Tagged": {
-                        "protected": {
-                            "suit-cose-algorithm-id": algorithm_name,
-                        },
-                        "unprotected": {},
-                        "payload": None,
-                        "signature": "",
-                    }
-                },
+                "CoseSign1Tagged": {
+                    "protected": {
+                        "suit-cose-algorithm-id": algorithm_name,
+                    },
+                    "unprotected": {},
+                    "payload": None,
+                    "signature": "",
+                }
             }
         )
 
     def _get_digest(self):
         """Return digest from parsed envelope."""
-        return (
-            self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-            .SuitAuthentication.value[0]
-            .SuitDigest
-        )
+        return self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest
 
-    def _create_cose_structure(self, digest_object, algorithm_name):
+    def _create_cose_structure(self, digest_object: dict, algorithm_name: str) -> CoseSigStructure:
         """Create COSE_Sign1 structure."""
         return CoseSigStructure.from_obj(
             {
@@ -151,18 +135,17 @@ class SuitEnvelopeTagged(SuitTag):
             }
         )
 
-    def sign(self, private_key):
+    def sign(self, private_key: bytes):
         """Sign SUIT envelope."""
         key = KeyFactory(load_pem_private_key(private_key, None))
         digest = self._get_digest()
-        suit_authentication = self._create_signed_authentication_wrapper(digest.to_obj(), key.algorithm_name)
+        suit_authentication_block = self._create_authentication_block(key.algorithm_name)
         cose_structure = self._create_cose_structure(digest.to_obj(), key.algorithm_name)
 
         signature = key.sign(cose_structure.to_cbor())
 
-        suit_authentication.SuitAuthentication.SuitAuthenticationSigned[
-            1
-        ].SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3].SuitHex = signature
-        self.SuitEnvelopeTagged.value.SuitEnvelope[
-            suit_authentication_wrapper
-        ].SuitAuthentication = suit_authentication.SuitAuthentication
+        suit_authentication_block.SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3].SuitHex = signature
+
+        self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication.append(
+            suit_authentication_block
+        )

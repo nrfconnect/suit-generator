@@ -21,7 +21,7 @@ TEST_DATA = {
 }
 
 TEST_DATA_OBJECT = {
-    "SIGNED_AUTHENTICATION_WRAPPER": {
+    "SIGNED_AUTHENTICATION_WRAPPER_ONE_SIGNATURE": {
         "SuitDigest": {"suit-digest-algorithm-id": "cose-alg-sha-256", "suit-digest-bytes": "deadbeef"},
         "SuitAuthenticationBlock": {
             "CoseSign1Tagged": {
@@ -30,7 +30,28 @@ TEST_DATA_OBJECT = {
                 },
                 "unprotected": {},
                 "payload": None,
-                "signature": "",
+                "signature": "deadbeef00",
+            }
+        },
+    },
+    "SIGNED_AUTHENTICATION_WRAPPER_TWO_SIGNATURES": {
+        "SuitDigest": {"suit-digest-algorithm-id": "cose-alg-sha-256", "suit-digest-bytes": "deadbeef"},
+        "SuitAuthenticationInternalExample": {
+            "CoseSign1Tagged": {
+                "protected": {
+                    "suit-cose-algorithm-id": "cose-alg-es-256",
+                },
+                "unprotected": {},
+                "payload": None,
+                "signature": "deadbeef01",
+            }
+        },
+        "SuitAuthenticationExternal": {
+            "CoseSign1Tagged": {
+                "protected": {"suit-cose-algorithm-id": "cose-alg-es-256"},
+                "unprotected": {},
+                "payload": None,
+                "signature": "deadbeef02",
             }
         },
     },
@@ -40,10 +61,32 @@ TEST_DATA_OBJECT = {
 }
 
 
-@pytest.mark.parametrize("input_data", ["SIGNED_AUTHENTICATION_WRAPPER", "UNSIGNED_AUTHENTICATION_WRAPPER"])
-def test_suit_authentication_wrapper_from_obj(input_data):
+@pytest.mark.parametrize(
+    "input_data",
+    [
+        "UNSIGNED_AUTHENTICATION_WRAPPER",
+        "SIGNED_AUTHENTICATION_WRAPPER_ONE_SIGNATURE",
+        "SIGNED_AUTHENTICATION_WRAPPER_TWO_SIGNATURES",
+    ],
+)
+def test_suit_authentication_wrapper_content_from_obj(input_data):
     suit_obj = SuitAuthentication.from_obj(TEST_DATA_OBJECT[input_data])
     assert suit_obj.value is not None
+
+
+@pytest.mark.parametrize(
+    "input_data",
+    [
+        "UNSIGNED_AUTHENTICATION_WRAPPER",
+        "SIGNED_AUTHENTICATION_WRAPPER_ONE_SIGNATURE",
+        "SIGNED_AUTHENTICATION_WRAPPER_TWO_SIGNATURES",
+    ],
+)
+def test_suit_authentication_wrapper_from_obj(input_data):
+    suit_obj = SuitAuthentication.from_obj(TEST_DATA_OBJECT[input_data])
+    suit_binary = suit_obj.to_cbor()
+    assert suit_obj.value is not None
+    assert suit_binary.hex() == SuitAuthentication.from_cbor(suit_binary).to_cbor().hex()
 
 
 @pytest.mark.parametrize(
