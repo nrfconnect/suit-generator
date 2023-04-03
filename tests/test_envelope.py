@@ -234,6 +234,194 @@ TEST_JSON_STRING_SIGNED = """{
         "suit-manifest":
         {
             "suit-manifest-version": 1,
+            "suit-manifest-sequence-number": 1,
+            "suit-common":
+            {
+                "suit-components":
+                [
+                    [
+                        "M",
+                        255,
+                        235225088,
+                        352256
+                    ],
+                    [
+                        "M",
+                        14,
+                        772096000,
+                        352256
+                    ],
+                    [
+                        "D",
+                        0
+                    ]
+                ],
+                "suit-shared-sequence":
+                [
+                    {
+                        "suit-directive-set-component-index": 1
+                    },
+                    {
+                        "suit-directive-override-parameters":
+                        {
+                            "suit-parameter-vendor-identifier":
+                            {
+                                "RFC4122_UUID": "nordicsemi.no"
+                            },
+                            "suit-parameter-class-identifier":
+                            {
+                                "raw": "8520ea9c515e57798b5fbdad67dec7d9"
+                            }
+                        }
+                    },
+                    {
+                        "suit-condition-vendor-identifier":
+                        [
+                            "suit-send-record-success",
+                            "suit-send-record-failure",
+                            "suit-send-sysinfo-success",
+                            "suit-send-sysinfo-failure"
+                        ]
+                    },
+                    {
+                        "suit-condition-class-identifier":
+                        []
+                    },
+                    {
+                        "suit-directive-set-component-index": true
+                    },
+                    {
+                        "suit-directive-override-parameters":
+                        {
+                            "suit-parameter-image-digest":
+                            {
+                                "suit-digest-algorithm-id": "cose-alg-sha-256",
+                                "suit-digest-bytes":
+                                {
+                                    "file": "file.bin"
+                                }
+                            },
+                            "suit-parameter-image-size":
+                            {
+                                "file": "file.bin"
+                            }
+                        }
+                    }
+                ]
+            },
+            "suit-install":
+            [
+                {
+                    "suit-directive-set-component-index": 2
+                },
+                {
+                    "suit-directive-override-parameters":
+                    {
+                        "suit-parameter-uri": "#file.bin"
+                    }
+                },
+                {
+                    "suit-directive-fetch":
+                    []
+                },
+                {
+                    "suit-condition-image-match":
+                    []
+                },
+                {
+                    "suit-directive-set-component-index": 1
+                },
+                {
+                    "suit-directive-override-parameters":
+                    {
+                        "suit-parameter-source-component": 2
+                    }
+                },
+                {
+                    "suit-directive-copy":
+                    []
+                },
+                {
+                    "suit-condition-image-match":
+                    []
+                }
+            ],
+            "suit-validate":
+            [
+                {
+                    "suit-directive-set-component-index": 1
+                },
+                {
+                    "suit-condition-image-match":
+                    []
+                }
+            ],
+            "suit-load":
+            [
+                {
+                    "suit-directive-set-component-index": 0
+                },
+                {
+                    "suit-directive-override-parameters":
+                    {
+                        "suit-parameter-source-component": 1
+                    }
+                },
+                {
+                    "suit-directive-copy":
+                    []
+                },
+                {
+                    "suit-condition-image-match":
+                    []
+                }
+            ],
+            "suit-invoke":
+            [
+                {
+                    "suit-directive-set-component-index": 0
+                },
+                {
+                    "suit-directive-invoke":
+                    []
+                }
+            ]
+        },
+        "suit-integrated-payloads":
+        {
+            "#file.bin": "file.bin"
+        }
+    }
+}"""
+
+
+TEST_JSON_STRING_SIGNED_RAW = """{
+    "SUIT_Envelope_Tagged":
+    {
+        "suit-authentication-wrapper":
+        {
+            "SuitDigest":
+            {
+                "suit-digest-algorithm-id": "cose-alg-sha-256"
+            },
+            "SuitAuthenticationBlock":
+            {
+                "CoseSign1Tagged":
+                {
+                    "protected":
+                    {
+                        "suit-cose-algorithm-id": "cose-alg-es-256"
+                    },
+                    "unprotected":
+                    {},
+                    "payload": null,
+                    "signature": ""
+                }
+            }
+        },
+        "suit-manifest":
+        {
+            "suit-manifest-version": 1,
             "suit-manifest-sequence-number":
             {
                 "raw": 1
@@ -485,10 +673,11 @@ def setup_and_teardown(tmp_path_factory):
     os.chdir(start_directory)
 
 
-def test_envelope_unsigned_creation(setup_and_teardown):
+@pytest.mark.parametrize("input_data", ["envelope_1", "envelope_2"])
+def test_envelope_unsigned_creation(setup_and_teardown, input_data):
     envelope = SuitEnvelope()
-    envelope.load("envelope_1.json", input_type="json")
-    envelope.dump("envelope_1.suit", output_type="suit")
+    envelope.load(f"{input_data}.json", input_type="json")
+    envelope.dump(f"{input_data}.suit", output_type="suit")
 
 
 def calculate_hash(data):
@@ -513,10 +702,3 @@ def test_envelope_unsigned_creation_and_parsing(setup_and_teardown):
         assert deepdiff.DeepDiff(fh_json_1.read(), fh_json_2.read())
     with open("envelope_1.suit", "rb") as fh_suit_1, open("envelope_1_copy.suit", "rb") as fh_suit_2:
         assert calculate_hash(fh_suit_1.read()) == calculate_hash(fh_suit_2.read())
-
-
-@pytest.mark.skip(reason="Signed envelopes are not supported")
-def test_envelope_signed_creation(setup_and_teardown):
-    envelope = SuitEnvelope()
-    envelope.load("test-input-2.json", input_type="json")
-    envelope.dump("test-output-2.suit", output_type="suit")

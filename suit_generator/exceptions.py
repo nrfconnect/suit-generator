@@ -13,3 +13,7 @@ class GeneratorError(Exception):
 
 class SUITError(Exception):
     """Indicates errors related to SUIT (e.g. malformed envelope structure)."""
+
+
+class SignerError(Exception):
+    """Indicates errors related to envelope signer (e.g. unsuported key type))."""

@@ -41,6 +41,7 @@ from suit_generator.suit.types.keys import (
     cose_alg_sha_512,
     cose_alg_shake256,
     cose_alg_es_256,
+    cose_alg_es_384,
 )
 
 
@@ -110,6 +111,10 @@ class SuitDigestExt:
     @classmethod
     def from_obj(cls, obj):
         """Restore SUIT representation from passed object."""
+        # fixme: workaround to handle suit-text (SuitTextMap) in the manifest, without this workaround obj has
+        #  additional suit-digest-bytes key which is not supported by suit-text (SuitTextMap)
+        if "suit-digest-algorithm-id" not in obj.keys():
+            cls(SuitDigestRaw.from_obj(obj))
         if not isinstance(obj, dict):
             raise ValueError(f"Expected dict, received: {obj}")
         if "suit-digest-bytes" not in obj.keys():
@@ -141,7 +146,7 @@ class SuitDigest(SuitUnion):
 class SuitcoseSignAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
-    _metadata = Metadata(children=[cose_alg_es_256])
+    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384])
 
 
 class SuitHeaderMap(SuitKeyValue):
@@ -180,6 +185,19 @@ class SuitCwtPayload(SuitKeyValue):
     }
 
 
+class CoseSigStructure(SuitTupleNamed):
+    """Representation of COSE Sig_structure."""
+
+    _metadata = Metadata(
+        map={
+            "context": SuitTstr,
+            "body_protected": cbstr(SuitHeaderMap),
+            "external_add": SuitHex,
+            "payload": cbstr(SuitDigestRaw),
+        }
+    )
+
+
 class CoseSign1Payload(SuitUnion):
     """Representation of COSE_Sign1_payload item."""
 
@@ -196,10 +214,10 @@ class CoseSign1(SuitTupleNamed):
 
     _metadata = Metadata(
         map={
-            "protected": SuitHeaderMap,
+            "protected": cbstr(SuitHeaderMap),
             "unprotected": SuitHeaderData,
             "payload": CoseSign1Payload,
-            "signature": SuitBstr,
+            "signature": SuitHex,
         }
     )
 
@@ -207,28 +225,16 @@ class CoseSign1(SuitTupleNamed):
 class CoseSign1Tagged(SuitTag):
     """Representation of COSE_Sign1_Tagged item."""
 
-    _metadata = Metadata(children=[CoseSign1], tag=Tag(18, "COSE_Sign1_Tagged"))
+    _metadata = Metadata(children=[CoseSign1], tag=Tag(18, "CoseSign1Tagged"))
 
 
 class SuitAuthenticationBlock(SuitUnion):
     """Representation of SuitAuthentication_Block item."""
 
-    _metadata = Metadata(children=[CoseSign1Tagged])
+    _metadata = Metadata(children=[cbstr(CoseSign1Tagged)])
 
 
-class SuitAuthenticationUnsigned(SuitTupleNamed):
-    """Representation of SuitAuthentication item."""
-
-    _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest)})
-
-
-class SuitAuthentication(SuitUnion):
+class SuitAuthentication(SuitTupleNamed):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[SuitAuthenticationUnsigned])
-
-
-class SuitAuthenticationWrapper(SuitTupleNamed):
-    """Representation of SUIT authentication wrapper."""
-
-    _metadata = Metadata(map={"SuitAuthentication": SuitAuthentication})
+    _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest), "SuitAuthentication*": SuitAuthenticationBlock})
