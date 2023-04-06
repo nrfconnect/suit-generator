@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import os
+
 
 class KeyConverter:
     """Converts key files iarrays."""
@@ -71,6 +73,13 @@ class KeyConverter:
         # Header and footer files can be empty
         # no length and no const are boolean and both values are allowed
 
+        # self._validate_input_file()
+
+    # TODO: Might be used if there is elegant way to mock it in tests...
+    # def _validate_input_file(self):
+    #     if os.path.getsize(self._input_file) <= 0:
+    #         raise ValueError(f"Empty file {self._input_file}")
+
     def _prepare_header(self) -> str:
         if self._header_file:
             with open(self._header_file, "r") as fd:
@@ -96,6 +105,15 @@ class KeyConverter:
                 return fd.read()
         else:
             return ""
+
+    # TODO: Add return type annotation
+    def _read_input_file_chunk(self):
+        with open(self._input_file, "rb") as fd:
+            while True:
+                chunk = fd.read(self._columns_count)
+                if not chunk:
+                    break
+                yield chunk
 
 
 def main(
