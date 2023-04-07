@@ -12,9 +12,28 @@ from suit_generator.cmd_convert import KeyConverter
 HEADER_FILE_DATA_NON_EMPTY = "#ifdef USE_HEADER__"
 FOOTER_FILE_DATA_NON_EMPTY = "#endif /* USE_HEADER__ */"
 
-PRIVATE_KEY_FILE_NONEMPTY = b"-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCCbgTEad8JOIU8sg\nIJUKm7Lle0358XoaxNfbs4nqd4WhRANCAATt0J6l7OTtvmwI50cJVZo4KcUxMyJ7\n9PARbowFLQIODsPg2Df0wm/BKIAvRTgaIytt1dooYABdq+Kgg9vvOFUT\n-----END PRIVATE KEY-----\n"
+PRIVATE_KEY_FILE_NONEMPTY = b"""-----BEGIN PRIVATE KEY-----
+MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCCbgTEad8JOIU8sg
+IJUKm7Lle0358XoaxNfbs4nqd4WhRANCAATt0J6l7OTtvmwI50cJVZo4KcUxMyJ7
+9PARbowFLQIODsPg2Df0wm/BKIAvRTgaIytt1dooYABdq+Kgg9vvOFUT
+-----END PRIVATE KEY-----
+"""
 
-EXPECTED_PRIVATE_KEY_BYTES = b'\xed\xd0\x9e\xa5\xec\xe4\xed\xbel\x08\xe7G\tU\x9a8)\xc513"{\xf4\xf0\x11n\x8c\x05-\x02\x0e\x0e\xc3\xe0\xd87\xf4\xc2o\xc1(\x80/E8\x1a#+m\xd5\xda(`\x00]\xab\xe2\xa0\x83\xdb\xef8U\x13'
+EXPECTED_PRIVATE_KEY_BYTES = (
+    b"\xed\xd0\x9e\xa5\xec\xe4\xed\xbel\x08\xe7G\tU\x9a"
+    b'8)\xc513"{\xf4\xf0\x11n\x8c\x05-\x02\x0e\x0e\xc3\xe0\xd87\xf4\xc2o\xc1(\x80'
+    b"/E8\x1a#+m\xd5\xda(`\x00]\xab\xe2\xa0\x83\xdb\xef8U\x13"
+)
+
+EXPECTED_GENERATED_FILE_ORIGINAL = """const uint8_t public_key[] = {
+    0xed, 0xd0, 0x9e, 0xa5, 0xec, 0xe4, 0xed, 0xbe, 0x6c, 0x08, 0xe7, 0x47,
+    0x09, 0x55, 0x9a, 0x38, 0x29, 0xc5, 0x31, 0x33, 0x22, 0x7b, 0xf4, 0xf0,
+    0x11, 0x6e, 0x8c, 0x05, 0x2d, 0x02, 0x0e, 0x0e, 0xc3, 0xe0, 0xd8, 0x37,
+    0xf4, 0xc2, 0x6f, 0xc1, 0x28, 0x80, 0x2f, 0x45, 0x38, 0x1a, 0x23, 0x2b,
+    0x6d, 0xd5, 0xda, 0x28, 0x60, 0x00, 0x5d, 0xab, 0xe2, 0xa0, 0x83, 0xdb,
+    0xef, 0x38, 0x55, 0x13
+};
+"""
 
 
 @pytest.fixture
@@ -293,9 +312,7 @@ def test_length_definition_default(default_converter):
 
 def test_length_definition_no_const():
     # GIVEN converter with "--no-const"
-    converter = KeyConverter(input_file="some_input_file",
-                             output_file="some_output_file",
-                             no_const=True)
+    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", no_const=True)
     # WHEN length variable definition is prepared
     text = converter._prepare_length_variable()
     # THEN it is as following
@@ -304,9 +321,7 @@ def test_length_definition_no_const():
 
 def test_length_definition_custom_type():
     # GIVEN converter with custom length type
-    converter = KeyConverter(input_file="some_input_file",
-                             output_file="some_output_file",
-                             length_type="uint32_t")
+    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", length_type="uint32_t")
     # WHEN length variable definition is prepared
     text = converter._prepare_length_variable()
     # THEN it is as following
@@ -315,9 +330,9 @@ def test_length_definition_custom_type():
 
 def test_length_definition_custom_name():
     # GIVEN converter with custom length name
-    converter = KeyConverter(input_file="some_input_file",
-                             output_file="some_output_file",
-                             length_name="my_fancy_length_name")
+    converter = KeyConverter(
+        input_file="some_input_file", output_file="some_output_file", length_name="my_fancy_length_name"
+    )
     # WHEN length variable definition is prepared
     text = converter._prepare_length_variable()
     # THEN it is as following
@@ -326,18 +341,44 @@ def test_length_definition_custom_name():
 
 def test_length_definition_no_length():
     # GIVEN converter with no length variable desired
-    converter = KeyConverter(input_file="some_input_file",
-                             output_file="some_output_file",
-                             no_length=True)
+    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", no_length=True)
     # WHEN length variable definition is prepared
     text = converter._prepare_length_variable()
     # THEN it is empty
     assert text == ""
 
 
-def test_sth(mocker_private_key_file_nonempty):
-    converter = KeyConverter(input_file="some_input_file",
-                             output_file="some_output_file")
-    txt = converter._prepare_file_contents()
-    print(txt)
+def test_file_contents(mocker_private_key_file_nonempty):
+    # GIVEN converter with particular configuration
+    converter = KeyConverter(
+        input_file="some_input_file",
+        output_file="some_output_file",
+        array_name="public_key",
+        no_length=True,
+        columns_count=12,
+    )
+    # WHEN file contents are generated
+    contents = converter._prepare_file_contents()
+    # THEN they match original content generated using suit-tool
+    assert contents == EXPECTED_GENERATED_FILE_ORIGINAL
 
+
+def test_file_creation_original(tmpdir):
+    # GIVEN converter with particular configuration
+    out_file = tmpdir.join("some_output_file")
+    print(out_file)
+    converter = KeyConverter(
+        # TODO: Find a way to not depend on existence of real key file...
+        input_file="key_private.pem",
+        output_file=out_file.strpath,
+        array_name="public_key",
+        no_length=True,
+        columns_count=12,
+    )
+    # WHEN C file is created
+    converter.generate_c_file()
+
+    # THEN its contents match the ones generated using suit-tool
+    with open(out_file.strpath, "r") as fd:
+        generated = fd.read()
+    assert generated == EXPECTED_GENERATED_FILE_ORIGINAL

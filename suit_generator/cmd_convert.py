@@ -55,7 +55,6 @@ class KeyConverter:
         # TODO: Make it customizable
         self._indentation_character = " "
         self._indentation_count = 4
-        # self._indentation_count = 8
         self._indentation = self._indentation_character * self._indentation_count
 
         self._validate()
@@ -124,7 +123,6 @@ class KeyConverter:
 
         return text
 
-
     def _prepare_footer(self) -> str:
         if self._footer_file:
             with open(self._footer_file, "r") as fd:
@@ -135,7 +133,6 @@ class KeyConverter:
     def _get_public_key_data(self) -> bytes:
         with open(self._input_file, "rb") as fd:
             # TODO: What if the key is protected by a password?
-            # private_key = serialization.load_pem_private_key(data=fd.read(), password=None, backend=default_backend)
             private_key = serialization.load_pem_private_key(data=fd.read(), password=None)
 
         public_key_numbers = private_key.public_key().public_numbers()
@@ -164,7 +161,6 @@ class KeyConverter:
     def _format_row(self, data: bytes):
         # TODO: Add return type annotation
         return self._indentation + self._format_row_of_bytes(data).strip()
-
 
     def _prepare_file_contents(self):
         text = ""
@@ -201,8 +197,9 @@ class KeyConverter:
 
         return text
 
-
-
+    def generate_c_file(self):
+        with open(self._output_file, "w") as fd:
+            fd.write(self._prepare_file_contents())
 
 
 def main(
