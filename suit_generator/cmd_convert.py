@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-import os
+from cryptography.hazmat.primitives import serialization
 
 
 class KeyConverter:
@@ -24,6 +24,7 @@ class KeyConverter:
     default_no_const = False
 
     const_modifier = "const "
+    newline = "\n"
 
     def __init__(
         self,
@@ -50,6 +51,12 @@ class KeyConverter:
         self._footer_file = footer_file
         self._no_length = no_length
         self._no_const = no_const
+
+        # TODO: Make it customizable
+        self._indentation_character = " "
+        self._indentation_count = 4
+        # self._indentation_count = 8
+        self._indentation = self._indentation_character * self._indentation_count
 
         self._validate()
 
@@ -96,8 +103,27 @@ class KeyConverter:
     def _prepare_array_variable(self) -> str:
         return f"{self._array_name}[] = {{"
 
+    def _prepare_array_definition(self) -> str:
+        return self._prepare_modifier() + self._prepare_array_type() + self._prepare_array_variable()
+
     def _prepare_array_variable_end(self) -> str:
         return "};"
+
+    def _prepare_length_variable(self) -> str:
+        if self._no_length:
+            return ""
+
+        right_hand_side = ""
+        if self._length_type != KeyConverter.default_length_type:
+            # A cast is needed
+            right_hand_side = f"({self._length_type}) "
+        right_hand_side += f"sizeof({self._array_name});"
+
+        text = "" if self._no_const else KeyConverter.const_modifier
+        text += f"{self._length_type} {self._length_name} = {right_hand_side}"
+
+        return text
+
 
     def _prepare_footer(self) -> str:
         if self._footer_file:
@@ -106,14 +132,77 @@ class KeyConverter:
         else:
             return ""
 
-    # TODO: Add return type annotation
-    def _read_input_file_chunk(self):
+    def _get_public_key_data(self) -> bytes:
         with open(self._input_file, "rb") as fd:
-            while True:
-                chunk = fd.read(self._columns_count)
-                if not chunk:
-                    break
-                yield chunk
+            # TODO: What if the key is protected by a password?
+            # private_key = serialization.load_pem_private_key(data=fd.read(), password=None, backend=default_backend)
+            private_key = serialization.load_pem_private_key(data=fd.read(), password=None)
+
+        public_key_numbers = private_key.public_key().public_numbers()
+
+        # Make sure that if bit length is not alligned to 8, full bytes will be used
+        x_bit_length = (public_key_numbers.x.bit_length() + 7) // 8
+        y_bit_length = (public_key_numbers.y.bit_length() + 7) // 8
+
+        # Convert the numbers into bytes
+        x_bytes = public_key_numbers.x.to_bytes(length=x_bit_length, byteorder="big")
+        y_bytes = public_key_numbers.y.to_bytes(length=y_bit_length, byteorder="big")
+
+        return x_bytes + y_bytes
+
+    def _split_bytes_per_row(self, data: bytes):
+        # TODO: Add return type annotation
+        return [data[i : i + self._columns_count] for i in range(0, len(data), self._columns_count)]
+
+    def _format_row_of_bytes(self, data: bytes):
+        # TODO: Add return type annotation
+        text = ""
+        for b in data:
+            text += f"0x{b:02x}, "
+        return text
+
+    def _format_row(self, data: bytes):
+        # TODO: Add return type annotation
+        return self._indentation + self._format_row_of_bytes(data).strip()
+
+
+    def _prepare_file_contents(self):
+        text = ""
+
+        header_text = self._prepare_header()
+        if len(header_text) > 0:
+            text += header_text
+            text += KeyConverter.newline
+
+        text += self._prepare_array_definition()
+        text += KeyConverter.newline
+
+        public_key_data = self._get_public_key_data()
+        array_text = ""
+        for row in self._split_bytes_per_row(public_key_data):
+            array_text += self._format_row(row)
+            array_text += KeyConverter.newline
+
+        # To simplify row generation, comma and new line is always added at the end.
+        # In last row, however, we don't want a trailing comma (e.g. to support C89)
+        array_text = array_text[:-2]
+        array_text += KeyConverter.newline
+
+        text += array_text
+
+        text += self._prepare_array_variable_end()
+        text += KeyConverter.newline
+
+        length_variable = self._prepare_length_variable()
+        if len(length_variable) > 0:
+            text += KeyConverter.newline
+            text += length_variable
+            text += KeyConverter.newline
+
+        return text
+
+
+
 
 
 def main(
@@ -123,7 +212,7 @@ def main(
     array_name: str,
     length_type: str,
     length_name: str,
-    columns: int,
+    columns_count: int,
     header_file: str,
     footer_file: str,
     no_length: bool,
@@ -137,10 +226,11 @@ def main(
         array_name,
         length_type,
         length_name,
-        columns,
+        columns_count,
         header_file,
         footer_file,
         no_length,
         no_const,
     )
     # TODO: Do sth useful
+    converter.sth()

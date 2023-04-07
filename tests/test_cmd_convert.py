@@ -12,221 +12,9 @@ from suit_generator.cmd_convert import KeyConverter
 HEADER_FILE_DATA_NON_EMPTY = "#ifdef USE_HEADER__"
 FOOTER_FILE_DATA_NON_EMPTY = "#endif /* USE_HEADER__ */"
 
-INPUT_FILE_DATA_LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+PRIVATE_KEY_FILE_NONEMPTY = b"-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCCbgTEad8JOIU8sg\nIJUKm7Lle0358XoaxNfbs4nqd4WhRANCAATt0J6l7OTtvmwI50cJVZo4KcUxMyJ7\n9PARbowFLQIODsPg2Df0wm/BKIAvRTgaIytt1dooYABdq+Kgg9vvOFUT\n-----END PRIVATE KEY-----\n"
 
-EXPECTED_LOREM_1 = [
-    "L",
-    "o",
-    "r",
-    "e",
-    "m",
-    " ",
-    "i",
-    "p",
-    "s",
-    "u",
-    "m",
-    " ",
-    "d",
-    "o",
-    "l",
-    "o",
-    "r",
-    " ",
-    "s",
-    "i",
-    "t",
-    " ",
-    "a",
-    "m",
-    "e",
-    "t",
-    ",",
-    " ",
-    "c",
-    "o",
-    "n",
-    "s",
-    "e",
-    "c",
-    "t",
-    "e",
-    "t",
-    "u",
-    "r",
-    " ",
-    "a",
-    "d",
-    "i",
-    "p",
-    "i",
-    "s",
-    "c",
-    "i",
-    "n",
-    "g",
-    " ",
-    "e",
-    "l",
-    "i",
-    "t",
-    ",",
-    " ",
-    "s",
-    "e",
-    "d",
-    " ",
-    "d",
-    "o",
-    " ",
-    "e",
-    "i",
-    "u",
-    "s",
-    "m",
-    "o",
-    "d",
-    " ",
-    "t",
-    "e",
-    "m",
-    "p",
-    "o",
-    "r",
-    " ",
-    "i",
-    "n",
-    "c",
-    "i",
-    "d",
-    "i",
-    "d",
-    "u",
-    "n",
-    "t",
-    " ",
-    "u",
-    "t",
-    " ",
-    "l",
-    "a",
-    "b",
-    "o",
-    "r",
-    "e",
-    " ",
-    "e",
-    "t",
-    " ",
-    "d",
-    "o",
-    "l",
-    "o",
-    "r",
-    "e",
-    " ",
-    "m",
-    "a",
-    "g",
-    "n",
-    "a",
-    " ",
-    "a",
-    "l",
-    "i",
-    "q",
-    "u",
-    "a",
-    ".",
-]
-EXPECTED_LOREM_2 = [
-    "Lo",
-    "re",
-    "m ",
-    "ip",
-    "su",
-    "m ",
-    "do",
-    "lo",
-    "r ",
-    "si",
-    "t ",
-    "am",
-    "et",
-    ", ",
-    "co",
-    "ns",
-    "ec",
-    "te",
-    "tu",
-    "r ",
-    "ad",
-    "ip",
-    "is",
-    "ci",
-    "ng",
-    " e",
-    "li",
-    "t,",
-    " s",
-    "ed",
-    " d",
-    "o ",
-    "ei",
-    "us",
-    "mo",
-    "d ",
-    "te",
-    "mp",
-    "or",
-    " i",
-    "nc",
-    "id",
-    "id",
-    "un",
-    "t ",
-    "ut",
-    " l",
-    "ab",
-    "or",
-    "e ",
-    "et",
-    " d",
-    "ol",
-    "or",
-    "e ",
-    "ma",
-    "gn",
-    "a ",
-    "al",
-    "iq",
-    "ua",
-    ".",
-]
-EXPECTED_LOREM_8 = [
-    "Lorem ip",
-    "sum dolo",
-    "r sit am",
-    "et, cons",
-    "ectetur ",
-    "adipisci",
-    "ng elit,",
-    " sed do ",
-    "eiusmod ",
-    "tempor i",
-    "ncididun",
-    "t ut lab",
-    "ore et d",
-    "olore ma",
-    "gna aliq",
-    "ua.",
-]
-EXPECTED_LOREM_32 = [
-    "Lorem ipsum dolor sit amet, cons",
-    "ectetur adipiscing elit, sed do ",
-    "eiusmod tempor incididunt ut lab",
-    "ore et dolore magna aliqua.",
-]
+EXPECTED_PRIVATE_KEY_BYTES = b'\xed\xd0\x9e\xa5\xec\xe4\xed\xbel\x08\xe7G\tU\x9a8)\xc513"{\xf4\xf0\x11n\x8c\x05-\x02\x0e\x0e\xc3\xe0\xd87\xf4\xc2o\xc1(\x80/E8\x1a#+m\xd5\xda(`\x00]\xab\xe2\xa0\x83\xdb\xef8U\x13'
 
 
 @pytest.fixture
@@ -275,8 +63,8 @@ def mocker_footer_file_nonempty(mocker):
 
 
 @pytest.fixture
-def mocker_input_file_lorem(mocker):
-    mocked_data = mocker.mock_open(read_data=INPUT_FILE_DATA_LOREM)
+def mocker_private_key_file_nonempty(mocker):
+    mocked_data = mocker.mock_open(read_data=PRIVATE_KEY_FILE_NONEMPTY)
     mocker.patch("builtins.open", mocked_data)
 
 
@@ -451,64 +239,105 @@ def test_array_variable_end(default_converter):
     assert text == "};"
 
 
-def test_read_chunks_empty_input_file(mocker_empty_file):
-    # GIVEN converter with empty input file
+def test_get_public_key_data_nonempty(mocker_private_key_file_nonempty):
+    # GIVEN a converter
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file")
-    # WHEN input file is read by chunks
-    actual = [chunk for chunk in converter._read_input_file_chunk()]
-
-    # THEN no data is returned
-    assert len(actual) == 0
-
-
-# TODO: Add some parametrization for different input data...
-def test_read_chunk_default_column_count(mocker_input_file_lorem):
-    # GIVEN converter with non-empty input file
-    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file")
-    # WHEN input file is read by chunks of bytes equal to default number of columns
-    actual = [chunk for chunk in converter._read_input_file_chunk()]
-
-    expected = EXPECTED_LOREM_8
-    # THEN number of chunks is as expected...
-    assert len(actual) == len(expected)
-    # ... and all chunks are as expected
-    assert all([a == b for a, b in zip(actual, expected)])
+    # WHEN input file's data is used to request public key data
+    public_key_data = converter._get_public_key_data()
+    # THEN it is as expected
+    assert public_key_data == EXPECTED_PRIVATE_KEY_BYTES
 
 
-def test_read_chunk_columns_count_1(mocker_input_file_lorem):
-    # GIVEN converter with non-empty input file
-    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", columns_count=1)
-    # WHEN input file is read by chunks of single byte
-    actual = [chunk for chunk in converter._read_input_file_chunk()]
-
-    expected = EXPECTED_LOREM_1
-    # THEN number of chunks is as expected...
-    assert len(actual) == len(expected)
-    # ... and all chunks are as expected
-    assert all([a == b for a, b in zip(actual, expected)])
+def test_array_definition_default(default_converter):
+    # GIVEN default converter
+    # WHEN array definition is created
+    definition = default_converter._prepare_array_definition()
+    # THEN it is as expected
+    assert definition == "const uint8_t key_buf[] = {"
 
 
-def test_read_chunk_columns_count_2(mocker_input_file_lorem):
-    # GIVEN converter with non-empty input file
-    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", columns_count=2)
-    # WHEN input file is read by chunks of two bytes
-    actual = [chunk for chunk in converter._read_input_file_chunk()]
-
-    expected = EXPECTED_LOREM_2
-    # THEN number of chunks is as expected...
-    assert len(actual) == len(expected)
-    # ... and all chunks are as expected
-    assert all([a == b for a, b in zip(actual, expected)])
+def test_array_definition_no_const():
+    # GIVEN a converter with "--no-const"
+    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", no_const=True)
+    # WHEN array definition is created
+    definition = converter._prepare_array_definition()
+    # THEN it is as expected
+    assert definition == "uint8_t key_buf[] = {"
 
 
-def test_read_chunk_columns_count_32(mocker_input_file_lorem):
-    # GIVEN converter with non-empty input file
-    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", columns_count=32)
-    # WHEN input file is read by chunks of 32 bytes
-    actual = [chunk for chunk in converter._read_input_file_chunk()]
+def test_array_definition_custom_type():
+    # GIVEN a converter with "char" used as a array type
+    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", array_type="char")
+    # WHEN array definition is created
+    definition = converter._prepare_array_definition()
+    # THEN it is as expected
+    assert definition == "const char key_buf[] = {"
 
-    expected = EXPECTED_LOREM_32
-    # THEN number of chunks is as expected...
-    assert len(actual) == len(expected)
-    # ... and all chunks are as expected
-    assert all([a == b for a, b in zip(actual, expected)])
+
+def test_array_definition_custom_name():
+    # GIVEN a converter with custom array name
+    converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", array_name="foo")
+    # WHEN array definition is created
+    definition = converter._prepare_array_definition()
+    # THEN it is as expected
+    assert definition == "const uint8_t foo[] = {"
+
+
+def test_length_definition_default(default_converter):
+    # GIVEN default converter
+    # WHEN length variable definition is prepared
+    text = default_converter._prepare_length_variable()
+    # THEN it is as following
+    assert text == "const size_t key_len = sizeof(key_buf);"
+
+
+def test_length_definition_no_const():
+    # GIVEN converter with "--no-const"
+    converter = KeyConverter(input_file="some_input_file",
+                             output_file="some_output_file",
+                             no_const=True)
+    # WHEN length variable definition is prepared
+    text = converter._prepare_length_variable()
+    # THEN it is as following
+    assert text == "size_t key_len = sizeof(key_buf);"
+
+
+def test_length_definition_custom_type():
+    # GIVEN converter with custom length type
+    converter = KeyConverter(input_file="some_input_file",
+                             output_file="some_output_file",
+                             length_type="uint32_t")
+    # WHEN length variable definition is prepared
+    text = converter._prepare_length_variable()
+    # THEN it is as following
+    assert text == "const uint32_t key_len = (uint32_t) sizeof(key_buf);"
+
+
+def test_length_definition_custom_name():
+    # GIVEN converter with custom length name
+    converter = KeyConverter(input_file="some_input_file",
+                             output_file="some_output_file",
+                             length_name="my_fancy_length_name")
+    # WHEN length variable definition is prepared
+    text = converter._prepare_length_variable()
+    # THEN it is as following
+    assert text == "const size_t my_fancy_length_name = sizeof(key_buf);"
+
+
+def test_length_definition_no_length():
+    # GIVEN converter with no length variable desired
+    converter = KeyConverter(input_file="some_input_file",
+                             output_file="some_output_file",
+                             no_length=True)
+    # WHEN length variable definition is prepared
+    text = converter._prepare_length_variable()
+    # THEN it is empty
+    assert text == ""
+
+
+def test_sth(mocker_private_key_file_nonempty):
+    converter = KeyConverter(input_file="some_input_file",
+                             output_file="some_output_file")
+    txt = converter._prepare_file_contents()
+    print(txt)
+
