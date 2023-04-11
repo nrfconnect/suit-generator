@@ -22,7 +22,8 @@ class KeyConverter:
     default_footer_file = ""
     default_no_length = False
     default_no_const = False
-
+    default_indentation_count = 4
+    default_indentation_tab = False
     const_modifier = "const "
     newline = "\n"
 
@@ -37,6 +38,8 @@ class KeyConverter:
         columns_count: int = default_columns_count,
         header_file: str = default_header_file,
         footer_file: str = default_footer_file,
+        indentation_count: int = default_indentation_count,
+        indentation_tab: bool = default_indentation_tab,
         no_length: bool = default_no_length,
         no_const: bool = default_no_const,
     ):
@@ -51,15 +54,11 @@ class KeyConverter:
         self._footer_file = footer_file
         self._no_length = no_length
         self._no_const = no_const
-
-        # TODO: Make it customizable
-        self._indentation_character = " "
-        self._indentation_count = 4
+        self._indentation_character = "\t" if indentation_tab else " "
+        self._indentation_count = indentation_count
         self._indentation = self._indentation_character * self._indentation_count
 
         self._validate()
-
-    # TODO: Add length type casting for non-size_t
 
     def _validate(self):
         if self._input_file.strip() == "":
@@ -212,6 +211,8 @@ def main(
     columns_count: int,
     header_file: str,
     footer_file: str,
+    indentation_count: int,
+    indentation_tab: bool,
     no_length: bool,
     no_const: bool,
 ) -> None:
@@ -226,8 +227,9 @@ def main(
         columns_count,
         header_file,
         footer_file,
+        indentation_count,
+        indentation_tab,
         no_length,
         no_const,
     )
-    # TODO: Do sth useful
-    converter.sth()
+    converter.generate_c_file()

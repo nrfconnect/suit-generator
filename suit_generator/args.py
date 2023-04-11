@@ -141,6 +141,18 @@ def parse_arguments() -> Tuple:
         help=f"Use this file's contents as a generated C file footer, e.g. to close #ifdef guards. Default: {KeyConverter.default_footer_file}",
     )
     cmd_convert_arg_parser.add_argument(
+        "--indentation-count",
+        required=False,
+        default=KeyConverter.default_indentation_count,
+        help=f"Number of indentation characters to put at the beginning of array lines. Default: {KeyConverter.default_indentation_count}",
+    )
+    cmd_convert_arg_parser.add_argument(
+        "--indentation-tab",
+        required=False,
+        action="store_true",
+        help="Use tab instead of space as indentation character.",
+    )
+    cmd_convert_arg_parser.add_argument(
         "--no-length", required=False, action="store_true", help="Do not create array length variable."
     )
     cmd_convert_arg_parser.add_argument(
