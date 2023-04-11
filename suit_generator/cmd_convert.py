@@ -45,6 +45,23 @@ class KeyConverter:
         no_length: bool = default_no_length,
         no_const: bool = default_no_const,
     ):
+        """
+        Create a C file containing an array of bytes holding data of public key based on provided private key in PEM format.
+
+        :param input_file: private key file in PEM format
+        :param output_file: C file to be created
+        :param array_type: C type to be used as a key contents array
+        :param array_name: name of the array variable
+        :param length_type: C type to be used for key length variable
+        :param length_name: name of the key length variable
+        :param columns_count: number of columns to be used for formatting the array in source code
+        :param header_file: name of header file to be included at the beginning of the created C file
+        :param footer_file: name of footer file to be included at the end of the created C file
+        :param indentation_count: number of indentation characters to be put at the beginning of a line holding the array data
+        :param indentation_tab: use tab instead of space as an indentation character
+        :param no_length: do not create key length variable
+        :param no_const: do not use 'const' modifier for created variables
+        """
         self._input_file = input_file
         self._output_file = output_file
         self._array_type = array_type
@@ -192,7 +209,8 @@ class KeyConverter:
 
         return text
 
-    def _prepare_file_contents(self):
+    def prepare_file_contents(self):
+        """Prepare a C file text containg public key data stored as an array."""
         text = self._prepare_header()
         text += self._prepare_array_definition()
         text += self._prepare_array()
@@ -203,8 +221,9 @@ class KeyConverter:
         return text
 
     def generate_c_file(self):
+        """Create a C file containing public key data stored as an array."""
         with open(self._output_file, "w") as fd:
-            fd.write(self._prepare_file_contents())
+            fd.write(self.prepare_file_contents())
 
 
 def main(
@@ -222,6 +241,23 @@ def main(
     no_length: bool,
     no_const: bool,
 ) -> None:
+    """
+    Create a C file containing an array of bytes holding data of public key based on provided private key in PEM format.
+
+    :param input_file: private key file in PEM format
+    :param output_file: C file to be created
+    :param array_type: C type to be used as a key contents array
+    :param array_name: name of the array variable
+    :param length_type: C type to be used for key length variable
+    :param length_name: name of the key length variable
+    :param columns_count: number of columns to be used for formatting the array in source code
+    :param header_file: name of header file to be included at the beginning of the created C file
+    :param footer_file: name of footer file to be included at the end of the created C file
+    :param indentation_count: number of indentation characters to be put at the beginning of a line holding the array data
+    :param indentation_tab: use tab instead of space as an indentation character
+    :param no_length: do not create key length variable
+    :param no_const: do not use 'const' modifier for created variables
+    """
     converter = KeyConverter(
         input_file,
         output_file,

@@ -435,7 +435,7 @@ def test_file_contents(mocker_private_key_file_nonempty):
         columns_count=12,
     )
     # WHEN file contents are generated
-    contents = converter._prepare_file_contents()
+    contents = converter.prepare_file_contents()
     # THEN they match original content generated using suit-tool
     assert contents == EXPECTED_GENERATED_FILE_ORIGINAL
 
@@ -487,7 +487,7 @@ def test_file_contents_with_header(mocker_header_and_key):
         columns_count=12,
     )
     # WHEN C file contents are prepared
-    contents = converter._prepare_file_contents()
+    contents = converter.prepare_file_contents()
     # THEN the contents hold both header file and expected key data
     assert contents == HEADER_FILE_DATA_NON_EMPTY + "\n\n" + EXPECTED_GENERATED_FILE_ORIGINAL
 
@@ -503,7 +503,7 @@ def test_file_contents_with_footer(mocker_key_and_footer):
         columns_count=12,
     )
     # WHEN C file contents are prepared
-    contents = converter._prepare_file_contents()
+    contents = converter.prepare_file_contents()
     # THEN the contents hold both expected key data and footer contents
     assert contents == EXPECTED_GENERATED_FILE_ORIGINAL + "\n\n" + FOOTER_FILE_DATA_NON_EMPTY
 
@@ -520,7 +520,7 @@ def test_file_contents_with_footer(mocker_header_key_and_footer):
         columns_count=12,
     )
     # WHEN C file contents are prepared
-    contents = converter._prepare_file_contents()
+    contents = converter.prepare_file_contents()
     print(contents)
     # THEN the contents hold both expected key data and footer contents
     assert (

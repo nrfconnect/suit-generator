@@ -93,10 +93,10 @@ def parse_arguments() -> Tuple:
     )
     # CONVERT_CMD command
     cmd_convert_arg_parser = subparsers.add_parser(
-        CONVERT_CMD, help="Convert key file into a C file storing the key as an array."
+        CONVERT_CMD, help="Convert private key file in PEM format into a C file storing public key data as an array."
     )
-    cmd_convert_arg_parser.add_argument("--input-file", required=True, help="Key file to be converted.")
-    cmd_convert_arg_parser.add_argument("--output-file", required=True, help="C file to be created.")
+    cmd_convert_arg_parser.add_argument("--input-file", required=True, help="Private key file in PEM format.")
+    cmd_convert_arg_parser.add_argument("--output-file", required=True, help="C file to be created; will hold public key data as an array.")
     cmd_convert_arg_parser.add_argument(
         "--array-type",
         required=False,
@@ -107,7 +107,7 @@ def parse_arguments() -> Tuple:
         "--array-name",
         required=False,
         default=KeyConverter.default_array_name,
-        help=f"Valid C variable name to be ud for array containing the key. Default: {KeyConverter.default_array_name}",
+        help=f"Valid C variable name to be used for array containing the key. Default: {KeyConverter.default_array_name}",
     )
     cmd_convert_arg_parser.add_argument(
         "--length-type",
