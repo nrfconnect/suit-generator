@@ -9,9 +9,11 @@ from __future__ import annotations
 
 from cryptography.hazmat.primitives import serialization
 
+import os
+
 
 class KeyConverter:
-    """Converts key files iarrays."""
+    """Creates a C file with public key data in form of an array from a private key stored in PEM format."""
 
     default_array_type = "uint8_t"
     default_array_name = "key_buf"
@@ -75,20 +77,26 @@ class KeyConverter:
             raise ValueError(f"Invalid length_name: {self._length_name}")
         if self._columns_count <= 0:
             raise ValueError(f"Invalid columns count: {self._columns_count}")
+
         # Header and footer files can be empty
         # no length and no const are boolean and both values are allowed
 
-        # self._validate_input_file()
+        self._validate_input_file()
 
-    # TODO: Might be used if there is elegant way to mock it in tests...
-    # def _validate_input_file(self):
-    #     if os.path.getsize(self._input_file) <= 0:
-    #         raise ValueError(f"Empty file {self._input_file}")
+    def _validate_input_file(self):
+        if os.path.exists(self._input_file):
+            if os.path.getsize(self._input_file) <= 0:
+                raise ValueError(f"Empty file {self._input_file}")
+        else:
+            raise FileNotFoundError(f"Input file {self._input_file} not found")
 
     def _prepare_header(self) -> str:
         if self._header_file:
             with open(self._header_file, "r") as fd:
-                return fd.read()
+                contents = fd.read()
+            if len(contents) > 0:
+                contents += KeyConverter.newline * 2
+            return contents
         else:
             return ""
 
@@ -102,10 +110,15 @@ class KeyConverter:
         return f"{self._array_name}[] = {{"
 
     def _prepare_array_definition(self) -> str:
-        return self._prepare_modifier() + self._prepare_array_type() + self._prepare_array_variable()
+        return (
+            self._prepare_modifier()
+            + self._prepare_array_type()
+            + self._prepare_array_variable()
+            + KeyConverter.newline
+        )
 
     def _prepare_array_variable_end(self) -> str:
-        return "};"
+        return "};" + KeyConverter.newline
 
     def _prepare_length_variable(self) -> str:
         if self._no_length:
@@ -120,79 +133,72 @@ class KeyConverter:
         text = "" if self._no_const else KeyConverter.const_modifier
         text += f"{self._length_type} {self._length_name} = {right_hand_side}"
 
+        # When length variable was created, surround it with newlines
+        if len(text) > 0:
+            text = KeyConverter.newline + text + KeyConverter.newline
+
         return text
 
     def _prepare_footer(self) -> str:
         if self._footer_file:
             with open(self._footer_file, "r") as fd:
-                return fd.read()
+                contents = fd.read()
+            if len(contents) > 0:
+                contents = KeyConverter.newline + contents
+            return contents
         else:
             return ""
 
     def _get_public_key_data(self) -> bytes:
         with open(self._input_file, "rb") as fd:
-            # TODO: What if the key is protected by a password?
+            # TODO: Consider adding support for keys protected by password
             private_key = serialization.load_pem_private_key(data=fd.read(), password=None)
 
         public_key_numbers = private_key.public_key().public_numbers()
 
         # Make sure that if bit length is not alligned to 8, full bytes will be used
-        x_bit_length = (public_key_numbers.x.bit_length() + 7) // 8
-        y_bit_length = (public_key_numbers.y.bit_length() + 7) // 8
+        x_byte_length = (public_key_numbers.x.bit_length() + 7) // 8
+        y_byte_length = (public_key_numbers.y.bit_length() + 7) // 8
 
         # Convert the numbers into bytes
-        x_bytes = public_key_numbers.x.to_bytes(length=x_bit_length, byteorder="big")
-        y_bytes = public_key_numbers.y.to_bytes(length=y_bit_length, byteorder="big")
+        x_bytes = public_key_numbers.x.to_bytes(length=x_byte_length, byteorder="big")
+        y_bytes = public_key_numbers.y.to_bytes(length=y_byte_length, byteorder="big")
 
         return x_bytes + y_bytes
 
-    def _split_bytes_per_row(self, data: bytes):
-        # TODO: Add return type annotation
+    def _split_bytes_per_row(self, data: bytes) -> list[bytes]:
         return [data[i : i + self._columns_count] for i in range(0, len(data), self._columns_count)]
 
-    def _format_row_of_bytes(self, data: bytes):
-        # TODO: Add return type annotation
+    def _format_row_of_bytes(self, data: bytes) -> str:
         text = ""
         for b in data:
             text += f"0x{b:02x}, "
         return text
 
-    def _format_row(self, data: bytes):
-        # TODO: Add return type annotation
+    def _format_row(self, data: bytes) -> str:
         return self._indentation + self._format_row_of_bytes(data).strip()
 
-    def _prepare_file_contents(self):
-        text = ""
-
-        header_text = self._prepare_header()
-        if len(header_text) > 0:
-            text += header_text
-            text += KeyConverter.newline
-
-        text += self._prepare_array_definition()
-        text += KeyConverter.newline
-
+    def _prepare_array(self) -> str:
         public_key_data = self._get_public_key_data()
-        array_text = ""
+        text = ""
         for row in self._split_bytes_per_row(public_key_data):
-            array_text += self._format_row(row)
-            array_text += KeyConverter.newline
+            text += self._format_row(row)
+            text += KeyConverter.newline
 
         # To simplify row generation, comma and new line is always added at the end.
         # In last row, however, we don't want a trailing comma (e.g. to support C89)
-        array_text = array_text[:-2]
-        array_text += KeyConverter.newline
-
-        text += array_text
-
-        text += self._prepare_array_variable_end()
+        text = text[:-2]
         text += KeyConverter.newline
 
-        length_variable = self._prepare_length_variable()
-        if len(length_variable) > 0:
-            text += KeyConverter.newline
-            text += length_variable
-            text += KeyConverter.newline
+        return text
+
+    def _prepare_file_contents(self):
+        text = self._prepare_header()
+        text += self._prepare_array_definition()
+        text += self._prepare_array()
+        text += self._prepare_array_variable_end()
+        text += self._prepare_length_variable()
+        text += self._prepare_footer()
 
         return text
 
@@ -216,7 +222,6 @@ def main(
     no_length: bool,
     no_const: bool,
 ) -> None:
-    # TODO: Describe
     converter = KeyConverter(
         input_file,
         output_file,

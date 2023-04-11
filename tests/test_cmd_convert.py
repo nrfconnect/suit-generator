@@ -37,7 +37,18 @@ EXPECTED_GENERATED_FILE_ORIGINAL = """const uint8_t public_key[] = {
 
 
 @pytest.fixture
-def default_converter():
+def mocker_existing_file(mocker):
+    getsize_data = mocker.Mock()
+    getsize_data.side_effect = lambda x: len(PRIVATE_KEY_FILE_NONEMPTY)
+    mocker.patch("os.path.getsize", getsize_data)
+
+    exists_data = mocker.Mock()
+    exists_data.side_effect = lambda x: True
+    mocker.patch("os.path.exists", exists_data)
+
+
+@pytest.fixture
+def default_converter(mocker_existing_file):
     """Converted created only with mandatory arguments, leaving other set to default ones"""
     return KeyConverter(
         input_file="some_input_file",
@@ -46,7 +57,58 @@ def default_converter():
 
 
 @pytest.fixture
-def valid_converter():
+def mocker_header_and_key(mocker):
+    getsize_data = mocker.Mock()
+    getsize_data.side_effect = lambda _: 1  # Just ensure it nonnegative
+    mocker.patch("os.path.getsize", getsize_data)
+
+    exists_data = mocker.Mock()
+    exists_data.side_effect = lambda _: True
+    mocker.patch("os.path.exists", exists_data)
+
+    file_contents = [HEADER_FILE_DATA_NON_EMPTY, PRIVATE_KEY_FILE_NONEMPTY]
+    mock_files = [mocker.mock_open(read_data=content).return_value for content in file_contents]
+    mock_opener = mocker.mock_open()
+    mock_opener.side_effect = mock_files
+    mocker.patch("builtins.open", mock_opener)
+
+
+@pytest.fixture
+def mocker_key_and_footer(mocker):
+    getsize_data = mocker.Mock()
+    getsize_data.side_effect = lambda _: 1  # Just ensure it nonnegative
+    mocker.patch("os.path.getsize", getsize_data)
+
+    exists_data = mocker.Mock()
+    exists_data.side_effect = lambda _: True
+    mocker.patch("os.path.exists", exists_data)
+
+    file_contents = [PRIVATE_KEY_FILE_NONEMPTY, FOOTER_FILE_DATA_NON_EMPTY]
+    mock_files = [mocker.mock_open(read_data=content).return_value for content in file_contents]
+    mock_opener = mocker.mock_open()
+    mock_opener.side_effect = mock_files
+    mocker.patch("builtins.open", mock_opener)
+
+
+@pytest.fixture
+def mocker_header_key_and_footer(mocker):
+    getsize_data = mocker.Mock()
+    getsize_data.side_effect = lambda _: 1  # Just ensure it nonnegative
+    mocker.patch("os.path.getsize", getsize_data)
+
+    exists_data = mocker.Mock()
+    exists_data.side_effect = lambda _: True
+    mocker.patch("os.path.exists", exists_data)
+
+    file_contents = [HEADER_FILE_DATA_NON_EMPTY, PRIVATE_KEY_FILE_NONEMPTY, FOOTER_FILE_DATA_NON_EMPTY]
+    mock_files = [mocker.mock_open(read_data=content).return_value for content in file_contents]
+    mock_opener = mocker.mock_open()
+    mock_opener.side_effect = mock_files
+    mocker.patch("builtins.open", mock_opener)
+
+
+@pytest.fixture
+def valid_converter(mocker_existing_file):
     return KeyConverter(
         input_file="some_input_file",
         output_file="some_output_file",
@@ -64,11 +126,18 @@ def valid_converter():
 
 @pytest.fixture
 def mocker_empty_file(mocker):
+    exists_data = mocker.Mock()
+    exists_data.side_effect = lambda x: True
+    mocker.patch("os.path.exists", exists_data)
+
+    size_data = mocker.Mock()
+    size_data.side_effect = lambda x: 0
+    mocker.patch("os.path.getsize", size_data)
+
     mocked_data = mocker.mock_open(read_data="")
     mocker.patch("builtins.open", mocked_data)
 
 
-# TODO: Maybe this mockers can be reused and data to be read could be passed?
 @pytest.fixture
 def mocker_header_file_nonempty(mocker):
     mocked_data = mocker.mock_open(read_data=HEADER_FILE_DATA_NON_EMPTY)
@@ -83,6 +152,14 @@ def mocker_footer_file_nonempty(mocker):
 
 @pytest.fixture
 def mocker_private_key_file_nonempty(mocker):
+    getsize_data = mocker.Mock()
+    getsize_data.side_effect = lambda x: len(PRIVATE_KEY_FILE_NONEMPTY)
+    mocker.patch("os.path.getsize", getsize_data)
+
+    exists_data = mocker.Mock()
+    exists_data.side_effect = lambda x: True
+    mocker.patch("os.path.exists", exists_data)
+
     mocked_data = mocker.mock_open(read_data=PRIVATE_KEY_FILE_NONEMPTY)
     mocker.patch("builtins.open", mocked_data)
 
@@ -171,8 +248,8 @@ def test_prepare_header_valid_header_file(valid_converter, mocker_header_file_no
     # GIVEN converter that was given valid header file
     # WHEN header text is prepared
     text = valid_converter._prepare_header()
-    # THEN it contains the text file contents
-    assert text == HEADER_FILE_DATA_NON_EMPTY
+    # THEN it contains the text file contents followed by a newline
+    assert text == HEADER_FILE_DATA_NON_EMPTY + "\n\n"
 
 
 def test_prepare_footer_no_footer_file(default_converter):
@@ -196,7 +273,7 @@ def test_prepare_footer_valid_footer_file(valid_converter, mocker_footer_file_no
     # WHEN footer text is prepared
     text = valid_converter._prepare_footer()
     # THEN it contains the text file contents
-    assert text == FOOTER_FILE_DATA_NON_EMPTY
+    assert text == "\n" + FOOTER_FILE_DATA_NON_EMPTY
 
 
 def test_modified_use_const(default_converter):
@@ -207,7 +284,7 @@ def test_modified_use_const(default_converter):
     assert text == "const "
 
 
-def test_modifier_no_const():
+def test_modifier_no_const(mocker_existing_file):
     # GIVEN converter that had '--no-const' argument passed
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", no_const=True)
     # WHEN modifier text is prepared
@@ -224,7 +301,7 @@ def test_array_type_default(default_converter):
     assert text == "uint8_t "
 
 
-def test_array_type_custom():
+def test_array_type_custom(mocker_existing_file):
     # GIVEN converter with custom array type
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", array_type="my_fancy_type_t")
     # WHEN array type text is prepared
@@ -241,7 +318,7 @@ def test_array_variable_default(default_converter):
     assert text == "key_buf[] = {"
 
 
-def test_array_variable_custom():
+def test_array_variable_custom(mocker_existing_file):
     # GIVEN converter with custom array name
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", array_name="stuff")
     # WHEN array variable text is prepared
@@ -255,7 +332,7 @@ def test_array_variable_end(default_converter):
     # WHEN an array ending characters text is prepared
     text = default_converter._prepare_array_variable_end()
     # THEN it contains "};"
-    assert text == "};"
+    assert text == "};\n"
 
 
 def test_get_public_key_data_nonempty(mocker_private_key_file_nonempty):
@@ -272,34 +349,34 @@ def test_array_definition_default(default_converter):
     # WHEN array definition is created
     definition = default_converter._prepare_array_definition()
     # THEN it is as expected
-    assert definition == "const uint8_t key_buf[] = {"
+    assert definition == "const uint8_t key_buf[] = {\n"
 
 
-def test_array_definition_no_const():
+def test_array_definition_no_const(mocker_existing_file):
     # GIVEN a converter with "--no-const"
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", no_const=True)
     # WHEN array definition is created
     definition = converter._prepare_array_definition()
     # THEN it is as expected
-    assert definition == "uint8_t key_buf[] = {"
+    assert definition == "uint8_t key_buf[] = {\n"
 
 
-def test_array_definition_custom_type():
+def test_array_definition_custom_type(mocker_existing_file):
     # GIVEN a converter with "char" used as a array type
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", array_type="char")
     # WHEN array definition is created
     definition = converter._prepare_array_definition()
     # THEN it is as expected
-    assert definition == "const char key_buf[] = {"
+    assert definition == "const char key_buf[] = {\n"
 
 
-def test_array_definition_custom_name():
+def test_array_definition_custom_name(mocker_existing_file):
     # GIVEN a converter with custom array name
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", array_name="foo")
     # WHEN array definition is created
     definition = converter._prepare_array_definition()
     # THEN it is as expected
-    assert definition == "const uint8_t foo[] = {"
+    assert definition == "const uint8_t foo[] = {\n"
 
 
 def test_length_definition_default(default_converter):
@@ -307,28 +384,28 @@ def test_length_definition_default(default_converter):
     # WHEN length variable definition is prepared
     text = default_converter._prepare_length_variable()
     # THEN it is as following
-    assert text == "const size_t key_len = sizeof(key_buf);"
+    assert text == "\nconst size_t key_len = sizeof(key_buf);\n"
 
 
-def test_length_definition_no_const():
+def test_length_definition_no_const(mocker_existing_file):
     # GIVEN converter with "--no-const"
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", no_const=True)
     # WHEN length variable definition is prepared
     text = converter._prepare_length_variable()
     # THEN it is as following
-    assert text == "size_t key_len = sizeof(key_buf);"
+    assert text == "\nsize_t key_len = sizeof(key_buf);\n"
 
 
-def test_length_definition_custom_type():
+def test_length_definition_custom_type(mocker_existing_file):
     # GIVEN converter with custom length type
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", length_type="uint32_t")
     # WHEN length variable definition is prepared
     text = converter._prepare_length_variable()
     # THEN it is as following
-    assert text == "const uint32_t key_len = (uint32_t) sizeof(key_buf);"
+    assert text == "\nconst uint32_t key_len = (uint32_t) sizeof(key_buf);\n"
 
 
-def test_length_definition_custom_name():
+def test_length_definition_custom_name(mocker_existing_file):
     # GIVEN converter with custom length name
     converter = KeyConverter(
         input_file="some_input_file", output_file="some_output_file", length_name="my_fancy_length_name"
@@ -336,10 +413,10 @@ def test_length_definition_custom_name():
     # WHEN length variable definition is prepared
     text = converter._prepare_length_variable()
     # THEN it is as following
-    assert text == "const size_t my_fancy_length_name = sizeof(key_buf);"
+    assert text == "\nconst size_t my_fancy_length_name = sizeof(key_buf);\n"
 
 
-def test_length_definition_no_length():
+def test_length_definition_no_length(mocker_existing_file):
     # GIVEN converter with no length variable desired
     converter = KeyConverter(input_file="some_input_file", output_file="some_output_file", no_length=True)
     # WHEN length variable definition is prepared
@@ -366,7 +443,6 @@ def test_file_contents(mocker_private_key_file_nonempty):
 def test_file_creation_original(tmpdir):
     # GIVEN converter with particular configuration
     out_file = tmpdir.join("some_output_file")
-    print(out_file)
     converter = KeyConverter(
         # TODO: Find a way to not depend on existence of real key file...
         input_file="key_private.pem",
@@ -382,3 +458,72 @@ def test_file_creation_original(tmpdir):
     with open(out_file.strpath, "r") as fd:
         generated = fd.read()
     assert generated == EXPECTED_GENERATED_FILE_ORIGINAL
+
+
+def test_nonexisting_input_file():
+    # GIVEN nonexisting input file
+    # WHEN converter is created
+    # THEN appropriate exception is raised
+    with pytest.raises(FileNotFoundError):
+        converter = KeyConverter(input_file="nonexisting", output_file="missing")
+
+
+def test_empty_input_file(mocker_empty_file):
+    # GIVEN empty input file
+    # WHEN converter is created
+    # THEN appropriate exception is raised
+    with pytest.raises(ValueError):
+        converter = KeyConverter(input_file="some_input_file", output_file="some_output_file")
+
+
+def test_file_contents_with_header(mocker_header_and_key):
+    # GIVEN converter with input file and header file
+    converter = KeyConverter(
+        input_file="input_file",
+        output_file="some_output_file",
+        header_file="header_file",
+        array_name="public_key",
+        no_length=True,
+        columns_count=12,
+    )
+    # WHEN C file contents are prepared
+    contents = converter._prepare_file_contents()
+    # THEN the contents hold both header file and expected key data
+    assert contents == HEADER_FILE_DATA_NON_EMPTY + "\n\n" + EXPECTED_GENERATED_FILE_ORIGINAL
+
+
+def test_file_contents_with_footer(mocker_key_and_footer):
+    # GIVEN converter with input file and footer file
+    converter = KeyConverter(
+        input_file="input_file",
+        output_file="some_output_file",
+        footer_file="footer_file",
+        array_name="public_key",
+        no_length=True,
+        columns_count=12,
+    )
+    # WHEN C file contents are prepared
+    contents = converter._prepare_file_contents()
+    # THEN the contents hold both expected key data and footer contents
+    assert contents == EXPECTED_GENERATED_FILE_ORIGINAL + "\n\n" + FOOTER_FILE_DATA_NON_EMPTY
+
+
+def test_file_contents_with_footer(mocker_header_key_and_footer):
+    # GIVEN converter with input file and footer file
+    converter = KeyConverter(
+        input_file="input_file",
+        output_file="some_output_file",
+        header_file="header_file",
+        footer_file="footer_file",
+        array_name="public_key",
+        no_length=True,
+        columns_count=12,
+    )
+    # WHEN C file contents are prepared
+    contents = converter._prepare_file_contents()
+    print(contents)
+    # THEN the contents hold both expected key data and footer contents
+    assert (
+        contents
+        == HEADER_FILE_DATA_NON_EMPTY + "\n\n" + EXPECTED_GENERATED_FILE_ORIGINAL + "\n" + FOOTER_FILE_DATA_NON_EMPTY
+    )
