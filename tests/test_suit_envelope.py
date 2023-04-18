@@ -100,6 +100,16 @@ TEST_DATA = {
         "353432305f637075617070036d6e6f7264696373656d692e6e6f04781d546865206e52463533383430206170706c6963"
         "6174696f6e20636f726505781a53616d706c65206170706c69636174696f6e20636f7265204657066676312e302e30"
     ),
+    "ENVELOPE_7_UNSIGNED_TWO_INTEGRATED_PAYLOADS": (
+        "d86ba4025827815824822f58200c527816d4450cfc50cef6b496ba1ac12f71104b5375605b647c56455abcdaed0359010fa601"
+        "0102050358b4a2028384414d4102451a1e0aa000451a0007f800824144410084414d4103451a1e054000451a00055800045887"
+        "900c0014a201502bdc1c07e0d15484be5063174d5a74c302508520ea9c515e57798b5fbdad67dec7d9010f020f0cf514a20358"
+        "24822f5820374708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb0e100c0214a2035824822f582037"
+        "4708fff7719dd5979ec875d56cd2286f6d3cf7ec317a3b25632aab28ec37bb0e100749880c00030f0c02030f0949880c021702"
+        "0c00170211583a981e0c0114a11568236170702e62696e1502030f0c0014a116011602030f0c0114a1156a23726164696f2e62"
+        "696e15020c0214a116011602030f68236170702e62696e50000000000000000000000000000000006a23726164696f2e62696e"
+        "5000000000000000000000000000000000"
+    ),
 }
 
 TEST_DATA_OBJECTS = {
@@ -175,6 +185,80 @@ TEST_DATA_OBJECTS = {
                 }
             },
             "suit-integrated-payloads": {"#file.bin": "file.bin"},
+        }
+    },
+    "UNSIGNED_ENVELOPE_TWO_INTEGRATED_PAYLOADS": {
+        "SUIT_Envelope_Tagged": {
+            "suit-authentication-wrapper": {
+                "SuitDigest": {
+                    "suit-digest-algorithm-id": "cose-alg-sha-256",
+                    "suit-digest-bytes": "aaabbbcccdddeeefff",
+                },
+            },
+            "suit-manifest": {
+                "suit-manifest-version": 1,
+                "suit-manifest-sequence-number": 1,
+                "suit-common": {
+                    "suit-components": [["M", 255, 235225088, 352256], ["M", 14, 772096000, 352256], ["D", 0]],
+                    "suit-shared-sequence": [
+                        {"suit-directive-set-component-index": 1},
+                        {
+                            "suit-directive-override-parameters": {
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
+                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                            }
+                        },
+                        {
+                            "suit-condition-vendor-identifier": [
+                                "suit-send-record-success",
+                                "suit-send-record-failure",
+                                "suit-send-sysinfo-success",
+                                "suit-send-sysinfo-failure",
+                            ]
+                        },
+                        {"suit-condition-class-identifier": []},
+                        {"suit-directive-set-component-index": True},
+                        {
+                            "suit-directive-override-parameters": {
+                                "suit-parameter-image-digest": {
+                                    "suit-digest-algorithm-id": "cose-alg-sha-256",
+                                    "suit-digest-bytes": {"file": "file.bin"},
+                                },
+                                "suit-parameter-image-size": {"file": "file.bin"},
+                            }
+                        },
+                    ],
+                },
+                "suit-install": [
+                    {"suit-directive-set-component-index": 2},
+                    {"suit-directive-override-parameters": {"suit-parameter-uri": "#file.bin"}},
+                    {"suit-directive-fetch": []},
+                    {"suit-condition-image-match": []},
+                    {"suit-directive-set-component-index": 1},
+                    {"suit-directive-override-parameters": {"suit-parameter-source-component": 2}},
+                    {"suit-directive-copy": []},
+                    {"suit-condition-image-match": []},
+                ],
+                "suit-validate": [{"suit-directive-set-component-index": 1}, {"suit-condition-image-match": []}],
+                "suit-load": [
+                    {"suit-directive-set-component-index": 0},
+                    {"suit-directive-override-parameters": {"suit-parameter-source-component": 1}},
+                    {"suit-directive-copy": []},
+                    {"suit-condition-image-match": []},
+                ],
+                "suit-invoke": [{"suit-directive-set-component-index": 0}, {"suit-directive-invoke": []}],
+            },
+            "suit-text": {
+                '["M", 2, 235577344, 352256]': {
+                    "suit-text-vendor-name": "Nordic Semiconductor ASA",
+                    "suit-text-model-name": "nRF5420_cpuapp",
+                    "suit-text-vendor-domain": "nordicsemi.no",
+                    "suit-text-model-info": "The nRF5420 application core",
+                    "suit-text-component-description": "Sample application core FW",
+                    "suit-text-component-version": "v1.0.0",
+                }
+            },
+            "suit-integrated-payloads": {"#file.bin": "file.bin", "#file2.bin": "file.bin"},
         }
     },
     "SIGNED_ENVELOPE": {
@@ -384,7 +468,15 @@ def test_parse_signed_envelope():
         assert required_item in envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest.keys()
 
 
-@pytest.mark.parametrize("input_envelope", ["UNSIGNED_ENVELOPE", "SIGNED_ENVELOPE", "SIGNED_ENVELOPE_TEXT"])
+@pytest.mark.parametrize(
+    "input_envelope",
+    [
+        "UNSIGNED_ENVELOPE",
+        "SIGNED_ENVELOPE",
+        "SIGNED_ENVELOPE_TEXT",
+        "UNSIGNED_ENVELOPE_TWO_INTEGRATED_PAYLOADS",
+    ],
+)
 def test_conversion_obj_to_cbor(input_envelope):
     """Test if is possible to convert object to cbor."""
     envelope = SuitEnvelopeTagged.from_obj(TEST_DATA_OBJECTS[input_envelope])
@@ -546,9 +638,18 @@ def test_envelope_signing(private_key):
     )
 
 
-def test_envelope_sign_and_verify():
+@pytest.mark.parametrize(
+    "input_data, amount_of_payloads",
+    [("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0), ("ENVELOPE_7_UNSIGNED_TWO_INTEGRATED_PAYLOADS", 2)],
+)
+def test_envelope_sign_and_verify(input_data, amount_of_payloads):
     """Test if is possible to sign manifest and signature can be verified properly."""
-    envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
+    envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA[input_data]))
+    if amount_of_payloads > 0:
+        assert (
+            len(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_integrated_payloads].SuitIntegratedPayloadMap)
+            == amount_of_payloads
+        )
     digest_object = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
         .SuitAuthentication[0]
