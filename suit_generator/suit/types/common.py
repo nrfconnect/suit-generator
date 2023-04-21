@@ -341,7 +341,14 @@ class SuitKeyValue(SuitObject):
             if not (child := cls._get_method_and_name(k, "id")):
                 for item in cls._metadata.embedded:
                     try:
-                        value[item] = cls._metadata.map[item].from_cbor(cbor2.dumps({k: v}))
+                        # TODO: refactoring required: workaround for multiple integrated payloads
+                        if item in value and item is suit_integrated_payloads:
+                            value[item].SuitIntegratedPayloadMap = {
+                                **value[item].SuitIntegratedPayloadMap,
+                                **cls._metadata.map[item].from_cbor(cbor2.dumps({k: v})).SuitIntegratedPayloadMap,
+                            }
+                        else:
+                            value[item] = cls._metadata.map[item].from_cbor(cbor2.dumps({k: v}))
                     except ValueError:
                         log.warning(f"Not possible to deserialize data for {k}")
             else:
