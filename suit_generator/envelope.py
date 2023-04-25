@@ -61,3 +61,12 @@ class SuitEnvelope(InputOutputMixin):
 
         load_method = self.get_deserializer(input_type)
         self._envelope = load_method(file_name)
+
+    def sever(self) -> None:
+        """Get rid of severable elements."""
+        severable = ["suit-payload-fetch", "suit-install", "suit-text", "suit-integrated-payloads"]
+        [
+            self._envelope["SUIT_Envelope_Tagged"].pop(k, None)
+            for k in list(self._envelope["SUIT_Envelope_Tagged"].keys())
+            if k in severable
+        ]

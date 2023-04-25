@@ -5,7 +5,7 @@
 #
 """Main CLI entry point."""
 
-from suit_generator import cmd_parse, cmd_sign, cmd_keys, cmd_convert, cmd_create, args
+from suit_generator import cmd_parse, cmd_sign, cmd_keys, cmd_convert, cmd_create, cmd_image, args
 from suit_generator.exceptions import GeneratorError, SUITError
 
 import logging
@@ -20,6 +20,7 @@ COMMAND_EXECUTORS = {
     args.KEYS_CMD: cmd_keys.main,
     args.CONVERT_CMD: cmd_convert.main,
     args.SIGN_CMD: cmd_sign.main,
+    args.IMAGE_CMD: cmd_image.main,
 }
 
 
