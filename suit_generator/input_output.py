@@ -59,16 +59,20 @@ class InputOutputMixin:
             suit = SuitEnvelopeTagged.from_cbor(data)
             return suit.to_obj()
 
+    def prepare_suit_data(self, data, private_key=None) -> bytes:
+        """Convert data to suit format."""
+        suit_obj = SuitEnvelopeTagged.from_obj(data)
+        suit_obj.update_digest()
+        if private_key:
+            with open(private_key, "rb") as pk_fh:
+                pk_data = pk_fh.read()
+            suit_obj.sign(pk_data)
+        return suit_obj.to_cbor()
+
     def to_suit_file(self, file_name, data, private_key=None) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
-            suit_obj = SuitEnvelopeTagged.from_obj(data)
-            suit_obj.update_digest()
-            if private_key:
-                with open(private_key, "rb") as pk_fh:
-                    pk_data = pk_fh.read()
-                suit_obj.sign(pk_data)
-            fh.write(suit_obj.to_cbor())
+            fh.write(self.prepare_suit_data(data, private_key))
 
     def get_serializer(self, output_type: str) -> Callable:
         """Return serialize method."""
