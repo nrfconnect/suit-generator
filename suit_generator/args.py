@@ -11,12 +11,17 @@ from typing import Tuple
 
 from suit_generator.cmd_keys import KeyGenerator
 from suit_generator.cmd_convert import KeyConverter
+from suit_generator.cmd_image import ImageCreator
+from suit_generator.exceptions import GeneratorError
 
 PARSE_CMD = "parse"
 CREATE_CMD = "create"
 KEYS_CMD = "keys"
 CONVERT_CMD = "convert"
 SIGN_CMD = "sign"
+IMAGE_CMD = ImageCreator.IMAGE_CMD
+IMAGE_CMD_BOOT = ImageCreator.IMAGE_CMD_BOOT
+IMAGE_CMD_UPDATE = ImageCreator.IMAGE_CMD_UPDATE
 
 
 def parse_arguments() -> Tuple:
@@ -169,10 +174,92 @@ def parse_arguments() -> Tuple:
     cmd_sign_arg_parser.add_argument("--input-file", required=True, help="Input SUIT file")
     cmd_sign_arg_parser.add_argument("--output-file", required=True, help="Output SUIT file")
     cmd_sign_arg_parser.add_argument("--private-key", required=True, help="Private key file")
+    # IMAGE_CMD command
+    cmd_image = subparsers.add_parser(
+        IMAGE_CMD, help="Create hex files allowing boot or update execution path based on provided SUIT envelope."
+    )
+
+    cmd_image_subparsers = cmd_image.add_subparsers(dest=IMAGE_CMD, required=True, help="Choose image subcommand")
+    cmd_image_boot = cmd_image_subparsers.add_parser(IMAGE_CMD_BOOT, help="Generate .hex files for boot execution path")
+    cmd_image_update = cmd_image_subparsers.add_parser(
+        IMAGE_CMD_UPDATE, help="Generate .hex files for update execution path"
+    )
+
+    cmd_image_boot.add_argument("--input-file", required=True, help="Input SUIT file; an envelope")
+    cmd_image_boot.add_argument(
+        "--storage-output-file", required=True, help="Output hex file with SUIT storage contents"
+    )
+    cmd_image_boot.add_argument(
+        "--update-candidate-info-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_update_candidate_info_address,
+        help=f"Address of SUIT storage update candidate info. "
+        f"Default: 0x{ImageCreator.default_update_candidate_info_address:08X}",
+    )
+    cmd_image_boot.add_argument(
+        "--envelope-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_envelope_address,
+        help=f"Address of installed envelope in SUIT storage. Default: 0x{ImageCreator.default_envelope_address:08X}",
+    )
+    cmd_image_boot.add_argument(
+        "--dfu-max-caches",
+        required=False,
+        type=int,
+        default=ImageCreator.default_dfu_max_caches,
+        help=f"Max number of DFU caches. Default: {ImageCreator.default_dfu_max_caches}",
+    )
+
+    cmd_image_update.add_argument("--input-file", required=True, help="Input SUIT file; an envelope")
+    cmd_image_update.add_argument(
+        "--storage-output-file", required=True, help="Output hex file with SUIT storage contents"
+    )
+    cmd_image_update.add_argument(
+        "--dfu-partition-output-file", required=True, help="Output hex file with DFU partition contents"
+    )
+    cmd_image_update.add_argument(
+        "--update-candidate-info-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_update_candidate_info_address,
+        help=f"Address of SUIT storage update candidate info. "
+        f"Default: 0x{ImageCreator.default_update_candidate_info_address:08X}",
+    )
+    cmd_image_update.add_argument(
+        "--dfu-partition-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_dfu_partition_address,
+        help=f"Address of partition where DFU update candidate is stored. "
+        f"Default: 0x{ImageCreator.default_dfu_partition_address:08X}",
+    )
+    cmd_image_update.add_argument(
+        "--dfu-max-caches",
+        required=False,
+        type=int,
+        default=ImageCreator.default_dfu_max_caches,
+        help=f"Max number of DFU caches. Default: {ImageCreator.default_dfu_max_caches}",
+    )
 
     arguments = parser.parse_args()
     cmd = str(arguments.command)
     # remove unnecessary arguments to simplify command calling
     del arguments.command
+
+    # TODO: Refactor - workaround for fixed mapping between args and main's parameters
+    if cmd == IMAGE_CMD:
+        if arguments.image == IMAGE_CMD_BOOT:
+            # Stub missing arguments from "update" subcommand
+            arguments.dfu_partition_address = None
+            arguments.dfu_partition_output_file = None
+        elif arguments.image == IMAGE_CMD_UPDATE:
+            # Stub missing arguments from "boot" subcommand
+            arguments.payload_output_file = None
+            arguments.payload_address = None
+            arguments.envelope_address = None
+        else:
+            raise GeneratorError(f"Invalid 'image' subcommand: {arguments.image}")
 
     return cmd, arguments

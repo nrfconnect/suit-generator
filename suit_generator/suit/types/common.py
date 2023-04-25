@@ -555,6 +555,7 @@ class SuitTag(SuitObject):
         """Restore SUIT representation from passed object."""
         if cls._metadata.tag.name not in obj.keys():
             raise ValueError(f"CBOR tag not found in: {obj}")
+
         return cls(
             cbor2.CBORTag(cls._metadata.tag.value, cls._metadata.children[0].from_obj(obj[cls._metadata.tag.name]))
         )
