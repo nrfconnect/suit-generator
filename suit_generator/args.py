@@ -256,8 +256,6 @@ def parse_arguments() -> Tuple:
             arguments.dfu_partition_output_file = None
         elif arguments.image == IMAGE_CMD_UPDATE:
             # Stub missing arguments from "boot" subcommand
-            arguments.payload_output_file = None
-            arguments.payload_address = None
             arguments.envelope_address = None
         else:
             raise GeneratorError(f"Invalid 'image' subcommand: {arguments.image}")
