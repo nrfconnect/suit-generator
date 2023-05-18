@@ -29,8 +29,8 @@ class LocalSigner(Signer):
         log.info(f"signing {input_file=} by {key=} and storing as {output_file=}")
         try:
             envelope = SuitEnvelope()
-            envelope.load(input_file, "suit")
-            envelope.dump(output_file, "suit", private_key=key)
+            envelope.load(input_file, "suit_simplified")
+            envelope.dump(output_file, "suit_simplified", private_key=key)
         except ValueError as error:
             raise SUITError(f"Invalid value: {error}") from error
         except FileNotFoundError as error:

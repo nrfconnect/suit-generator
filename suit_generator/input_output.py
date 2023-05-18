@@ -6,7 +6,7 @@
 """Input and output extensions for storing objects as yaml, json or cbor."""
 from __future__ import annotations
 from typing import Callable
-from suit_generator.suit.envelope import SuitEnvelopeTagged
+from suit_generator.suit.envelope import SuitEnvelopeTagged, SuitEnvelopeTaggedSimplified
 import json
 import yaml
 
@@ -21,9 +21,19 @@ class FileTypeException(Exception):
 class InputOutputMixin:
     """Input and output extensions."""
 
-    SERIALIZERS = {"json": "to_json_file", "yaml": "to_yaml_file", "suit": "to_suit_file"}
+    SERIALIZERS = {
+        "json": "to_json_file",
+        "yaml": "to_yaml_file",
+        "suit": "to_suit_file",
+        "suit_simplified": "to_suit_file_simplified",
+    }
 
-    DESERIALIZERS = {"json": "from_json_file", "yaml": "from_yaml_file", "suit": "from_suit_file"}
+    DESERIALIZERS = {
+        "json": "from_json_file",
+        "yaml": "from_yaml_file",
+        "suit": "from_suit_file",
+        "suit_simplified": "from_suit_file_simplified",
+    }
 
     @classmethod
     def from_json_file(cls, file_name: str) -> dict:
@@ -59,6 +69,14 @@ class InputOutputMixin:
             suit = SuitEnvelopeTagged.from_cbor(data)
             return suit.to_obj()
 
+    @classmethod
+    def from_suit_file_simplified(cls, file_name) -> dict:
+        """Read suit file and return dict."""
+        with open(file_name, "rb") as fh:
+            data = fh.read()
+            suit = SuitEnvelopeTaggedSimplified.from_cbor(data)
+            return suit.to_obj()
+
     def prepare_suit_data(self, data, private_key=None) -> bytes:
         """Convert data to suit format."""
         suit_obj = SuitEnvelopeTagged.from_obj(data)
@@ -73,6 +91,17 @@ class InputOutputMixin:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
             fh.write(self.prepare_suit_data(data, private_key))
+
+    def to_suit_file_simplified(self, file_name, data, private_key=None) -> None:
+        """Write dict content into suit file."""
+        with open(file_name, "wb") as fh:
+            suit_obj = SuitEnvelopeTaggedSimplified.from_obj(data)
+            suit_obj.update_digest()
+            if private_key:
+                with open(private_key, "rb") as pk_fh:
+                    pk_data = pk_fh.read()
+                suit_obj.sign(pk_data)
+            fh.write(suit_obj.to_cbor())
 
     def get_serializer(self, output_type: str) -> Callable:
         """Return serialize method."""

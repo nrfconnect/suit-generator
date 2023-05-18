@@ -10,7 +10,7 @@ Code inspired by/based on https://github.com/tomchy/suit-composer.
 import binascii
 
 from suit_generator.suit.payloads import SuitIntegratedPayloadMap
-from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, cbstr
+from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, SuitBstr, cbstr
 from suit_generator.suit.authentication import SuitAuthentication, SuitHash, CoseSigStructure, SuitAuthenticationBlock
 from suit_generator.suit.manifest import SuitManifest, SuitCommandSequence, SuitTextMap
 from suit_generator.suit.types.keys import (
@@ -67,10 +67,26 @@ class KeyFactory:
         )
 
 
+class SuitEnvelopeSimplified(SuitKeyValue):
+    """Representation of SUIT_Envelope item."""
+
+    _metadata = Metadata(
+        map={
+            suit_manifest: SuitBstr,
+            suit_authentication_wrapper: cbstr(SuitAuthentication),
+            suit_dependency_resolution: SuitBstr,
+            suit_payload_fetch: SuitBstr,
+            suit_install: SuitBstr,
+            suit_text: SuitBstr,
+            suit_integrated_payloads: SuitIntegratedPayloadMap,
+        },
+        embedded=[suit_integrated_payloads],
+    )
+
+
 class SuitEnvelope(SuitKeyValue):
     """Representation of SUIT_Envelope item."""
 
-    # TODO: add missing items
     _metadata = Metadata(
         map={
             suit_manifest: cbstr(SuitManifest),
@@ -85,25 +101,20 @@ class SuitEnvelope(SuitKeyValue):
     )
 
 
-class SuitEnvelopeTagged(SuitTag):
-    """Representation of SUIT_Envelope_Tagged item."""
-
-    _metadata = Metadata(children=[SuitEnvelope], tag=Tag(107, "SUIT_Envelope_Tagged"))
+class SuitBasicEnvelopeOperationsMixin:
+    """Basic operations over envelopes."""
 
     def update_digest(self):
         """Update digest in the envelope."""
         alg = (
-            self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-            .SuitAuthentication[0]
-            .SuitDigest.SuitDigestRaw[0]
-            .value
+            self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest.SuitDigestRaw[0].value
         )
-        manifest = self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].to_cbor()
+        manifest = self.value.value.value[suit_manifest].to_cbor()
         hash_func = SuitHash(alg)
         new_digest = binascii.a2b_hex(hash_func.hash(manifest))
-        self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[
-            0
-        ].SuitDigest.SuitDigestRaw[1].SuitDigestBytes = new_digest
+        self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest.SuitDigestRaw[
+            1
+        ].SuitDigestBytes = new_digest
 
     def _create_authentication_block(self, algorithm_name: str) -> SuitAuthenticationBlock:
         """Create authentication wrapper."""
@@ -122,7 +133,7 @@ class SuitEnvelopeTagged(SuitTag):
 
     def _get_digest(self):
         """Return digest from parsed envelope."""
-        return self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest
+        return self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest
 
     def _create_cose_structure(self, digest_object: dict, algorithm_name: str) -> CoseSigStructure:
         """Create COSE_Sign1 structure."""
@@ -146,6 +157,16 @@ class SuitEnvelopeTagged(SuitTag):
 
         suit_authentication_block.SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3].SuitHex = signature
 
-        self.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication.append(
-            suit_authentication_block
-        )
+        self.value.value.value[suit_authentication_wrapper].SuitAuthentication.append(suit_authentication_block)
+
+
+class SuitEnvelopeTaggedSimplified(SuitBasicEnvelopeOperationsMixin, SuitTag):
+    """Representation of SUIT_Envelope_Tagged item."""
+
+    _metadata = Metadata(children=[SuitEnvelopeSimplified], tag=Tag(107, "SUIT_Envelope_Tagged"))
+
+
+class SuitEnvelopeTagged(SuitBasicEnvelopeOperationsMixin, SuitTag):
+    """Representation of SUIT_Envelope_Tagged item."""
+
+    _metadata = Metadata(children=[SuitEnvelope], tag=Tag(107, "SUIT_Envelope_Tagged"))

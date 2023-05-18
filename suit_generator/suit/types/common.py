@@ -128,6 +128,15 @@ class SuitObject:
         else:
             raise ValueError("Not possible to get value!")
 
+    @value.setter
+    def value(self, value):
+        """Link to dynamically created SUIT attribute."""
+        for item in self.__dict__:
+            if "Suit" in item or "Cose" in item:
+                return setattr(self, item, value)
+        else:
+            raise ValueError("Not possible to get value!")
+
     @classmethod
     def from_obj(cls, obj):
         """Restore SUIT representation from passed object."""
