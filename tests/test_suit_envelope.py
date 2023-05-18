@@ -8,7 +8,7 @@ import pytest
 import binascii
 
 from suit_generator.suit.authentication import CoseSigStructure
-from suit_generator.suit.envelope import SuitEnvelopeTagged
+from suit_generator.suit.envelope import SuitEnvelopeTagged, SuitEnvelopeTaggedSimplified
 from suit_generator.suit.types.keys import (
     suit_authentication_wrapper,
     suit_manifest,
@@ -669,6 +669,66 @@ def test_envelope_sign_and_verify(input_data, amount_of_payloads):
     dss_signature = encode_dss_signature(r, s)
     algorithm_name = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
+        .SuitHeaderMap[suit_cose_algorithm_id]
+        .value
+    )
+    cose_structure = CoseSigStructure.from_obj(
+        {
+            "context": "Signature1",
+            "body_protected": {"suit-cose-algorithm-id": algorithm_name},
+            "external_add": "",
+            "payload": digest_object,
+        }
+    )
+    binary_data = cose_structure.to_cbor()
+    public_key = load_pem_private_key(PRIVATE_KEYS["ES_256"], None).public_key()
+    public_key.verify(dss_signature, binary_data, ec.ECDSA(hashes.SHA256()))
+
+
+@pytest.mark.parametrize("input_envelope", ["ENVELOPE_1_UNSIGNED", "ENVELOPE_2_UNSIGNED", "ENVELOPE_3_UNSIGNED"])
+def test_parse_unsigned_simplified_envelope_parse_and_dump(input_envelope):
+    """Test if is possible to parse complete unsigned envelope."""
+    envelope = SuitEnvelopeTaggedSimplified.from_cbor(binascii.a2b_hex(TEST_DATA[input_envelope]))
+    assert envelope.to_cbor().hex() == TEST_DATA[input_envelope]
+
+
+@pytest.mark.parametrize(
+    "input_data, amount_of_payloads",
+    [("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0), ("ENVELOPE_7_UNSIGNED_TWO_INTEGRATED_PAYLOADS", 2)],
+)
+def test_simplified_envelope_sign_and_verify(input_data, amount_of_payloads):
+    """Test if is possible to sign manifest and signature can be verified properly."""
+    envelope = SuitEnvelopeTaggedSimplified.from_cbor(binascii.a2b_hex(TEST_DATA[input_data]))
+    if amount_of_payloads > 0:
+        assert (
+            len(
+                envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[
+                    suit_integrated_payloads
+                ].SuitIntegratedPayloadMap
+            )
+            == amount_of_payloads
+        )
+    digest_object = (
+        envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[suit_authentication_wrapper]
+        .SuitAuthentication[0]
+        .SuitDigest.to_obj()
+    )
+    envelope.sign(PRIVATE_KEYS["ES_256"])
+    signature = (
+        envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
+        .SuitHex
+    )
+    # extract r and s from signature and decode_signature
+    int_sig = int.from_bytes(signature, byteorder="big")
+    r = int_sig >> (32 * 8)
+    s = int_sig & sum([0xFF << x * 8 for x in range(0, 32)])
+    dss_signature = encode_dss_signature(r, s)
+    algorithm_name = (
+        envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[suit_authentication_wrapper]
         .SuitAuthentication[1]
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
         .SuitHeaderMap[suit_cose_algorithm_id]
