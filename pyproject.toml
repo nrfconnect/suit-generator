@@ -21,7 +21,7 @@ dynamic = ["version","dependencies"]
 dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools]
-py-modules = []
+packages=["suit_generator"]
 
 [project.scripts]
 suit-generator = "suit_generator.cli:main"
