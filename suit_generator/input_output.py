@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2023 Nordic Semiconductor ASA
 #
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Input and output extensions for storing objects as yaml, json or cbor."""
 from __future__ import annotations
