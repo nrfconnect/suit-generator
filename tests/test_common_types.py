@@ -1,7 +1,7 @@
 #
 # Copyright (c) 2023 Nordic Semiconductor ASA
 #
-# SPDX-License-Identifier: Apache-2.0
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Unit tests for types/common.py implementation."""
 from suit_generator.suit.types.common import SuitInt, SuitBool, SuitTstr, cbstr
