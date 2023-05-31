@@ -8,6 +8,7 @@
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """
 import binascii
+import cbor2
 
 from suit_generator.suit.payloads import SuitIntegratedPayloadMap
 from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, SuitBstr, cbstr
@@ -145,6 +146,32 @@ class SuitBasicEnvelopeOperationsMixin:
                 "payload": digest_object,
             }
         )
+
+    def update_severable_digests(self):
+        """Update digest in the envelope for severed elements."""
+        severable_elements = [suit_text, suit_payload_fetch, suit_install]
+        for severable_element in severable_elements:
+            if severable_element in self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest and hasattr(
+                self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest[severable_element].value,
+                "SuitDigest",
+            ):
+                alg = (
+                    self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest]
+                    .SuitManifest[severable_element]
+                    .value.SuitDigest.SuitDigestRaw[0]
+                    .value
+                )
+                try:
+                    # use cbor2.loads to unpack embedded cbor
+                    object_data = cbor2.loads(self.SuitEnvelopeTagged.value.SuitEnvelope[severable_element].to_cbor())
+                except KeyError:
+                    # Data for digest calculation not available so skipp this element.
+                    # This is expected case for creation of booting images when severable elements has been removed.
+                    continue
+                hash_func = SuitHash(alg)
+                self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest[
+                    severable_element
+                ].value.SuitDigest.SuitDigestRaw[1].value = binascii.a2b_hex(hash_func.hash(object_data))
 
     def sign(self, private_key: bytes):
         """Sign SUIT envelope."""
