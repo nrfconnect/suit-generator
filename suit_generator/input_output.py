@@ -80,6 +80,7 @@ class InputOutputMixin:
     def prepare_suit_data(self, data, private_key=None) -> bytes:
         """Convert data to suit format."""
         suit_obj = SuitEnvelopeTagged.from_obj(data)
+        suit_obj.update_severable_digests()
         suit_obj.update_digest()
         if private_key:
             with open(private_key, "rb") as pk_fh:
