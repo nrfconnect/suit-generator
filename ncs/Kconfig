@@ -1,0 +1,42 @@
+#
+# Copyright (c) 2022 Nordic Semiconductor ASA
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+config SUIT_ENVELOPE
+    bool "Create SUIT envelope"
+    help
+        Enable DFU SUIT envelope creation
+    default y if SUIT_PROCESSOR
+
+config SUIT_SIGN
+    bool "Sign created SUIT envelope"
+    depends on SUIT_ENVELOPE
+    help
+        Sign created SUIT envelope by external script
+    default n
+
+config SUIT_SECDOM
+    bool "Create SUIT files required by secure domain"
+    depends on SUIT_ENVELOPE
+    help
+        Create SUIT storage file required by secure domain in case secure domain has been included in the build
+    default n
+
+config SUIT_GENERATOR_MAX_TIME
+	int "Maximum waiting time for output artifacts in seconds"
+	depends on SUIT_ENVELOPE
+	default 180
+
+config SUIT_SIGN_SCRIPT
+    string "Location of SUIT sign script"
+    depends on SUIT_SIGN
+    help
+        Python script called to sing SUIT envelope.
+        You can use either absolute or relative path.
+        In case relative path is used, the build system uses NRF parent directory.
+        Script need to accept two arguments:
+        - --input-file <STRING> - location of unsigned envelope in the build system
+        - --output-file <STRING> - location of signed envelope to create by script
+    default "modules/lib/suit-generator/ncs/sign_script.py"
