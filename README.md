@@ -11,6 +11,7 @@ pip install .
 
 ## Testing
 ```shell
+pip install -r tests/requirements-test.txt
 cd suit-generator/tests
 pytest
 ```
@@ -48,3 +49,11 @@ python setup.py --version
 git tag vX.Y.Z
 python -m build
 ```
+
+## Documentation build
+```shell
+pip install ./
+pip install -r doc/requirements-doc.txt
+sphinx-build -b html doc/source/ doc/build/html
+```
+

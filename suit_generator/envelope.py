@@ -3,19 +3,7 @@
 #
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
-"""SUIT envelope internal representation.
-
-Example usage:
-    - envelope creation:
-        envelope = SuitEnvelope()
-        envelope.load('input.yaml')
-        envelope.dump('output.cbor')
-
-    - cbor to json conversion:
-        envelope = SuitEnvelope()
-        envelope.load('input.suit')
-        envelope.dump('output.json')
-"""
+"""SUIT envelope internal representation."""
 from __future__ import annotations
 from suit_generator.input_output import InputOutputMixin
 import pathlib
