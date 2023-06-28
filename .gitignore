@@ -8,3 +8,5 @@
 .coverage
 /dist/*
 __pycache__
+/doc/build/*
+/build/*
