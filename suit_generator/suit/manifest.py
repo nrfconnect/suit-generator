@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
-"""SUIT manifest elements representation.
+"""SUIT manifest elements' representation.
 
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """

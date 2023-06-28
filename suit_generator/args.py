@@ -24,14 +24,7 @@ IMAGE_CMD_BOOT = ImageCreator.IMAGE_CMD_BOOT
 IMAGE_CMD_UPDATE = ImageCreator.IMAGE_CMD_UPDATE
 
 
-def parse_arguments() -> Tuple:
-    """
-    Parse CLI parameters.
-
-    Parse passed CLI parameters and return argparse.Namespace
-
-    :return: Tuple contains command and it's parameters
-    """
+def _parser() -> ArgumentParser:
     parser = ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True, help="Choose subcommand:")
     # CREATE_CMD command
@@ -242,7 +235,18 @@ def parse_arguments() -> Tuple:
         default=ImageCreator.default_dfu_max_caches,
         help=f"Max number of DFU caches. Default: {ImageCreator.default_dfu_max_caches}",
     )
+    return parser
 
+
+def parse_arguments() -> Tuple:
+    """
+    Parse CLI parameters.
+
+    Parse passed CLI parameters and return argparse.Namespace
+
+    :return: Tuple contains command and it's parameters
+    """
+    parser = _parser()
     arguments = parser.parse_args()
     cmd = str(arguments.command)
 
