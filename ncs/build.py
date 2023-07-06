@@ -8,9 +8,17 @@
 import os
 import sys
 import pickle
+import pathlib
 
 from jinja2 import Template
 from argparse import ArgumentParser
+
+sys.path.append(str(pathlib.Path(__file__).parents[1].absolute()))
+
+from suit_generator.cmd_image import ImageCreator  # noqa: E402
+
+TEMPLATE_CMD = "template"
+STORAGE_CMD = "storage"
 
 
 def convert(edt_object):
@@ -47,17 +55,29 @@ def get_absolute_address(node):
     return 0xE000000 + node.regs[0].addr
 
 
-parser = ArgumentParser()
-parser.add_argument(
+parent_parser = ArgumentParser(add_help=False)
+parent_parser.add_argument(
     "--core", action="append", required=True, help="Configuration of sample name:location of binaries:location of edt"
 )
-parser.add_argument("--version", required=True, default=1, help="Update version.")
-parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
-parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
-parser.add_argument("--template-settings", required=True, help="Input settings jinja2 template.")
-parser.add_argument("--output-settings", required=True, help="Output settings.")
-parser.add_argument("--output-envelope", required=True, help="Location of output envelope.")
-parser.add_argument("--zephyr-base", required=True, help="Location of zephyr directory.")
+parent_parser.add_argument("--version", required=True, default=1, help="Update version.")
+parent_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
+parent_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
+parent_parser.add_argument("--output-envelope", required=True, help="Location of output envelope.")
+parent_parser.add_argument("--zephyr-base", required=True, help="Location of zephyr directory.")
+
+parser = ArgumentParser(add_help=False)
+
+subparsers = parser.add_subparsers(dest="command", required=True, help="Choose subcommand:")
+cmd_template_arg_parser = subparsers.add_parser(
+    TEMPLATE_CMD, help="Generate SUIT configuration files based on input templates.",
+    parents=[parent_parser]
+)
+cmd_storage_arg_parser = subparsers.add_parser(
+    STORAGE_CMD, help="Generate SUIT storage required by scecure domain.",
+    parents=[parent_parser]
+)
+cmd_storage_arg_parser.add_argument("--storage-output-file", required=True, help="Input binary SUIT envelope.")
+
 arguments = parser.parse_args()
 
 sys.path.insert(0, os.path.join(arguments.zephyr_base, "scripts", "dts", "python-devicetree", "src"))
@@ -65,12 +85,18 @@ sys.path.insert(0, os.path.join(arguments.zephyr_base, "scripts", "dts", "python
 configuration = read_configurations(arguments.core)
 configuration["output_envelope"] = arguments.output_envelope
 configuration["version"] = arguments.version
-output_suit_content = render_template(arguments.template_suit, configuration)
-# fixme: output settings should contain FW address extracted from devicetree, currently default address is being used.
-output_settings_content = render_template(arguments.template_settings, configuration)
 
-with open(arguments.output_suit, "w") as output_file:
-    output_file.write(output_suit_content)
+if arguments.command == TEMPLATE_CMD:
+    output_suit_content = render_template(arguments.template_suit, configuration)
+    with open(arguments.output_suit, "w") as output_file:
+        output_file.write(output_suit_content)
 
-with open(arguments.output_settings, "w") as output_file:
-    output_file.write(output_settings_content)
+elif arguments.command == STORAGE_CMD:
+    # fixme: envelope_address, update_candidate_info_address and dfu_max_caches shall be extracted from DTS
+    ImageCreator.create_files_for_boot(
+        input_file=arguments.output_envelope,
+        storage_output_file=arguments.storage_output_file,
+        envelope_address=ImageCreator.default_envelope_address,
+        update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
+        dfu_max_caches=ImageCreator.default_dfu_max_caches,
+    )
