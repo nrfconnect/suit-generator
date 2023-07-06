@@ -11,8 +11,7 @@ from argparse import ArgumentParser
 
 sys.path.append(str(pathlib.Path(__file__).parents[1].absolute()))
 
-if True:  # noqa: E402
-    from suit_generator.cmd_sign import LocalSigner
+from suit_generator.cmd_sign import LocalSigner # noqa: E402
 
 PRIVATE_KEY = pathlib.Path(__file__).parent / "key_private.pem"
 
