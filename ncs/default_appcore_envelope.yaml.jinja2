@@ -8,9 +8,9 @@ SUIT_Envelope_Tagged:
     suit-common:
       suit-components:
       - - M
-        - {{ application['dt'].label2node['cpu'].unit_addr }}
-        - {{ get_absolute_address(application['dt'].chosen_nodes['zephyr,code-partition']) }}
-        - {{ application['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
+        - {{ app['dt'].label2node['cpu'].unit_addr }}
+        - {{ get_absolute_address(app['dt'].chosen_nodes['zephyr,code-partition']) }}
+        - {{ app['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
       - - D
         - 0
       suit-shared-sequence:
@@ -35,9 +35,9 @@ SUIT_Envelope_Tagged:
           suit-parameter-image-digest:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
-              file: {{ application['binary'] }}
+              file: {{ app['binary'] }}
           suit-parameter-image-size:
-            file: {{ application['binary'] }}
+            file: {{ app['binary'] }}
     suit-validate:
     - suit-directive-set-component-index: 0
     - suit-condition-image-match:
@@ -52,7 +52,7 @@ SUIT_Envelope_Tagged:
     suit-install:
     - suit-directive-set-component-index: 1
     - suit-directive-override-parameters:
-        suit-parameter-uri: '#{{ application['name'] }}'
+        suit-parameter-uri: '#{{ app['name'] }}'
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -71,4 +71,4 @@ SUIT_Envelope_Tagged:
       - suit-send-sysinfo-success
       - suit-send-sysinfo-failure
   suit-integrated-payloads:
-    '#{{ application['name'] }}': {{ application['binary'] }}
+    '#{{ app['name'] }}': {{ app['binary'] }}
