@@ -59,9 +59,6 @@ parent_parser = ArgumentParser(add_help=False)
 parent_parser.add_argument(
     "--core", action="append", required=True, help="Configuration of sample name:location of binaries:location of edt"
 )
-parent_parser.add_argument("--version", required=True, default=1, help="Update version.")
-parent_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
-parent_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
 parent_parser.add_argument("--output-envelope", required=True, help="Location of output envelope.")
 parent_parser.add_argument("--zephyr-base", required=True, help="Location of zephyr directory.")
 
@@ -74,6 +71,11 @@ cmd_template_arg_parser = subparsers.add_parser(
 cmd_storage_arg_parser = subparsers.add_parser(
     STORAGE_CMD, help="Generate SUIT storage required by scecure domain.", parents=[parent_parser]
 )
+
+cmd_template_arg_parser.add_argument("--version", required=True, default=1, help="Update version.")
+cmd_template_arg_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
+cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
+
 cmd_storage_arg_parser.add_argument("--storage-output-file", required=True, help="Input binary SUIT envelope.")
 
 arguments = parser.parse_args()
@@ -82,9 +84,9 @@ sys.path.insert(0, os.path.join(arguments.zephyr_base, "scripts", "dts", "python
 
 configuration = read_configurations(arguments.core)
 configuration["output_envelope"] = arguments.output_envelope
-configuration["version"] = arguments.version
 
 if arguments.command == TEMPLATE_CMD:
+    configuration["version"] = arguments.version
     output_suit_content = render_template(arguments.template_suit, configuration)
     with open(arguments.output_suit, "w") as output_file:
         output_file.write(output_suit_content)
