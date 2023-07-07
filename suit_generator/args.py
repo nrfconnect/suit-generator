@@ -15,7 +15,6 @@ from suit_generator.cmd_image import ImageCreator
 from suit_generator.exceptions import GeneratorError
 
 PARSE_CMD = "parse"
-READ_CMD = "read"
 CREATE_CMD = "create"
 KEYS_CMD = "keys"
 CONVERT_CMD = "convert"
@@ -35,9 +34,6 @@ def parse_arguments() -> Tuple:
     """
     parser = ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True, help="Choose subcommand:")
-    # READ_CMD command
-    cmd_read_arg_parser = subparsers.add_parser(READ_CMD, help="Read args from file.")
-    cmd_read_arg_parser.add_argument("--args-file", required=True, help="File containing arguments for suit-generator.")
     # CREATE_CMD command
     cmd_create_arg_parser = subparsers.add_parser(CREATE_CMD, help="Create SUIT envelope.")
     cmd_create_arg_parser.add_argument("--input-file", required=True, help="Input configuration file (yaml or json).")
@@ -249,11 +245,6 @@ def parse_arguments() -> Tuple:
 
     arguments = parser.parse_args()
     cmd = str(arguments.command)
-    if cmd == READ_CMD:
-        # parse args from file
-        with open(arguments.args_file) as fh:
-            arguments = parser.parse_args(fh.read().split())
-            cmd = str(arguments.command)
 
     # remove unnecessary arguments to simplify command calling
     del arguments.command

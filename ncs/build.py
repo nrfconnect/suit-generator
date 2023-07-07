@@ -69,12 +69,10 @@ parser = ArgumentParser(add_help=False)
 
 subparsers = parser.add_subparsers(dest="command", required=True, help="Choose subcommand:")
 cmd_template_arg_parser = subparsers.add_parser(
-    TEMPLATE_CMD, help="Generate SUIT configuration files based on input templates.",
-    parents=[parent_parser]
+    TEMPLATE_CMD, help="Generate SUIT configuration files based on input templates.", parents=[parent_parser]
 )
 cmd_storage_arg_parser = subparsers.add_parser(
-    STORAGE_CMD, help="Generate SUIT storage required by scecure domain.",
-    parents=[parent_parser]
+    STORAGE_CMD, help="Generate SUIT storage required by scecure domain.", parents=[parent_parser]
 )
 cmd_storage_arg_parser.add_argument("--storage-output-file", required=True, help="Input binary SUIT envelope.")
 
