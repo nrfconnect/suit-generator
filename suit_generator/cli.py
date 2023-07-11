@@ -4,6 +4,12 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Main CLI entry point."""
+if __name__ == "__main__":
+    # add paths if called as cli script
+    import sys
+    import pathlib
+
+    sys.path.append(str(pathlib.Path(__file__).parents[1].absolute()))
 
 from suit_generator import cmd_parse, cmd_sign, cmd_keys, cmd_convert, cmd_create, cmd_image, args
 from suit_generator.exceptions import GeneratorError, SUITError

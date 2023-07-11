@@ -1,0 +1,50 @@
+#
+# Copyright (c) 2023 Nordic Semiconductor ASA
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+
+menuconfig SUIT_ENVELOPE
+    bool "Create SUIT envelope"
+    help
+        Enable DFU SUIT envelope creation
+    default y if SSF_SUIT_SERVICE_ENABLED && SOC_NRF54H20_CPUAPP
+
+if SUIT_ENVELOPE
+
+config SUIT_ENVELOPE_SIGN
+    bool "Sign created SUIT envelope"
+    help
+        Sign created SUIT envelope by external script
+    default n
+
+config SUIT_ENVELOPE_SEQUENCE_NUM
+    int "Sequence number of the generated SUIT manifest"
+    default 0
+
+config SUIT_ENVELOPE_DEFAULT_TEMPLATE
+    string "Path to the default envelope template"
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/default_appcore_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+    help
+      Path to the template, that is used if the application directory does not
+      contain an envelope template file.
+
+config SUIT_ENVELOPE_SECDOM
+    bool "Create SUIT files required by secure domain"
+    help
+        Create SUIT storage file required by secure domain in case secure domain has been included in the build
+    default n
+
+config SUIT_ENVELOPE_SIGN_SCRIPT
+    string "Location of SUIT sign script"
+    depends on SUIT_ENVELOPE_SIGN
+    help
+        Python script called to sing SUIT envelope.
+        You can use either absolute or relative path.
+        In case relative path is used, the build system uses NRF parent directory.
+        Script need to accept two arguments:
+        - --input-file <STRING> - location of unsigned envelope in the build system
+        - --output-file <STRING> - location of signed envelope to create by script
+    default "modules/lib/suit-generator/ncs/sign_script.py"
+
+endif # SUIT_ENVELOPE

@@ -1,0 +1,4 @@
+name: suit-generator
+
+build:
+  kconfig: ncs/Kconfig
