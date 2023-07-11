@@ -245,6 +245,7 @@ def parse_arguments() -> Tuple:
 
     arguments = parser.parse_args()
     cmd = str(arguments.command)
+
     # remove unnecessary arguments to simplify command calling
     del arguments.command
 
