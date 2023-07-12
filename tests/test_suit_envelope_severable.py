@@ -33,8 +33,8 @@ TEST_DATA_OBJECTS = {
                         {"suit-directive-set-component-index": 1},
                         {
                             "suit-directive-override-parameters": {
-                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                             }
                         },
                     ],
@@ -58,7 +58,7 @@ TEST_DATA_OBJECTS = {
                 '["M", 2, 235577344, 352256]': {
                     "suit-text-vendor-name": "Nordic Semiconductor ASA",
                     "suit-text-model-name": "nRF5420_cpuapp",
-                    "suit-text-vendor-domain": "nordicsemi.no",
+                    "suit-text-vendor-domain": "nordicsemi.com",
                     "suit-text-model-info": "The nRF5420 application core",
                     "suit-text-component-description": "Sample application core FW",
                     "suit-text-component-version": "v1.0.0",
@@ -84,8 +84,8 @@ TEST_DATA_OBJECTS = {
                         {"suit-directive-set-component-index": 1},
                         {
                             "suit-directive-override-parameters": {
-                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                             }
                         },
                     ],
@@ -125,8 +125,8 @@ TEST_DATA_OBJECTS = {
                         {"suit-directive-set-component-index": 1},
                         {
                             "suit-directive-override-parameters": {
-                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                             }
                         },
                     ],
@@ -166,8 +166,8 @@ TEST_DATA_OBJECTS = {
                         {"suit-directive-set-component-index": 1},
                         {
                             "suit-directive-override-parameters": {
-                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                             }
                         },
                     ],
@@ -201,8 +201,8 @@ TEST_DATA_OBJECTS = {
                         {"suit-directive-set-component-index": 1},
                         {
                             "suit-directive-override-parameters": {
-                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                             }
                         },
                     ],
@@ -238,7 +238,7 @@ TEST_DATA_OBJECTS = {
                 '["M", 2, 235577344, 352256]': {
                     "suit-text-vendor-name": "Nordic Semiconductor ASA",
                     "suit-text-model-name": "nRF5420_cpuapp",
-                    "suit-text-vendor-domain": "nordicsemi.no",
+                    "suit-text-vendor-domain": "nordicsemi.com",
                     "suit-text-model-info": "The nRF5420 application core",
                     "suit-text-component-description": "Sample application core FW",
                     "suit-text-component-version": "v1.0.0",
@@ -264,8 +264,8 @@ TEST_DATA_OBJECTS = {
                         {"suit-directive-set-component-index": 1},
                         {
                             "suit-directive-override-parameters": {
-                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                             }
                         },
                     ],
@@ -291,7 +291,7 @@ TEST_DATA_OBJECTS = {
                 '["M", 2, 235577344, 352256]': {
                     "suit-text-vendor-name": "Nordic Semiconductor ASA",
                     "suit-text-model-name": "nRF5420_cpuapp",
-                    "suit-text-vendor-domain": "nordicsemi.no",
+                    "suit-text-vendor-domain": "nordicsemi.com",
                     "suit-text-model-info": "The nRF5420 application core",
                     "suit-text-component-description": "Sample application core FW",
                     "suit-text-component-version": "v1.0.0",
@@ -317,8 +317,8 @@ TEST_DATA_OBJECTS = {
                         {"suit-directive-set-component-index": 1},
                         {
                             "suit-directive-override-parameters": {
-                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                                "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                             }
                         },
                     ],
@@ -341,7 +341,7 @@ TEST_DATA_OBJECTS = {
                     '["M", 2, 235577344, 352256]': {
                         "suit-text-vendor-name": "Nordic Semiconductor ASA",
                         "suit-text-model-name": "nRF5420_cpuapp",
-                        "suit-text-vendor-domain": "nordicsemi.no",
+                        "suit-text-vendor-domain": "nordicsemi.com",
                         "suit-text-model-info": "The nRF5420 application core",
                         "suit-text-component-description": "Sample application core FW",
                         "suit-text-component-version": "v1.0.0",
@@ -356,27 +356,27 @@ TEST_DATA_OBJECTS = {
 TEST_BINARY_DATA = {
     "ENVELOPE_1_SEVERED_TEXT": (
         "d86ba402458143822f400358a5a501010201035857a2028384414d4218ff451a0e054000451a0005600084414"
-        "d410e451a2e054000451a000560008241444100045829840c0114a201502bdc1c07e0d15484be5063174d5a74"
-        "c302508520ea9c515e57798b5fbdad67dec7d911581e900c0214a115692366696c652e62696e150003000c011"
-        "4a116021600030017822f5820f812cc10c349511c89d0d9381b330cf481f00dba6fbb4fa2d92f4ced9bccc018"
-        "175891a184414d4102451a0e0aa000451a00056000a60178184e6f726469632053656d69636f6e647563746f7"
-        "220415341026e6e5246353432305f637075617070036d6e6f7264696373656d692e6e6f04781c546865206e52"
-        "4635343230206170706c69636174696f6e20636f726505781a53616d706c65206170706c69636174696f6e206"
-        "36f7265204657066676312e302e30692366696c652e62696e5820b75168e24cebca5f203ea92bd356e60375ea"
-        "18765999d1274dace20c7a81a12c"
+        "d410e451a2e054000451a000560008241444100045829840c0114a201507617daa571fd5a858f94e28d735ce9"
+        "f40250d622bafd4337518590bc6368cda7fbca11581e900c0214a115692366696c652e62696e150003000c011"
+        "4a116021600030017822f5820d396652c143091c81914532f9d55d4d6bdeb8ff366ae734983cbbbc1b1e2750a"
+        "175892a184414d4102451a0e0aa000451a00056000a60178184e6f726469632053656d69636f6e647563746f7"
+        "220415341026e6e5246353432305f637075617070036e6e6f7264696373656d692e636f6d04781c546865206e"
+        "524635343230206170706c69636174696f6e20636f726505781a53616d706c65206170706c69636174696f6e2"
+        "0636f7265204657066676312e302e30692366696c652e62696e5820b75168e24cebca5f203ea92bd356e60375"
+        "ea18765999d1274dace20c7a81a12c"
     ),
     "ENVELOPE_2_SEVERED_TEXT_FETCH_INSTALL": (
         "d86ba602458143822f400358cea601010201035857a2028384414d4218ff451a0e054000451a0005600084414"
-        "d410e451a2e054000451a000560008241444100045829840c0114a201502bdc1c07e0d15484be5063174d5a74"
-        "c302508520ea9c515e57798b5fbdad67dec7d911822f58204d5553f0e17cccb8e20610354696ce66325d0763a"
+        "d410e451a2e054000451a000560008241444100045829840c0114a201507617daa571fd5a858f94e28d735ce9"
+        "f40250d622bafd4337518590bc6368cda7fbca11822f58204d5553f0e17cccb8e20610354696ce66325d0763a"
         "d2aa478782be688de5b940f10822f5820ad15a1064b12f7e99c0e5958f93421cc14498b72f198bb2f8f0cbd20"
-        "2d358d8a17822f5820f812cc10c349511c89d0d9381b330cf481f00dba6fbb4fa2d92f4ced9bccc01811581e9"
+        "2d358d8a17822f5820d396652c143091c81914532f9d55d4d6bdeb8ff366ae734983cbbbc1b1e2750a11581e9"
         "00c0214a115692366696c652e62696e150003000c0114a11602160003001050840c0214a115692366696c652e"
-        "62696e175891a184414d4102451a0e0aa000451a00056000a60178184e6f726469632053656d69636f6e64756"
-        "3746f7220415341026e6e5246353432305f637075617070036d6e6f7264696373656d692e6e6f04781c546865"
-        "206e524635343230206170706c69636174696f6e20636f726505781a53616d706c65206170706c69636174696"
-        "f6e20636f7265204657066676312e302e30692366696c652e62696e5820b75168e24cebca5f203ea92bd356e6"
-        "0375ea18765999d1274dace20c7a81a12c"
+        "62696e175892a184414d4102451a0e0aa000451a00056000a60178184e6f726469632053656d69636f6e64756"
+        "3746f7220415341026e6e5246353432305f637075617070036e6e6f7264696373656d692e636f6d04781c5468"
+        "65206e524635343230206170706c69636174696f6e20636f726505781a53616d706c65206170706c696361746"
+        "96f6e20636f7265204657066676312e302e30692366696c652e62696e5820b75168e24cebca5f203ea92bd356"
+        "e60375ea18765999d1274dace20c7a81a12c"
     ),
 }
 
@@ -390,7 +390,7 @@ def test_severable_digest_value():
         .SuitManifest[suit_text]
         .value.SuitDigest.SuitDigestRaw[1]
         .value.hex()
-        == "f812cc10c349511c89d0d9381b330cf481f00dba6fbb4fa2d92f4ced9bccc018"
+        == "d396652c143091c81914532f9d55d4d6bdeb8ff366ae734983cbbbc1b1e2750a"
     )
 
 
