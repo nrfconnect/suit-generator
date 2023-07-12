@@ -15,9 +15,9 @@ SUIT_Envelope_Tagged:
       suit-shared-sequence:
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
-            RFC4122_UUID: nordicsemi.no
+            RFC4122_UUID: nordicsemi.com
           suit-parameter-class-identifier:
-            raw: 8520ea9c515e57798b5fbdad67dec7d9
+            raw: d622bafd4337518590bc6368cda7fbca
           suit-parameter-image-digest:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
@@ -55,12 +55,12 @@ SUIT_Envelope_Tagged:
       - suit-send-sysinfo-failure
     suit-text:
       suit-digest-algorithm-id: cose-alg-sha-256
-      suit-digest-bytes: f812cc10c349511c89d0d9381b330cf481f00dba6fbb4fa2d92f4ced9bccc018
+      suit-digest-bytes: ''
   suit-text:
     '["M", 2, 235577344, 352256]':
       suit-text-vendor-name: Nordic Semiconductor ASA
       suit-text-model-name: nRF5420_cpuapp
-      suit-text-vendor-domain: nordicsemi.no
+      suit-text-vendor-domain: nordicsemi.com
       suit-text-model-info: The nRF5420 application core
       suit-text-component-description: Sample application core FW
       suit-text-component-version: v1.0.0
