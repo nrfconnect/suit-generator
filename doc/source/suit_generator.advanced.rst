@@ -42,6 +42,9 @@ SuitEnvelopeSimplifiedTagged is a representation of first-level elements require
 
 Simplified representation can be used to calculate digest and sign corrupted manifest since this element is not parsed.
 
+
+Example usage:
+
  .. code-block:: python
 
     from suit_generator.suit import SuitEnvelopeTagged
