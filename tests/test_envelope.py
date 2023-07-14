@@ -79,11 +79,11 @@ TEST_JSON_STRING_UNSIGNED = """{
                         {
                             "suit-parameter-vendor-identifier":
                             {
-                                "RFC4122_UUID": "nordicsemi.no"
+                                "RFC4122_UUID": "nordicsemi.com"
                             },
                             "suit-parameter-class-identifier":
                             {
-                                "raw": "8520ea9c515e57798b5fbdad67dec7d9"
+                                "raw": "d622bafd4337518590bc6368cda7fbca"
                             }
                         }
                     },
@@ -266,11 +266,11 @@ TEST_JSON_STRING_SIGNED = """{
                         {
                             "suit-parameter-vendor-identifier":
                             {
-                                "RFC4122_UUID": "nordicsemi.no"
+                                "RFC4122_UUID": "nordicsemi.com"
                             },
                             "suit-parameter-class-identifier":
                             {
-                                "raw": "8520ea9c515e57798b5fbdad67dec7d9"
+                                "raw": "d622bafd4337518590bc6368cda7fbca"
                             }
                         }
                     },
@@ -457,11 +457,11 @@ TEST_JSON_STRING_SIGNED_RAW = """{
                         {
                             "suit-parameter-vendor-identifier":
                             {
-                                "RFC4122_UUID": "nordicsemi.no"
+                                "RFC4122_UUID": "nordicsemi.com"
                             },
                             "suit-parameter-class-identifier":
                             {
-                                "raw": "8520ea9c515e57798b5fbdad67dec7d9"
+                                "raw": "d622bafd4337518590bc6368cda7fbca"
                             }
                         }
                     },

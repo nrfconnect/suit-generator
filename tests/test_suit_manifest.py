@@ -41,8 +41,8 @@ TEST_DATA_FROM_OBJECT = {
             {"suit-directive-set-component-index": 1},
             {
                 "suit-directive-override-parameters": {
-                    "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.no"},
-                    "suit-parameter-class-identifier": {"raw": "8520ea9c515e57798b5fbdad67dec7d9"},
+                    "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                    "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
                 }
             },
             {
