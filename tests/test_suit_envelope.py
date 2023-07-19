@@ -154,6 +154,12 @@ TEST_DATA_OBJECTS = {
                             }
                         },
                     ],
+                    "suit-dependencies": {
+                        "0": {},
+                        "1": {
+                            "suit-dependency-prefix": ["M", 1234],
+                        },
+                    },
                 },
                 "suit-install": [
                     {"suit-directive-set-component-index": 2},
@@ -169,10 +175,33 @@ TEST_DATA_OBJECTS = {
                 "suit-load": [
                     {"suit-directive-set-component-index": 0},
                     {"suit-directive-override-parameters": {"suit-parameter-source-component": 1}},
-                    {"suit-directive-copy": []},
-                    {"suit-condition-image-match": []},
+                    {
+                        "suit-directive-run-sequence": [
+                            {"suit-directive-copy": []},
+                            {"suit-condition-image-match": []},
+                        ]
+                    },
                 ],
                 "suit-invoke": [{"suit-directive-set-component-index": 0}, {"suit-directive-invoke": []}],
+                "suit-dependency-resolution": [
+                    {"suit-condition-is-dependency": []},
+                    {"suit-condition-dependency-integrity": []},
+                    {"suit-directive-process-dependency": []},
+                    {
+                        "suit-directive-try-each": [
+                            [
+                                {"suit-condition-is-dependency": []},
+                                {"suit-condition-dependency-integrity": []},
+                                {"suit-directive-process-dependency": []},
+                            ],
+                            [],
+                        ]
+                    },
+                ],
+                "suit-manifest-component-id": [
+                    "I",
+                    {"RFC4122_UUID": {"namespace": "nordicsemi.com", "name": "nRF54H20_sample_root"}},
+                ],
             },
             "suit-text": {
                 '["M", 2, 235577344, 352256]': {
@@ -516,6 +545,11 @@ def test_conversion_obj_to_obj():
             "suit-directive-override-parameters"
         ]["suit-parameter-image-size"]
     )
+    assert "raw" in suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-manifest-component-id"][1]
+    assert (
+        "3f6a3a4dcdfa58c5accef9f584c41124"
+        == suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-manifest-component-id"][1]["raw"]
+    )
     # exclude suit-integrated-payloads, suit-parameter-vendor-identifier and suit-parameter-image-size
     # due to expected different output structure
     diff = DeepDiff(
@@ -527,6 +561,7 @@ def test_conversion_obj_to_obj():
             "['suit-directive-override-parameters']['suit-parameter-vendor-identifier']",
             "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][5]"
             "['suit-directive-override-parameters']['suit-parameter-image-size']",
+            "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-manifest-component-id'][1]",
         ],
     )
     assert diff == {}
@@ -550,6 +585,11 @@ def test_conversion_obj_to_cbor_to_obj():
             "suit-directive-override-parameters"
         ]["suit-parameter-image-size"]
     )
+    assert "raw" in suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-manifest-component-id"][1]
+    assert (
+        "3f6a3a4dcdfa58c5accef9f584c41124"
+        == suit_obj["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-manifest-component-id"][1]["raw"]
+    )
     # exclude suit-integrated-payloads, suit-parameter-vendor-identifier and suit-parameter-image-size
     # due to expected different output structure
     diff = DeepDiff(
@@ -561,6 +601,7 @@ def test_conversion_obj_to_cbor_to_obj():
             "['suit-directive-override-parameters']['suit-parameter-vendor-identifier']",
             "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][5]"
             "['suit-directive-override-parameters']['suit-parameter-image-size']",
+            "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-manifest-component-id'][1]",
         ],
     )
     assert diff == {}
