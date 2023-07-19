@@ -51,6 +51,7 @@ from suit_generator.suit.types.keys import (
     suit_directive_invoke,
     suit_directive_swap,
     suit_directive_run_sequence,
+    suit_directive_process_dependency,
     suit_directive_unlink,
     suit_dependencies,
     suit_components,
@@ -63,6 +64,7 @@ from suit_generator.suit.types.keys import (
     suit_condition_image_match,
     suit_condition_component_slot,
     suit_condition_check_content,
+    suit_condition_dependency_integrity,
     suit_condition_is_dependency,
     suit_condition_abort,
     suit_condition_device_identifier,
@@ -72,6 +74,7 @@ from suit_generator.suit.types.keys import (
     suit_send_sysinfo_success,
     suit_send_sysinfo_failure,
     suit_reference_uri,
+    suit_manifest_component_id,
     suit_validate,
     suit_load,
     suit_invoke,
@@ -87,6 +90,7 @@ from suit_generator.suit.types.keys import (
     suit_text_model_info,
     suit_text_component_description,
     suit_text_component_version,
+    suit_dependency_resolution,
     suit_uninstall,
     suit_text,
 )
@@ -128,12 +132,33 @@ class SuitUUID(SuitBstr):
     """Representation of SUIT UUID identifier."""
 
     @classmethod
+    def from_cbor(cls, cbstr):
+        """Restore SUIT representation from passed CBOR."""
+        # The RFC4122 UUID consists of 16 bytes.
+        if len(cbstr) != 16:
+            raise ValueError(f"Unable to construct UUID from: {cbstr.hex()}")
+        return super().from_cbor(cbstr)
+
+    @classmethod
     def from_obj(cls, obj):
         """Restore SUIT representation from passed object."""
         if not isinstance(obj, dict):
             raise ValueError(f"Expected dict, received: {obj}")
         if "RFC4122_UUID" in obj.keys():
-            entry = uuid.uuid5(uuid.NAMESPACE_DNS, obj["RFC4122_UUID"]).bytes
+            uuid_obj = obj["RFC4122_UUID"]
+
+            if isinstance(uuid_obj, dict):
+                if "name" not in uuid_obj:
+                    raise ValueError(f"Unable to parse UUID: {obj}")
+
+                if "namespace" in uuid_obj:
+                    namespace = uuid.uuid5(uuid.NAMESPACE_DNS, uuid_obj["namespace"])
+                else:
+                    namespace = uuid.NAMESPACE_DNS
+
+                entry = uuid.uuid5(namespace, uuid_obj["name"]).bytes
+            else:
+                entry = uuid.uuid5(uuid.NAMESPACE_DNS, uuid_obj).bytes
             return cls(entry)
         elif "raw" in obj.keys():
             return super().from_obj(obj["raw"])
@@ -201,6 +226,7 @@ class SuitDirective(SuitKeyValueTuple):
             suit_directive_invoke: SuitRepPolicy,
             suit_directive_swap: SuitRepPolicy,
             suit_directive_run_sequence: SuitBstr,
+            suit_directive_process_dependency: SuitRepPolicy,
             suit_directive_unlink: SuitRepPolicy,
         }
     )
@@ -216,6 +242,7 @@ class SuitCondition(SuitKeyValueTuple):
             suit_condition_image_match: SuitRepPolicy,
             suit_condition_component_slot: SuitRepPolicy,
             suit_condition_check_content: SuitRepPolicy,
+            suit_condition_dependency_integrity: SuitRepPolicy,
             suit_condition_is_dependency: SuitRepPolicy,
             suit_condition_abort: SuitRepPolicy,
             suit_condition_device_identifier: SuitRepPolicy,
@@ -235,7 +262,7 @@ class SuitCommand(SuitUnion):
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[bchar(SuitTstr), cbstr(SuitUint), SuitBstr])
+    _metadata = Metadata(children=[bchar(SuitTstr), SuitUUID, cbstr(SuitUint), SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):
@@ -313,6 +340,17 @@ class SuitCommandSequence(SuitList):
     _group = 2
 
 
+class SuitDirectiveTryEachArgument(SuitList):
+    """Representation of SUIT TryEach directive argument."""
+
+    _metadata = Metadata(children=[cbstr(SuitCommandSequence)])
+
+
+# Fix cyclic dependencies between types
+SuitDirective._metadata.map[suit_directive_try_each] = SuitDirectiveTryEachArgument
+SuitDirective._metadata.map[suit_directive_run_sequence] = cbstr(SuitCommandSequence)
+
+
 class SuitSeverableCommandSequence(SuitUnion):
     """Representation of SUIT severable command sequence."""
 
@@ -340,12 +378,14 @@ class SuitManifest(SuitKeyValue):
             suit_manifest_sequence_number: SuitUint,
             suit_common: cbstr(SuitCommon),
             suit_reference_uri: SuitTstr,
+            suit_manifest_component_id: SuitComponentIdentifier,
             suit_validate: cbstr(SuitCommandSequence),
             suit_load: cbstr(SuitCommandSequence),
             suit_invoke: cbstr(SuitCommandSequence),
             suit_payload_fetch: SuitSeverableCommandSequence,
             suit_install: SuitSeverableCommandSequence,
             suit_text: SuitSeverableText,
+            suit_dependency_resolution: cbstr(SuitCommandSequence),
             suit_uninstall: cbstr(SuitCommandSequence),
         }
     )
