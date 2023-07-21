@@ -18,8 +18,8 @@ from suit_generator.exceptions import SUITError
 class ImageCreator:
     """Helper class for extracting data from SUIT envelope and creating hex files."""
 
-    default_update_candidate_info_address = 0x0E1FE000
-    default_envelope_address = 0x0E1FF000
+    default_update_candidate_info_address = 0x0E1EEC00
+    default_envelope_address = 0x0E1EED80
     default_dfu_partition_address = 0x0E100000
     default_dfu_max_caches = 4
 
