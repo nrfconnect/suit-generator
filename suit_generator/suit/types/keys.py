@@ -31,6 +31,13 @@ class suit_manifest_sequence_number(suit_key):
     name = "suit-manifest-sequence-number"
 
 
+class suit_directive_process_dependency(suit_key):
+    """suit-directive-process-dependency metadata."""
+
+    id = 11
+    name = "suit-directive-process-dependency"
+
+
 class suit_directive_set_component_index(suit_key):
     """suit-directive-set-component-index metadata."""
 
@@ -227,6 +234,13 @@ class suit_reference_uri:
     name = "suit-reference-uri"
 
 
+class suit_manifest_component_id(suit_key):
+    """suit-manifest-component-id metadata."""
+
+    id = 5
+    name = "suit-manifest-component-id"
+
+
 class suit_validate(suit_key):
     """suit-validate metadata."""
 
@@ -384,7 +398,7 @@ class suit_manifest(suit_key):
 class suit_dependency_resolution(suit_key):
     """suit-dependency-resolution metadata."""
 
-    id = 7
+    id = 15
     name = "suit-dependency-resolution"
 
 
@@ -423,10 +437,17 @@ class suit_condition_check_content(suit_key):
     name = "suit-condition-check-content"
 
 
+class suit_condition_dependency_integrity(suit_key):
+    """suit-condition-dependency-integrity metadata."""
+
+    id = 7
+    name = "suit-condition-dependency-integrity"
+
+
 class suit_condition_is_dependency(suit_key):
     """suit-condition-is-dependency metadata."""
 
-    id = 7
+    id = 8
     name = "suit-condition-is-dependency"
 
 
