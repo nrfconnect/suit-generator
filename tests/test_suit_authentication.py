@@ -120,7 +120,7 @@ def test_sig_structure():
     structure = CoseSigStructure.from_obj(test_obj)
     hex_value = structure.to_cbor().hex()
     assert structure is not None
-    assert type(structure) == CoseSigStructure
+    assert type(structure) is CoseSigStructure
     assert hasattr(structure, "CoseSigStructure")
     assert len(structure.CoseSigStructure) == 4
     assert structure.CoseSigStructure[0].value == "Signature1"
