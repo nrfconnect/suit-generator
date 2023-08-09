@@ -18,7 +18,7 @@ pytest
 
 ## Basic usage
 ```shell
-suit-genrator --help
+suit-generator --help
 ```
 
 ### Envelope creation
@@ -40,7 +40,7 @@ suit-generator convert --input-file key_private.pem --output-file key_public.c
 
 ### Adding signature
 ```shell
-suit-genrator sign --input-file envelope.suit --output-file envelope_signed.suit --private-key key_private.pem
+suit-generator sign --input-file envelope.suit --output-file envelope_signed.suit --private-key key_private.pem
 ```
 
 ## Package build and release
