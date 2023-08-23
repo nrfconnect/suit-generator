@@ -35,7 +35,7 @@ SUIT_Envelope_Tagged:
           suit-parameter-class-identifier:
             RFC4122_UUID:
               namespace: nordicsemi.com
-              name: nRF5420_cpuapp
+              name: nRF54H20_sample_app
       - suit-condition-vendor-identifier:
         - suit-send-record-success
         - suit-send-record-failure
@@ -142,6 +142,13 @@ SUIT_Envelope_Tagged:
       - suit-send-record-failure
       - suit-send-sysinfo-success
       - suit-send-sysinfo-failure
+{%- endif %}
+    suit-manifest-component-id:
+{%- if app is defined %}
+    - I
+    - RFC4122_UUID:
+        namespace: nordicsemi.com
+        name: nRF54H20_sample_app
 {%- endif %}
   suit-integrated-payloads:
 {%- if app is defined %}
