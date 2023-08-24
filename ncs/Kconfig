@@ -27,7 +27,16 @@ config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/default_app_rad_cores_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
     help
       Path to the template, that is used if the application directory does not
-      contain an envelope template file.
+      contain an input envelope template file.
+
+config SUIT_ENVELOPE_EDITABLE_TEMPLATE
+    string "Path to the input envelope template"
+    default "../../envelope.yaml.jinja2"
+    help
+      Path to the input editable template used to create binary envelopes.
+      This file is created by the build system during first build from the SUIT_ENVELOPE_DEFAULT_TEMPLATE.
+      You can use either absolute or relative path.
+      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
 
 config SUIT_ENVELOPE_SECDOM
     bool "Create SUIT files required by secure domain"
