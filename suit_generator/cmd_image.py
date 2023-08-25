@@ -8,23 +8,29 @@
 import os
 import struct
 
+from cbor2 import dumps as cbor_dumps
 from intelhex import IntelHex, bin2hex
 
 from suit_generator.envelope import SuitEnvelope
 from suit_generator.exceptions import GeneratorError
 from suit_generator.exceptions import SUITError
+from suit_generator.suit.manifest import SuitManifest
 
 
 class ImageCreator:
     """Helper class for extracting data from SUIT envelope and creating hex files."""
+
+    ENVELOPE_SLOT_VERSION = 1
+    ENVELOPE_SLOT_VERSION_KEY = 0
+    ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY = 1
+    ENVELOPE_SLOT_ENVELOPE_BSTR_KEY = 2
 
     default_update_candidate_info_address = 0x0E1EEC00
     default_envelope_address = 0x0E1EED80
     default_dfu_partition_address = 0x0E100000
     default_dfu_max_caches = 4
 
-    UPDATE_MAGIC_VALUE_CLEARED = 0xAAAA5555
-    UPDATE_MAGIC_VALUE_AVAILABLE = 0x5555AAAA
+    UPDATE_MAGIC_VALUE_AVAILABLE = 0x55AA55AA
 
     IMAGE_CMD = "image"
     IMAGE_CMD_BOOT = "boot"
@@ -33,21 +39,21 @@ class ImageCreator:
     @staticmethod
     def _prepare_suit_storage_struct_format(dfu_max_caches: int) -> str:
         # Little endian,
-        # 3x uint32_t for suit_storage info fields,
-        # 1x uint8_t for number of used caches,
-        # (size_t, void*) for each cache
-        return "<" + "III" + "B" + dfu_max_caches * "II"
+        # 2x uint32_t for suit_storage magic and nb of memory regions fields,
+        # (void*, size_t) for envelope address and size,
+        # (void*, size_t) for each cache
+        return "<" + "IIII" + dfu_max_caches * "II"
 
     @staticmethod
     def _prepare_update_candidate_info_for_boot(dfu_max_caches: int) -> bytes:
         uci = struct.Struct(ImageCreator._prepare_suit_storage_struct_format(dfu_max_caches))
 
-        all_cache_values = dfu_max_caches * [0, 0]  # size, address
+        all_cache_values = dfu_max_caches * [0, 0]  # address, size
         struct_values = [
-            ImageCreator.UPDATE_MAGIC_VALUE_CLEARED,  # Update candidate info magic
-            0,  # Update candidate info address
-            0,  # Update candidate info size
-            0,  # Nb of caches
+            ImageCreator.UPDATE_MAGIC_VALUE_AVAILABLE,  # Update candidate info magic
+            0,  # Nb of memory regions
+            0,  # SUIT envelope address
+            0,  # SUIT envelope size
             *all_cache_values,  # Values for all the caches
         ]
 
@@ -62,13 +68,40 @@ class ImageCreator:
         all_cache_values = dfu_max_caches * [0, 0]  # size, address
         struct_values = [
             ImageCreator.UPDATE_MAGIC_VALUE_AVAILABLE,  # Update candidate info: magic
-            dfu_partition_address,  # Update candidate info: address
-            candidate_size,  # Update candidate info: size
-            0,  # Nb of caches
+            1,  # Nb of memory regions
+            dfu_partition_address,  # SUIT envelope address
+            candidate_size,  # SUIT envelope size
             *all_cache_values,  # Values for all the caches
         ]
 
         return uci.pack(*struct_values)
+
+    @staticmethod
+    def _prepare_envelope_slot_binary(envelope: SuitEnvelope) -> bytes:
+        severed_envelope = envelope.prepare_suit_data(envelope._envelope)
+        manifest_dict = envelope._envelope["SUIT_Envelope_Tagged"]["suit-manifest"]
+
+        if "suit-manifest-component-id" not in manifest_dict.keys():
+            raise GeneratorError("The suit-manifest-component-id manifest field is mandatory")
+
+        # Generate a key-value pair with manifest component ID to find its offset inside installed envelope
+        manifest_component_id = manifest_dict["suit-manifest-component-id"]
+        manifest_dict = {"suit-manifest-component-id": manifest_component_id}
+        manifest_cbor = SuitManifest.from_obj(manifest_dict).to_cbor()
+
+        # Cut the CBOR dictionary element count and find the key-value pair offset
+        component_id_offset = severed_envelope.find(manifest_cbor[1:])
+
+        # Move the offset, cutting the common prefix to get the offset to the raw UUID
+        class_id_offset = component_id_offset + len(cbor_dumps([b"I", b"#"]))
+
+        envelope_slot = {
+            ImageCreator.ENVELOPE_SLOT_VERSION_KEY: ImageCreator.ENVELOPE_SLOT_VERSION,
+            ImageCreator.ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY: class_id_offset,
+            ImageCreator.ENVELOPE_SLOT_ENVELOPE_BSTR_KEY: severed_envelope,
+        }
+
+        return cbor_dumps(envelope_slot)
 
     @staticmethod
     def _create_suit_storage_file_for_boot(
@@ -86,7 +119,7 @@ class ImageCreator:
 
         # Installed envelope
         envelope_hex = IntelHex()
-        envelope_hex.frombytes(envelope.prepare_suit_data(envelope._envelope), installed_envelope_address)
+        envelope_hex.frombytes(ImageCreator._prepare_envelope_slot_binary(envelope), installed_envelope_address)
 
         # The suit storage file for boot path combines update candidate info and installed envelope
         combined_hex = IntelHex(uci_hex)
