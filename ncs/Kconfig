@@ -42,7 +42,7 @@ config SUIT_ENVELOPE_SECDOM
     bool "Create SUIT files required by secure domain"
     help
         Create SUIT storage file required by secure domain in case secure domain has been included in the build
-    default n
+    default y if INCLUDE_SECDOM
 
 config SUIT_ENVELOPE_SIGN_SCRIPT
     string "Location of SUIT sign script"
