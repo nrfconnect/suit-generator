@@ -33,7 +33,7 @@ def read_configurations(configurations):
     """Read configuration stored in the pickled devicetree."""
     data = {}
     for config in configurations:
-        name, binary, edt = config.split(":")
+        name, binary, edt = config.split(",")
         with open(edt, "rb") as edt_handler:
             edt = pickle.load(edt_handler)
             data[name] = {"name": name, "config": convert(edt), "dt": edt, "binary": binary}
