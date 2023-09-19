@@ -30,9 +30,12 @@ class SuitEnvelope(InputOutputMixin):
         :param output_type: output file type (json, yaml, suit), type detected using extension if not provided
 
         """
-        if output_type == "AUTO":
+        if output_type == "AUTO" and file_name is not None:
             # if AUTO mode used, check file extension and remove dot at the beginning
             output_type = pathlib.Path(file_name).suffix[1:]
+
+        if file_name is None:
+            output_type = "STDOUT"
 
         dump_method = self.get_serializer(output_type)
         dump_method(file_name, self._envelope, private_key)

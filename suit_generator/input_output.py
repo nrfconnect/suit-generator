@@ -26,6 +26,7 @@ class InputOutputMixin:
         "yaml": "to_yaml_file",
         "suit": "to_suit_file",
         "suit_simplified": "to_suit_file_simplified",
+        "stdout": "to_stdout",
     }
 
     DESERIALIZERS = {
@@ -60,6 +61,11 @@ class InputOutputMixin:
         """Write dict content into yaml file."""
         with open(file_name, "w") as fh:
             yaml.dump(data, fh, sort_keys=False)
+
+    @classmethod
+    def to_stdout(cls, file_name, data, *args) -> None:
+        """Dump as yaml into STDOUT."""
+        print(yaml.dump(data, sort_keys=False), end="")
 
     @classmethod
     def from_suit_file(cls, file_name) -> dict:
