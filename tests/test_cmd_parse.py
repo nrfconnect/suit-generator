@@ -20,7 +20,8 @@ SIGNED_INPUT_ENVELOPE = (
     "5566778899aabbccddeeff0123456789abcdeffedcba98765432100e1987d0010f020f074382030f0943821702"
 )
 
-SIGNED_OUTPUT_ENVELOPE = """SUIT_Envelope_Tagged:
+SIGNED_OUTPUT_ENVELOPE = (
+    """SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
       suit-digest-algorithm-id: cose-alg-sha-256
@@ -30,9 +31,9 @@ SIGNED_OUTPUT_ENVELOPE = """SUIT_Envelope_Tagged:
         protected:
           suit-cose-algorithm-id: cose-alg-es-256
         unprotected: {}
-        payload: null
-        signature: e3505f7ab70bd3a0e04916f37b0d7251aa6f52ca12c7edaa886a4129a298ca6a1ecc2a57955c6bf4ccb9f01d684d5d1c4774dffbe508a034431feafa60848a2c
-  suit-manifest:
+        payload: null\n"""
+    "        signature: e3505f7ab70bd3a0e04916f37b0d7251aa6f52ca12c7edaa886a4129a298ca6a1ecc2a57955c6bf4ccb9f01d684d5d1c4774dffbe508a034431feafa60848a2c\n" # noqa E501
+    """  suit-manifest:
     suit-manifest-version: 1
     suit-manifest-sequence-number: 0
     suit-common:
@@ -69,6 +70,7 @@ SIGNED_OUTPUT_ENVELOPE = """SUIT_Envelope_Tagged:
     - suit-directive-invoke:
       - suit-send-record-failure
 """
+)
 
 
 def test_dump_to_stdout(mocker, capfd):
