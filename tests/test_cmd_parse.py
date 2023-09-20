@@ -32,7 +32,7 @@ SIGNED_OUTPUT_ENVELOPE = (
           suit-cose-algorithm-id: cose-alg-es-256
         unprotected: {}
         payload: null\n"""
-    "        signature: e3505f7ab70bd3a0e04916f37b0d7251aa6f52ca12c7edaa886a4129a298ca6a1ecc2a57955c6bf4ccb9f01d684d5d1c4774dffbe508a034431feafa60848a2c\n" # noqa E501
+    "        signature: e3505f7ab70bd3a0e04916f37b0d7251aa6f52ca12c7edaa886a4129a298ca6a1ecc2a57955c6bf4ccb9f01d684d5d1c4774dffbe508a034431feafa60848a2c\n"  # noqa E501
     """  suit-manifest:
     suit-manifest-version: 1
     suit-manifest-sequence-number: 0
