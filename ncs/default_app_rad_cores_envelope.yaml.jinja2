@@ -8,12 +8,12 @@ SUIT_Envelope_Tagged:
     suit-manifest-sequence-number: {{ version }}
     suit-common:
       suit-components:
-      - - D
+      - - CAND_IMG
         - 0
 {%- if app is defined %}
     {%- set component_index = component_index + 1 %}
     {%- set app_component_index = component_index %}
-      - - M
+      - - MEM
         - {{ app['dt'].label2node['cpu'].unit_addr }}
         - {{ get_absolute_address(app['dt'].chosen_nodes['zephyr,code-partition']) }}
         - {{ app['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
@@ -21,7 +21,7 @@ SUIT_Envelope_Tagged:
 {%- if hci_rpmsg_subimage is defined %}
     {%- set component_index = component_index + 1 %}
     {%- set hci_rpmsg_subimage_component_index = component_index %}
-      - - M
+      - - MEM
         - {{ hci_rpmsg_subimage['dt'].label2node['cpu'].unit_addr }}
         - {{ get_absolute_address(hci_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition']) }}
         - {{ hci_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
@@ -145,7 +145,7 @@ SUIT_Envelope_Tagged:
 {%- endif %}
     suit-manifest-component-id:
 {%- if app is defined %}
-    - I
+    - INSTLD_MFST
     - RFC4122_UUID:
         namespace: nordicsemi.com
         name: nRF54H20_sample_app
