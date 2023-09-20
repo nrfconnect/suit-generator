@@ -93,7 +93,7 @@ class ImageCreator:
         component_id_offset = severed_envelope.find(manifest_cbor[1:])
 
         # Move the offset, cutting the common prefix to get the offset to the raw UUID
-        class_id_offset = component_id_offset + len(cbor_dumps([b"I", b"#"]))
+        class_id_offset = component_id_offset + len(cbor_dumps([cbor_dumps("INSTLD_MFST"), b"#"]))
 
         envelope_slot = {
             ImageCreator.ENVELOPE_SLOT_VERSION_KEY: ImageCreator.ENVELOPE_SLOT_VERSION,

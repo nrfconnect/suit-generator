@@ -80,36 +80,6 @@ def cbstr(cls):
     return Cbstr
 
 
-def bchar(cls):
-    """Decorate method to dump value as bytes."""
-
-    class Bchar(cls):
-        """Decorator implementation."""
-
-        def __init__(self, *args, **kwargs):
-            """Init object.
-
-            Init object and wrap to look like original cls.
-            """
-            functools.update_wrapper(Bchar, cls, updated=[])
-            super().__init__(*args, **kwargs)
-
-        @classmethod
-        def from_cbor(cls, cbstr):
-            if (not isinstance(cbstr, bytes)) or (len(cbstr) != 1):
-                raise ValueError(f"Unable to create component type from {cbstr}")
-            if (ret := cbstr.decode()).isalpha():
-                return cls(ret)
-            else:
-                raise ValueError(f"Not proper character {cbstr}")
-
-        def to_cbor(self):
-            """Dump to bytes."""
-            return cbor2.dumps(self.value.encode())
-
-    return Bchar
-
-
 class SuitObject:
     """SUIT basic object."""
 
@@ -159,6 +129,31 @@ class SuitObject:
     def ensure_cbor(data):
         """Ensure data cbor encoded."""
         return cbor2.dumps(data) if not isinstance(data, bytes) else data
+
+
+class SuitBchar(SuitObject):
+    """Representation of a single-character encoded as raw bytes."""
+
+    def __init__(self, value):
+        """Initialize object."""
+        if value is not None:
+            if (not isinstance(value, str)) or (len(value) != 1):
+                raise ValueError(f"Unable to create single-byte type from: {value}")
+        super().__init__(value)
+
+    @classmethod
+    def from_cbor(cls, cbstr):
+        """Restore SUIT representation from passed CBOR."""
+        if (not isinstance(cbstr, bytes)) or (len(cbstr) != 1):
+            raise ValueError(f"Unable to create component type from {cbstr}")
+        if (ret := cbstr.decode()).isalpha():
+            return cls(ret)
+        else:
+            raise ValueError(f"Not proper character {cbstr}")
+
+    def to_cbor(self):
+        """Dump SUIT representation to cbor encoded bytes."""
+        return cbor2.dumps(self.value.encode())
 
 
 class SuitEnum(SuitObject):
