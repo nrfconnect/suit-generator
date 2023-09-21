@@ -186,6 +186,11 @@ class SuitImageSize(SuitUint):
             return super().from_obj(obj["raw"])
         elif "file" in obj.keys():
             return super().from_obj(getsize(obj["file"]))
+        elif "envelope" in obj.keys():
+            # called here to avoid circular import
+            from suit_generator.suit.envelope import SuitEnvelopeTagged
+            binary_data = SuitEnvelopeTagged.return_processed_binary_data(obj["envelope"])
+            return super().from_obj(len(binary_data))
         else:
             raise ValueError(f"Unable to parse image size: {obj}")
 

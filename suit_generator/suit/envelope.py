@@ -21,7 +21,7 @@ from suit_generator.suit.types.keys import (
     suit_payload_fetch,
     suit_install,
     suit_text,
-    suit_integrated_payloads,
+    suit_integrated_payloads, suit_integrated_dependencies,
 )
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
@@ -97,8 +97,9 @@ class SuitEnvelope(SuitKeyValue):
             suit_install: cbstr(SuitCommandSequence),
             suit_text: cbstr(SuitTextMap),
             suit_integrated_payloads: SuitIntegratedPayloadMap,
+            suit_integrated_dependencies: SuitIntegratedPayloadMap,
         },
-        embedded=[suit_integrated_payloads],
+        embedded=[suit_integrated_payloads, suit_integrated_dependencies],
     )
 
 
@@ -186,6 +187,15 @@ class SuitBasicEnvelopeOperationsMixin:
 
         self.value.value.value[suit_authentication_wrapper].SuitAuthentication.append(suit_authentication_block)
 
+    @classmethod
+    def return_processed_binary_data(cls, obj):
+        """Return binary SUIT envelope with updated digests."""
+        # TODO: maybe cache should be added here to avoid generation of the same object tens times
+        suit_obj = cls.from_obj(obj)
+        suit_obj.update_severable_digests()
+        suit_obj.update_digest()
+        # TODO: sign an envelope by calling external script for each and every generation
+        return suit_obj.to_cbor()
 
 class SuitEnvelopeTaggedSimplified(SuitBasicEnvelopeOperationsMixin, SuitTag):
     """Representation of SUIT_Envelope_Tagged item."""
