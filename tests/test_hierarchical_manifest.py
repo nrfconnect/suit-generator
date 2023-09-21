@@ -362,16 +362,16 @@ def calculate_hash(data):
 def test_envelope_unsigned_creation_and_parsing(setup_and_teardown):
     envelope = SuitEnvelope()
     # create envelope_1
-    envelope.load("envelope_1.json", input_type="json")
+    envelope.load("envelope_1.yaml", input_type="yaml")
     envelope.dump("envelope_1.suit", output_type="suit")
     # parse envelope_1
     envelope.load("envelope_1.suit", input_type="suit")
-    envelope.dump("envelope_1_copy.json", output_type="json")
+    envelope.dump("envelope_1_copy.yaml", output_type="yaml")
     # create envelope_1_copy based on new input json file
-    envelope.load("envelope_1_copy.json", input_type="json")
+    envelope.load("envelope_1_copy.yaml", input_type="yaml")
     envelope.dump("envelope_1_copy.suit", output_type="suit")
     # compare create json and suit files
-    with open("envelope_1.json") as fh_json_1, open("envelope_1_copy.json") as fh_json_2:
+    with open("envelope_1.yaml") as fh_json_1, open("envelope_1_copy.yaml") as fh_json_2:
         assert deepdiff.DeepDiff(fh_json_1.read(), fh_json_2.read())
     with open("envelope_1.suit", "rb") as fh_suit_1, open("envelope_1_copy.suit", "rb") as fh_suit_2:
         assert calculate_hash(fh_suit_1.read()) == calculate_hash(fh_suit_2.read())
