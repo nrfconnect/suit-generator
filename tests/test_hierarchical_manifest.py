@@ -66,7 +66,7 @@ SUIT_Dependent_Manifests:
               - suit-send-record-failure
             suit-install:
             - suit-directive-override-parameters:
-                suit-parameter-uri: '#file.bin'
+                suit-parameter-uri: '#app.bin'
             - suit-directive-fetch:
               - suit-send-record-failure
             - suit-condition-image-match:
@@ -90,7 +90,7 @@ SUIT_Dependent_Manifests:
               suit-text-component-description: Sample application core FW
               suit-text-component-version: v1.0.0
           suit-integrated-payloads:
-            '#file.bin': app.bin
+            '#app.bin': app.bin
     - radio_envelope: &rad
         SUIT_Envelope_Tagged:
           suit-authentication-wrapper:
@@ -140,7 +140,7 @@ SUIT_Dependent_Manifests:
               - suit-send-record-failure
             suit-install:
             - suit-directive-override-parameters:
-                suit-parameter-uri: '#file.bin'
+                suit-parameter-uri: '#rad.bin'
             - suit-directive-fetch:
               - suit-send-record-failure
             - suit-condition-image-match:
@@ -164,7 +164,7 @@ SUIT_Dependent_Manifests:
               suit-text-component-description: Sample radio core FW
               suit-text-component-version: v1.0.0
           suit-integrated-payloads:
-            '#file.bin': rad.bin
+            '#rad.bin': rad.bin
 
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
