@@ -42,9 +42,9 @@ SUIT_Dependent_Manifests:
                   suit-parameter-image-digest:
                     suit-digest-algorithm-id: cose-alg-sha-256
                     suit-digest-bytes:
-                      file: file.bin
+                      file: app.bin
                   suit-parameter-image-size:
-                    file: file.bin
+                    file: app.bin
               - suit-condition-vendor-identifier:
                 - suit-send-record-success
                 - suit-send-record-failure
@@ -90,7 +90,7 @@ SUIT_Dependent_Manifests:
               suit-text-component-description: Sample application core FW
               suit-text-component-version: v1.0.0
           suit-integrated-payloads:
-            '#file.bin': file.bin
+            '#file.bin': app.bin
     - radio_envelope: &rad
         SUIT_Envelope_Tagged:
           suit-authentication-wrapper:
@@ -116,9 +116,9 @@ SUIT_Dependent_Manifests:
                   suit-parameter-image-digest:
                     suit-digest-algorithm-id: cose-alg-sha-256
                     suit-digest-bytes:
-                      file: file.bin
+                      file: rad.bin
                   suit-parameter-image-size:
-                    file: file.bin
+                    file: rad.bin
               - suit-condition-vendor-identifier:
                 - suit-send-record-success
                 - suit-send-record-failure
@@ -164,7 +164,7 @@ SUIT_Dependent_Manifests:
               suit-text-component-description: Sample radio core FW
               suit-text-component-version: v1.0.0
           suit-integrated-payloads:
-            '#file.bin': file.bin
+            '#file.bin': rad.bin
 
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
@@ -338,8 +338,10 @@ def setup_and_teardown(tmp_path_factory):
     os.chdir(path)
     with open("envelope_1.yaml", "w") as fh:
         fh.write(TEST_YAML_STRING_UNSIGNED_ALIASES)
-    with open("file.bin", "wb") as fh:
+    with open("rad.bin", "wb") as fh:
         fh.write(b"\xde\xad\xbe\xef")
+    with open("app.bin", "wb") as fh:
+        fh.write(b"\xc0\xff\xee\x00")
     yield
     # Cleanup environment
     #   - remove temp directory
