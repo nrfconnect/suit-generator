@@ -25,6 +25,7 @@ class SuitIntegratedPayloadMap(SuitKeyValueUnnamed):
             elif isinstance(v, dict):
                 # called here to avoid circular import
                 from suit_generator.suit.envelope import SuitEnvelopeTagged
+
                 binary_data = SuitEnvelopeTagged.return_processed_binary_data(v)
                 data = binary_data.hex().upper()
             elif pathlib.Path.is_file(pathlib.Path(v)):

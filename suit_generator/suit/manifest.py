@@ -189,6 +189,7 @@ class SuitImageSize(SuitUint):
         elif "envelope" in obj.keys():
             # called here to avoid circular import
             from suit_generator.suit.envelope import SuitEnvelopeTagged
+
             binary_data = SuitEnvelopeTagged.return_processed_binary_data(obj["envelope"])
             return super().from_obj(len(binary_data))
         else:

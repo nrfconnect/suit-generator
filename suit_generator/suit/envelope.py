@@ -21,7 +21,8 @@ from suit_generator.suit.types.keys import (
     suit_payload_fetch,
     suit_install,
     suit_text,
-    suit_integrated_payloads, suit_integrated_dependencies,
+    suit_integrated_payloads,
+    suit_integrated_dependencies,
 )
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
@@ -196,6 +197,7 @@ class SuitBasicEnvelopeOperationsMixin:
         suit_obj.update_digest()
         # TODO: sign an envelope by calling external script for each and every generation
         return suit_obj.to_cbor()
+
 
 class SuitEnvelopeTaggedSimplified(SuitBasicEnvelopeOperationsMixin, SuitTag):
     """Representation of SUIT_Envelope_Tagged item."""

@@ -131,6 +131,7 @@ class SuitDigestExt:
                 hfunc = SuitHash(obj["suit-digest-algorithm-id"])
                 # called here to avoid circular import
                 from suit_generator.suit.envelope import SuitEnvelopeTagged
+
                 binary_data = SuitEnvelopeTagged.return_processed_binary_data(digest_dict["envelope"])
                 obj["suit-digest-bytes"] = hfunc.hash(binary_data)
             elif "raw" in digest_dict.keys():

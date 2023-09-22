@@ -4,14 +4,13 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Unit tests for envelope.py implementation."""
-import json
 import os
 import pathlib
 import deepdiff
 import pytest
+import yaml
 from cryptography.hazmat.primitives import hashes
 from suit_generator.envelope import SuitEnvelope
-from suit_generator.input_output import FileTypeException
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
@@ -349,18 +348,21 @@ def setup_and_teardown(tmp_path_factory):
 
 @pytest.mark.parametrize("input_data", ["envelope_1"])
 def test_envelope_creation(setup_and_teardown, input_data):
+    """Check if is possible to create binary envelope from hierarchical input configuration."""
     envelope = SuitEnvelope()
     envelope.load(f"{input_data}.yaml", input_type="yaml")
     envelope.dump(f"{input_data}.suit", output_type="suit")
 
 
 def calculate_hash(data):
+    """Calculate sha256 for the input data."""
     digest = hashes.Hash(hashes.SHA256())
     digest.update(data)
     return digest.finalize()
 
 
 def test_envelope_unsigned_creation_and_parsing(setup_and_teardown):
+    """Test recreation of configuration files and binary envelopes."""
     envelope = SuitEnvelope()
     # create envelope_1
     envelope.load("envelope_1.yaml", input_type="yaml")
@@ -368,29 +370,30 @@ def test_envelope_unsigned_creation_and_parsing(setup_and_teardown):
     # parse envelope_1
     envelope.load("envelope_1.suit", input_type="suit")
     envelope.dump("envelope_1_copy.yaml", output_type="yaml")
-    # create envelope_1_copy based on new input json file
+    # create envelope_1_copy based on new input yaml file
     envelope.load("envelope_1_copy.yaml", input_type="yaml")
     envelope.dump("envelope_1_copy.suit", output_type="suit")
-    # compare create yaml and suit files
+    # compare input and output files
     with open("envelope_1.yaml") as fh_1, open("envelope_1_copy.yaml") as fh_2:
-        import yaml
         d1 = yaml.load(fh_1.read(), Loader=yaml.SafeLoader)
         d2 = yaml.load(fh_2.read(), Loader=yaml.SafeLoader)
         diff = deepdiff.DeepDiff(
             d1,
             d2,
-            exclude_paths=[
-                "root['SUIT_Dependent_Manifests']",  # TODO: shall be somehow restored
-                "root['SUIT_Envelope_Tagged']['suit-integrated-payloads']",
-                "root['SUIT_Envelope_Tagged']['suit-integrated-dependencies']"
+            exclude_paths=[  # exclude data replaced/removed/added by design
+                "root['SUIT_Dependent_Manifests']",  # fixme: shall be somehow restored
+                "root['SUIT_Envelope_Tagged']['suit-integrated-payloads']",  # replaced by raw data
+                "root['SUIT_Envelope_Tagged']['suit-integrated-dependencies']",  # replaced by raw data
             ],
-            exclude_regex_paths=[
-                r"root(\[.*\])*\['raw'\]",
-                r"root(\[.*\])*\['suit-digest-bytes'\]",
-                r"root(\[.*\])*\['RFC4122_UUID'\]",
-                r"root(\[.*\])*\['envelope'\]"  # TODO: shall be somehow restored
-            ]
+            exclude_regex_paths=[  # exclude data replaced/removed/added by design
+                r"root(\[.*\])*\['raw'\]",  # added only to the output envelope
+                r"root(\[.*\])*\['suit-digest-bytes'\]",  # added only to the output envelope
+                r"root(\[.*\])*\['RFC4122_UUID'\]",  # replaced in the output envelope
+                r"root(\[.*\])*\['envelope'\]",  # fixme: shall be somehow restored
+            ],
         )
         assert diff == {}
     with open("envelope_1.suit", "rb") as fh_suit_1, open("envelope_1_copy.suit", "rb") as fh_suit_2:
+        # restored yaml might be a little different due to replacements like RFC4122_UUID calculation -> raw data
+        # but both envelopes should be binary equal
         assert calculate_hash(fh_suit_1.read()) == calculate_hash(fh_suit_2.read())
