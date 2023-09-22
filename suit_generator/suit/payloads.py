@@ -22,6 +22,12 @@ class SuitIntegratedPayloadMap(SuitKeyValueUnnamed):
         for k, v in obj.items():
             if all(c in string.hexdigits for c in v):
                 data = v
+            elif isinstance(v, dict):
+                # called here to avoid circular import
+                from suit_generator.suit.envelope import SuitEnvelopeTagged
+
+                binary_data = SuitEnvelopeTagged.return_processed_binary_data(v)
+                data = binary_data.hex().upper()
             elif pathlib.Path.is_file(pathlib.Path(v)):
                 with open(v, "rb") as fh:
                     data = fh.read().hex().upper()

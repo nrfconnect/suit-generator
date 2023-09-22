@@ -603,7 +603,7 @@ def test_read_from_json(mocker_json_open):
 def test_write_to_json(mocker_json_open):
     """Test if is possible to dump internal envelope representation into json."""
     envelope = SuitEnvelope()
-    envelope._envelope = json.dumps(TEST_JSON_STRING_SIGNED)
+    envelope._envelope = json.loads(TEST_JSON_STRING_SIGNED)
     try:
         envelope.dump("some_output_json_file.json")
     except Exception:
@@ -613,7 +613,7 @@ def test_write_to_json(mocker_json_open):
 def test_write_to_xml_auto_negative(mocker_json_open):
     """Test if not supported file extension if properly recognized."""
     envelope = SuitEnvelope()
-    envelope._envelope = json.dumps(TEST_JSON_STRING_SIGNED)
+    envelope._envelope = json.loads(TEST_JSON_STRING_SIGNED)
     with pytest.raises(FileTypeException):
         envelope.dump("some_output_json_file.xml")
 
@@ -628,7 +628,7 @@ def test_read_from_xml_auto_negative(mocker_json_open):
 def test_write_to_xml_negative(mocker_json_open):
     """Test if not supported file output_type if properly recognized."""
     envelope = SuitEnvelope()
-    envelope._envelope = json.dumps(TEST_JSON_STRING_SIGNED)
+    envelope._envelope = json.loads(TEST_JSON_STRING_SIGNED)
     with pytest.raises(FileTypeException):
         envelope.dump("some_output_json_file.xml", output_type="xml")
 

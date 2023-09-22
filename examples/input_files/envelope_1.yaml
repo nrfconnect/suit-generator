@@ -17,7 +17,9 @@ SUIT_Envelope_Tagged:
           suit-parameter-vendor-identifier:
             RFC4122_UUID: nordicsemi.com
           suit-parameter-class-identifier:
-            raw: d622bafd4337518590bc6368cda7fbca
+            RFC4122_UUID:
+              namespace: nordicsemi.com
+              name: nRF54H20_sample_app
           suit-parameter-image-digest:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
