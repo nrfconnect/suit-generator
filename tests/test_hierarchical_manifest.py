@@ -15,8 +15,7 @@ from suit_generator.input_output import FileTypeException
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
-TEST_YAML_STRING_UNSIGNED_ALIASES = """
-SUIT_Dependent_Manifests:
+TEST_YAML_STRING_UNSIGNED_ALIASES = """SUIT_Dependent_Manifests:
     - app_envelope: &app
         SUIT_Envelope_Tagged:
           suit-authentication-wrapper:
@@ -165,7 +164,6 @@ SUIT_Dependent_Manifests:
               suit-text-component-version: v1.0.0
           suit-integrated-payloads:
             '#rad.bin': rad.bin
-
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
@@ -325,6 +323,7 @@ SUIT_Envelope_Tagged:
 
 """
 
+
 @pytest.fixture
 def setup_and_teardown(tmp_path_factory):
     """Create and cleanup environment."""
@@ -334,7 +333,7 @@ def setup_and_teardown(tmp_path_factory):
     #   - create binary file
     start_directory = os.getcwd()
     path = tmp_path_factory.mktemp(TEMP_DIRECTORY)
-    print(f'temp {path}')
+    print(f"temp {path}")
     os.chdir(path)
     with open("envelope_1.yaml", "w") as fh:
         fh.write(TEST_YAML_STRING_UNSIGNED_ALIASES)
@@ -349,7 +348,7 @@ def setup_and_teardown(tmp_path_factory):
 
 
 @pytest.mark.parametrize("input_data", ["envelope_1"])
-def test_envelope_unsigned_creation(setup_and_teardown, input_data):
+def test_envelope_creation(setup_and_teardown, input_data):
     envelope = SuitEnvelope()
     envelope.load(f"{input_data}.yaml", input_type="yaml")
     envelope.dump(f"{input_data}.suit", output_type="suit")
@@ -372,8 +371,26 @@ def test_envelope_unsigned_creation_and_parsing(setup_and_teardown):
     # create envelope_1_copy based on new input json file
     envelope.load("envelope_1_copy.yaml", input_type="yaml")
     envelope.dump("envelope_1_copy.suit", output_type="suit")
-    # compare create json and suit files
-    with open("envelope_1.yaml") as fh_json_1, open("envelope_1_copy.yaml") as fh_json_2:
-        assert deepdiff.DeepDiff(fh_json_1.read(), fh_json_2.read())
+    # compare create yaml and suit files
+    with open("envelope_1.yaml") as fh_1, open("envelope_1_copy.yaml") as fh_2:
+        import yaml
+        d1 = yaml.load(fh_1.read(), Loader=yaml.SafeLoader)
+        d2 = yaml.load(fh_2.read(), Loader=yaml.SafeLoader)
+        diff = deepdiff.DeepDiff(
+            d1,
+            d2,
+            exclude_paths=[
+                "root['SUIT_Dependent_Manifests']",  # TODO: shall be somehow restored
+                "root['SUIT_Envelope_Tagged']['suit-integrated-payloads']",
+                "root['SUIT_Envelope_Tagged']['suit-integrated-dependencies']"
+            ],
+            exclude_regex_paths=[
+                r"root(\[.*\])*\['raw'\]",
+                r"root(\[.*\])*\['suit-digest-bytes'\]",
+                r"root(\[.*\])*\['RFC4122_UUID'\]",
+                r"root(\[.*\])*\['envelope'\]"  # TODO: shall be somehow restored
+            ]
+        )
+        assert diff == {}
     with open("envelope_1.suit", "rb") as fh_suit_1, open("envelope_1_copy.suit", "rb") as fh_suit_2:
         assert calculate_hash(fh_suit_1.read()) == calculate_hash(fh_suit_2.read())
