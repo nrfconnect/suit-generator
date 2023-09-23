@@ -11,6 +11,16 @@ from suit_generator.exceptions import SUITError
 
 log = logging.getLogger(__name__)
 
+SIGN_CMD = "sign"
+
+
+def add_arguments(parser):
+    """Add additional arguments to the passed parser."""
+    cmd_sign_arg_parser = parser.add_parser(SIGN_CMD, help="Sign manifest.")
+    cmd_sign_arg_parser.add_argument("--input-file", required=True, help="Input SUIT file")
+    cmd_sign_arg_parser.add_argument("--output-file", required=True, help="Output SUIT file")
+    cmd_sign_arg_parser.add_argument("--private-key", required=True, help="Private key file")
+
 
 class Signer(ABC):
     """Abstract class for Signers."""
