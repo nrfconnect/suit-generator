@@ -16,10 +16,6 @@ from suit_generator.exceptions import GeneratorError
 from suit_generator.exceptions import SUITError
 from suit_generator.suit.manifest import SuitManifest
 
-# IMAGE_CMD = ImageCreator.IMAGE_CMD
-# IMAGE_CMD_BOOT = ImageCreator.IMAGE_CMD_BOOT
-# IMAGE_CMD_UPDATE = ImageCreator.IMAGE_CMD_UPDATE
-
 
 def add_arguments(parser):
     """Add additional arguments to the passed parser."""
