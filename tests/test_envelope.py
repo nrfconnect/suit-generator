@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Unit tests for envelope.py implementation."""
+import binascii
 import json
 import os
 import pathlib
@@ -15,22 +16,18 @@ from suit_generator.input_output import FileTypeException
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
-TEST_SUIT_STRING_AUTHENTICATINON_WRAPPER = (
-    "d86ba2025827815824822f58206658ea560262696dd1f13b782239a064da"
-    "7c6c5cbaf52fded428a6fc83c7e5af035871a50101020003585fa20281814"
-    "1000458568614a40150fa6b4a53d5ad5fdfbe9de663e4d41ffe02501492af"
-    "1425695e48bf429b2d51f2ab45035824822f582000112233445566778899a"
-    "abbccddeeff0123456789abcdeffedcba98765432100e1987d0010f020f07"
-    "4382030f0943821702"
-)
-
-TEST_SUIT_STRING_AUTHENTICATINON_WRAPPER = (
-    "d86ba2025827815824822f58206658ea560262696dd1f13b782239a064da"
-    "7c6c5cbaf52fded428a6fc83c7e5af035871a50101020003585fa20281814"
-    "1000458568614a40150fa6b4a53d5ad5fdfbe9de663e4d41ffe02501492af"
-    "1425695e48bf429b2d51f2ab45035824822f582000112233445566778899a"
-    "abbccddeeff0123456789abcdeffedcba98765432100e1987d0010f020f07"
-    "4382030f0943821702"
+ENVELOPE_SIGNED_TWO_TIMES = (
+    "D86BA40258BF835824822F5820F429BA01A650F9430D8759CDA5F69DC75D7A389683E986576C75513BACE432D9584AD28443A1"
+    "0126A0F65840149A9C4B1BDAB46F7F46A6200A7F8A46FB2BF6F4F87933E07F9D293C2894ED2F225C83744CBB60337E8858E8F1"
+    "BBBCEEE2642F500A7C28B1B84EC1CD136D081D584AD28443A10126A0F65840D686E1BB235FD660B6421F1076802F93ED17034B"
+    "FD7F55671F46C44C1CD32FBF0007871452EDFEAAEA0FED59885CC3DAC77B081EBA354EF0C323B0C7D03EF0DF0358B6A7010102"
+    "0103586BA2028184414D4102451A0E0AA000451A000560000458548614A401507617DAA571FD5A858F94E28D735CE9F4025008"
+    "C1B59955E85FBC9E767BC29CE1B04D035824822F58201C44B9A9A49B1574BB6C57BDF1F9BA44B79B32ECBB27B4EFCBEFA15652"
+    "DB72E10E04010F020F074382030F094382170211528614A115692366696C652E62696E1502030F17822F5820D396652C143091"
+    "C81914532F9D55D4D6BDEB8FF366AE734983CBBBC1B1E2750A175892A184414D4102451A0E0AA000451A00056000A60178184E"
+    "6F726469632053656D69636F6E647563746F7220415341026E6E5246353432305F637075617070036E6E6F7264696373656D69"
+    "2E636F6D04781C546865206E524635343230206170706C69636174696F6E20636F726505781A53616D706C65206170706C6963"
+    "6174696F6E20636F7265204657066676312E302E30692366696C652E62696E4428FAF50C"
 )
 
 TEST_JSON_STRING_UNSIGNED = """{
@@ -594,14 +591,6 @@ def mocker_json_open(mocker):
     mocker.patch(builtin_open, mocked_data)
 
 
-@pytest.fixture
-def mocker_suit_open(mocker):
-    """Mock JSON file open."""
-    mocked_data = mocker.mock_open(read_data=TEST_SUIT_STRING_AUTHENTICATINON_WRAPPER)
-    builtin_open = "builtins.open"
-    mocker.patch(builtin_open, mocked_data)
-
-
 def test_read_from_json(mocker_json_open):
     """Test if envelope can be created from json."""
     envelope = SuitEnvelope()
@@ -667,6 +656,8 @@ def setup_and_teardown(tmp_path_factory):
         fh.write(TEST_JSON_STRING_SIGNED)
     with open("file.bin", "wb") as fh:
         fh.write(b"\xde\xad\xbe\xef")
+    with open("envelope_signed_twice.suit", "wb") as fh:
+        fh.write(binascii.a2b_hex(ENVELOPE_SIGNED_TWO_TIMES))
     yield
     # Cleanup environment
     #   - remove temp directory
@@ -678,6 +669,12 @@ def test_envelope_unsigned_creation(setup_and_teardown, input_data):
     envelope = SuitEnvelope()
     envelope.load(f"{input_data}.json", input_type="json")
     envelope.dump(f"{input_data}.suit", output_type="suit")
+
+
+def test_envelope_signed_twice_parsing(setup_and_teardown):
+    envelope = SuitEnvelope()
+    envelope.load("envelope_signed_twice.suit", input_type="suit")
+    envelope.dump("envelope_signed_twice.yaml", output_type="yaml")
 
 
 def calculate_hash(data):

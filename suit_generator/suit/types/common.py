@@ -318,10 +318,12 @@ class SuitTupleNamed(SuitObject):
     def to_obj(self):
         """Dump SUIT representation to object."""
         value = {}
-        keys = [k for k, c in self._metadata.map.items()]
+        keys = list(self._metadata.map.keys())
+        fallback_keys = [i for i in keys if "*" in i]
         keys.reverse()
+        fallback_keys.reverse()
         for v in self.value:
-            value[keys.pop()] = v.to_obj()
+            value[keys.pop().replace("*", "1") if len(keys) > 0 else fallback_keys[0].replace("*", "2")] = v.to_obj()
         return value
 
 
