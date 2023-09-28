@@ -16,7 +16,7 @@ import cbor2
 
 from suit_generator.suit.payloads import SuitIntegratedPayloadMap
 from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, SuitBstr, cbstr
-from suit_generator.suit.authentication import SuitAuthentication, SuitHash, CoseSigStructure, SuitAuthenticationBlock
+from suit_generator.suit.authentication import SuitAuthentication, SuitHash
 from suit_generator.suit.manifest import SuitManifest, SuitCommandSequence, SuitTextMap
 from suit_generator.suit.types.keys import (
     suit_manifest,
@@ -28,49 +28,6 @@ from suit_generator.suit.types.keys import (
     suit_integrated_payloads,
     suit_integrated_dependencies,
 )
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
-from suit_generator.exceptions import SignerError
-
-
-class KeyFactory:
-    """Key factory implementation."""
-
-    def __init__(self, private_key: EllipticCurvePrivateKey):
-        """Initialize object."""
-        self._key = private_key
-        self._sign = self._get_sign_method()
-
-    def sign(self, input_data: bytes) -> bytes:
-        """Create signature for provided data."""
-        return self._sign(input_data)
-
-    def _get_sign_method(self) -> callable:
-        """Return sign method based on key type."""
-        if isinstance(self._key, EllipticCurvePrivateKey):
-            return self._create_cose_es_signature
-        else:
-            raise SignerError(f"Key {type(self._key)} not supported")
-
-    @property
-    def algorithm_name(self):
-        """Get algorithm name."""
-        if isinstance(self._key, EllipticCurvePrivateKey):
-            return f"cose-alg-es-{self._key.key_size}"
-        else:
-            raise SignerError(f"Key {type(self._key)} not supported")
-
-    def _create_cose_es_signature(self, input_data: bytes) -> bytes:
-        """Create ECDSA signature and return signature bytes."""
-        hash_map = {256: hashes.SHA256(), 384: hashes.SHA384(), 521: hashes.SHA512()}
-        dss_signature = self._key.sign(input_data, ec.ECDSA(hash_map[self._key.key_size]))
-        r, s = decode_dss_signature(dss_signature)
-        return r.to_bytes(self._key.key_size // 8, byteorder="big") + s.to_bytes(
-            self._key.key_size // 8, byteorder="big"
-        )
 
 
 class SuitEnvelopeSimplified(SuitKeyValue):
@@ -123,35 +80,9 @@ class SuitBasicEnvelopeOperationsMixin:
             1
         ].SuitDigestBytes = new_digest
 
-    def _create_authentication_block(self, algorithm_name: str) -> SuitAuthenticationBlock:
-        """Create authentication wrapper."""
-        return SuitAuthenticationBlock.from_obj(
-            {
-                "CoseSign1Tagged": {
-                    "protected": {
-                        "suit-cose-algorithm-id": algorithm_name,
-                    },
-                    "unprotected": {},
-                    "payload": None,
-                    "signature": "",
-                }
-            }
-        )
-
     def _get_digest(self):
         """Return digest from parsed envelope."""
         return self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest
-
-    def _create_cose_structure(self, digest_object: dict, algorithm_name: str) -> CoseSigStructure:
-        """Create COSE_Sign1 structure."""
-        return CoseSigStructure.from_obj(
-            {
-                "context": "Signature1",
-                "body_protected": {"suit-cose-algorithm-id": algorithm_name},
-                "external_add": "",
-                "payload": digest_object,
-            }
-        )
 
     def update_severable_digests(self):
         """Update digest in the envelope for severed elements."""
@@ -178,19 +109,6 @@ class SuitBasicEnvelopeOperationsMixin:
                 self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest[
                     severable_element
                 ].value.SuitDigest.SuitDigestRaw[1].value = binascii.a2b_hex(hash_func.hash(object_data))
-
-    def sign(self, private_key: bytes):
-        """Sign SUIT envelope."""
-        key = KeyFactory(load_pem_private_key(private_key, None))
-        digest = self._get_digest()
-        suit_authentication_block = self._create_authentication_block(key.algorithm_name)
-        cose_structure = self._create_cose_structure(digest.to_obj(), key.algorithm_name)
-
-        signature = key.sign(cose_structure.to_cbor())
-
-        suit_authentication_block.SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3].SuitHex = signature
-
-        self.value.value.value[suit_authentication_wrapper].SuitAuthentication.append(suit_authentication_block)
 
     @classmethod
     def return_processed_binary_data(cls, obj: dict | str):

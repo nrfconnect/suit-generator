@@ -11,7 +11,7 @@ if __name__ == "__main__":
 
     sys.path.append(str(pathlib.Path(__file__).parents[1].absolute()))
 
-from suit_generator import cmd_parse, cmd_sign, cmd_keys, cmd_convert, cmd_create, cmd_image, args
+from suit_generator import cmd_parse, cmd_keys, cmd_convert, cmd_create, cmd_image, args
 from suit_generator.exceptions import GeneratorError, SUITError
 
 import logging
@@ -25,7 +25,6 @@ COMMAND_EXECUTORS = {
     cmd_create.CREATE_CMD: cmd_create.main,
     cmd_keys.KEYS_CMD: cmd_keys.main,
     cmd_convert.CONVERT_CMD: cmd_convert.main,
-    cmd_sign.SIGN_CMD: cmd_sign.main,
     cmd_image.ImageCreator.IMAGE_CMD: cmd_image.main,
 }
 

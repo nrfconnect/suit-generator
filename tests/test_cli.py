@@ -97,18 +97,6 @@ def test_cli_keys(monkeypatch):
         assert False, "Not possible to call keys command."
 
 
-def test_cli_sign(monkeypatch):
-    """Test cli sign mapping."""
-    # monkey patch executor and argument parser and test cli executor dictionary
-    monkeypatch.setattr("suit_generator.cli.cmd_sign.main.__code__", monkey_patched_main_sign.__code__)
-    parse_args = partial(monkey_patched_sign_arguments, "sign")
-    monkeypatch.setattr("suit_generator.args.parse_arguments", parse_args)
-    try:
-        main()
-    except Exception:
-        assert False, "Not possible to call sign command."
-
-
 def test_cli_not_existing_cmd_mapping(monkeypatch):
     """Test cli not existing mapping."""
     # monkey patch executor and argument parser and test cli executor dictionary
