@@ -320,7 +320,7 @@ class SuitTupleNamed(SuitObject):
         """Dump SUIT representation to object."""
         value = {}
         keys = list(self._metadata.map.keys())
-        if len([i for i in keys[:1] if "*" in i]) > 1:
+        if len([i for i in keys[:-1] if "*" in i]) > 0:
             raise GeneratorError("Only last element can be defined in the metadata as dynamic(*)")
         dynamic_element = keys[-1] if "*" in keys[-1] else None
         keys.reverse()
