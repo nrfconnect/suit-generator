@@ -140,3 +140,12 @@ def test_sig_structure():
     assert structure.CoseSigStructure[2].SuitHex == b""
     assert structure.CoseSigStructure[3].to_cbor().hex().upper() == "4C822F49AAABBBCCCDDDEEEFFF"
     assert hex_value is not None
+
+
+def test_two_auth_block_to_dict_obj():
+    """Check if is possible to restore dict from suit object containing two authentication blocks."""
+    suit_obj = SuitAuthentication.from_cbor(binascii.a2b_hex(TEST_DATA["AUTHENTICATION_WRAPPER_DATA_AUTHENTICATION_BLOCK_TWICE"]))
+    dict_obj = suit_obj.to_obj()
+    assert len(dict_obj) == 3
+    for key in ['SuitAuthentication1', 'SuitAuthentication2', 'SuitDigest']:
+        assert key in dict_obj
