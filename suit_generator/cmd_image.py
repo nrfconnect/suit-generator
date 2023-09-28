@@ -288,13 +288,13 @@ def main(**kwargs) -> None:
     """Create hex files allowing boot or update execution path.
 
     :Keyword Arguments:
-        * * image * subcommand to be executed
-        * * input_file * file path to SUIT envelope
-        * * storage_output_file * file path to hex file with SUIT storage contents
-        * * update_candidate_info_address * address of SUIT storage update candidate info
-        * * envelope_address * address of installed envelope in SUIT storage
-        * * dfu_partition_output_file * file path to hex file with DFU partition contents (the SUIT envelope)
-        * * dfu_partition_address * address of partition where DFU update candidate is stored
+        * **image** - subcommand to be executed
+        * **input_file** - file path to SUIT envelope
+        * **storage_output_file** - file path to hex file with SUIT storage contents
+        * **update_candidate_info_address** - address of SUIT storage update candidate info
+        * **envelope_address** - address of installed envelope in SUIT storage
+        * **dfu_partition_output_file** - file path to hex file with DFU partition contents (the SUIT envelope)
+        * **dfu_partition_address** - address of partition where DFU update candidate is stored
     """
     if kwargs["image"] == ImageCreator.IMAGE_CMD_BOOT:
         ImageCreator.create_files_for_boot(
