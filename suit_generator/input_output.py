@@ -103,11 +103,6 @@ class InputOutputMixin:
         )
 
     @classmethod
-    def to_stdout(cls, file_name, data, *args) -> None:
-        """Dump as yaml into STDOUT."""
-        print(yaml.dump(data, sort_keys=False), end="")
-
-    @classmethod
     def from_suit_file(cls, file_name) -> dict:
         """Read suit file and return dict."""
         with open(file_name, "rb") as fh:
