@@ -597,6 +597,7 @@ def test_conversion_obj_to_cbor_to_obj():
         suit_obj,
         exclude_paths=[
             "root['SUIT_Envelope_Tagged']['suit-integrated-payloads']",
+            "root['SUIT_Envelope_Tagged']['suit-integrated-dependencies']",
             "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][1]"
             "['suit-directive-override-parameters']['suit-parameter-vendor-identifier']",
             "root['SUIT_Envelope_Tagged']['suit-manifest']['suit-common']['suit-shared-sequence'][5]"

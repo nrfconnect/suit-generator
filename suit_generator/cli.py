@@ -21,12 +21,12 @@ FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
 logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format=FORMAT)
 
 COMMAND_EXECUTORS = {
-    args.PARSE_CMD: cmd_parse.main,
-    args.CREATE_CMD: cmd_create.main,
-    args.KEYS_CMD: cmd_keys.main,
-    args.CONVERT_CMD: cmd_convert.main,
-    args.SIGN_CMD: cmd_sign.main,
-    args.IMAGE_CMD: cmd_image.main,
+    cmd_parse.PARSE_CMD: cmd_parse.main,
+    cmd_create.CREATE_CMD: cmd_create.main,
+    cmd_keys.KEYS_CMD: cmd_keys.main,
+    cmd_convert.CONVERT_CMD: cmd_convert.main,
+    cmd_sign.SIGN_CMD: cmd_sign.main,
+    cmd_image.ImageCreator.IMAGE_CMD: cmd_image.main,
 }
 
 

@@ -17,6 +17,82 @@ from suit_generator.exceptions import SUITError
 from suit_generator.suit.manifest import SuitManifest
 
 
+def add_arguments(parser):
+    """Add additional arguments to the passed parser."""
+    cmd_image = parser.add_parser(
+        ImageCreator.IMAGE_CMD,
+        help="Create hex files allowing boot or update execution path based on provided SUIT envelope.",
+    )
+
+    cmd_image_subparsers = cmd_image.add_subparsers(
+        dest=ImageCreator.IMAGE_CMD, required=True, help="Choose image subcommand"
+    )
+    cmd_image_boot = cmd_image_subparsers.add_parser(
+        ImageCreator.IMAGE_CMD_BOOT, help="Generate .hex files for boot execution path"
+    )
+    cmd_image_update = cmd_image_subparsers.add_parser(
+        ImageCreator.IMAGE_CMD_UPDATE, help="Generate .hex files for update execution path"
+    )
+
+    cmd_image_boot.add_argument("--input-file", required=True, help="Input SUIT file; an envelope")
+    cmd_image_boot.add_argument(
+        "--storage-output-file", required=True, help="Output hex file with SUIT storage contents"
+    )
+    cmd_image_boot.add_argument(
+        "--update-candidate-info-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_update_candidate_info_address,
+        help=f"Address of SUIT storage update candidate info. "
+        f"Default: 0x{ImageCreator.default_update_candidate_info_address:08X}",
+    )
+    cmd_image_boot.add_argument(
+        "--envelope-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_envelope_address,
+        help=f"Address of installed envelope in SUIT storage. Default: 0x{ImageCreator.default_envelope_address:08X}",
+    )
+    cmd_image_boot.add_argument(
+        "--dfu-max-caches",
+        required=False,
+        type=int,
+        default=ImageCreator.default_dfu_max_caches,
+        help=f"Max number of DFU caches. Default: {ImageCreator.default_dfu_max_caches}",
+    )
+
+    cmd_image_update.add_argument("--input-file", required=True, help="Input SUIT file; an envelope")
+    cmd_image_update.add_argument(
+        "--storage-output-file", required=True, help="Output hex file with SUIT storage contents"
+    )
+    cmd_image_update.add_argument(
+        "--dfu-partition-output-file", required=True, help="Output hex file with DFU partition contents"
+    )
+    cmd_image_update.add_argument(
+        "--update-candidate-info-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_update_candidate_info_address,
+        help=f"Address of SUIT storage update candidate info. "
+        f"Default: 0x{ImageCreator.default_update_candidate_info_address:08X}",
+    )
+    cmd_image_update.add_argument(
+        "--dfu-partition-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_dfu_partition_address,
+        help=f"Address of partition where DFU update candidate is stored. "
+        f"Default: 0x{ImageCreator.default_dfu_partition_address:08X}",
+    )
+    cmd_image_update.add_argument(
+        "--dfu-max-caches",
+        required=False,
+        type=int,
+        default=ImageCreator.default_dfu_max_caches,
+        help=f"Max number of DFU caches. Default: {ImageCreator.default_dfu_max_caches}",
+    )
+
+
 class ImageCreator:
     """Helper class for extracting data from SUIT envelope and creating hex files."""
 
@@ -208,43 +284,34 @@ class ImageCreator:
             raise GeneratorError(error)
 
 
-def main(
-    image: str,
-    input_file: str,
-    storage_output_file: str,
-    update_candidate_info_address: int,
-    envelope_address: int,
-    dfu_partition_output_file: str,
-    dfu_partition_address: int,
-    dfu_max_caches: int,
-) -> None:
+def main(**kwargs) -> None:
     """Create hex files allowing boot or update execution path.
 
-    :param image: subcommand to be executed
-
-    :param input_file: file path to SUIT envelope
-    :param storage_output_file: file path to hex file with SUIT storage contents
-    :param update_candidate_info_address: address of SUIT storage update candidate info
-    :param envelope_address: address of installed envelope in SUIT storage
-    :param dfu_partition_output_file: file path to hex file with DFU partition contents (the SUIT envelope)
-    :param dfu_partition_address: address of partition where DFU update candidate is stored
+    :Keyword Arguments:
+        * **image** - subcommand to be executed
+        * **input_file** - file path to SUIT envelope
+        * **storage_output_file** - file path to hex file with SUIT storage contents
+        * **update_candidate_info_address** - address of SUIT storage update candidate info
+        * **envelope_address** - address of installed envelope in SUIT storage
+        * **dfu_partition_output_file** - file path to hex file with DFU partition contents (the SUIT envelope)
+        * **dfu_partition_address** - address of partition where DFU update candidate is stored
     """
-    if image == ImageCreator.IMAGE_CMD_BOOT:
+    if kwargs["image"] == ImageCreator.IMAGE_CMD_BOOT:
         ImageCreator.create_files_for_boot(
-            input_file,
-            storage_output_file,
-            update_candidate_info_address,
-            envelope_address,
-            dfu_max_caches,
+            kwargs["input_file"],
+            kwargs["storage_output_file"],
+            kwargs["update_candidate_info_address"],
+            kwargs["envelope_address"],
+            kwargs["dfu_max_caches"],
         )
-    elif image == ImageCreator.IMAGE_CMD_UPDATE:
+    elif kwargs["image"] == ImageCreator.IMAGE_CMD_UPDATE:
         ImageCreator.create_files_for_update(
-            input_file,
-            storage_output_file,
-            dfu_partition_output_file,
-            update_candidate_info_address,
-            dfu_partition_address,
-            dfu_max_caches,
+            kwargs["input_file"],
+            kwargs["storage_output_file"],
+            kwargs["dfu_partition_output_file"],
+            kwargs["update_candidate_info_address"],
+            kwargs["dfu_partition_address"],
+            kwargs["dfu_max_caches"],
         )
     else:
-        raise GeneratorError(f"Invalid 'image' subcommand: {image}")
+        raise GeneratorError(f"Invalid 'image' subcommand: {kwargs['image']}")
