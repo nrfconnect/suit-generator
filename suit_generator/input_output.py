@@ -5,8 +5,12 @@
 #
 """Input and output extensions for storing objects as yaml, json or cbor."""
 from __future__ import annotations
+
+import binascii
 from typing import Callable
+
 from suit_generator.suit.envelope import SuitEnvelopeTagged, SuitEnvelopeTaggedSimplified
+from suit_generator.suit.types.keys import suit_integrated_dependencies
 import json
 import yaml
 
@@ -44,10 +48,21 @@ class InputOutputMixin:
         return data
 
     @classmethod
-    def to_json_file(cls, file_name: str, data: dict, *args) -> None:
+    def parse_json_submanifests(cls, data):
+        """Parse sub-manifests."""
+        if suit_integrated_dependencies.name in data["SUIT_Envelope_Tagged"]:
+            for key in data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name]:
+                # create anchor in the root manifest
+                data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name][key] = SuitEnvelopeTagged.from_cbor(
+                    binascii.a2b_hex(data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name][key])
+                ).to_obj()
+        return data
+
+    @classmethod
+    def to_json_file(cls, file_name: str, data: dict, parse_hierarchy: bool, *args) -> None:
         """Write dict content into json file."""
         with open(file_name, "w") as fh:
-            json.dump(data, fh, sort_keys=False)
+            json.dump(cls.parse_json_submanifests(data) if parse_hierarchy is True else data, fh, sort_keys=False)
 
     @classmethod
     def from_yaml_file(cls, file_name) -> dict:
@@ -57,15 +72,35 @@ class InputOutputMixin:
         return data
 
     @classmethod
-    def to_yaml_file(cls, file_name, data, *args) -> None:
-        """Write dict content into yaml file."""
-        with open(file_name, "w") as fh:
-            yaml.dump(data, fh, sort_keys=False)
+    def parse_yaml_submanifests(cls, data):
+        """Parse sub-manifest and store as yaml anchors."""
+        if suit_integrated_dependencies.name in data["SUIT_Envelope_Tagged"]:
+            if "SUIT_Dependent_Manifests" not in data:
+                # SUIT_Dependent_Manifest need to be created first to be dumped first and to be used as anchors source
+                data = {**{"SUIT_Dependent_Manifests": {}}, **data}
+            for key in data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name]:
+                # create new entry in the SUIT_Dependent_Manifest
+                data["SUIT_Dependent_Manifests"][f"{key}_envelope"] = SuitEnvelopeTagged.from_cbor(
+                    binascii.a2b_hex(data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name][key])
+                ).to_obj()
+                # create anchor in the root manifest
+                data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name][key] = data["SUIT_Dependent_Manifests"][
+                    f"{key}_envelope"
+                ]
+        return data
 
     @classmethod
-    def to_stdout(cls, file_name, data, *args) -> None:
+    def to_yaml_file(cls, file_name, data, parse_hierarchy: bool, *args) -> None:
+        """Write dict content into yaml file."""
+        with open(file_name, "w") as fh:
+            yaml.dump(cls.parse_yaml_submanifests(data) if parse_hierarchy is True else data, fh, sort_keys=False)
+
+    @classmethod
+    def to_stdout(cls, file_name, data, parse_hierarchy: bool, *args) -> None:
         """Dump as yaml into STDOUT."""
-        print(yaml.dump(data, sort_keys=False), end="")
+        print(
+            yaml.dump(cls.parse_yaml_submanifests(data) if parse_hierarchy is True else data, sort_keys=False), end=""
+        )
 
     @classmethod
     def from_suit_file(cls, file_name) -> dict:
@@ -83,7 +118,8 @@ class InputOutputMixin:
             suit = SuitEnvelopeTaggedSimplified.from_cbor(data)
             return suit.to_obj()
 
-    def prepare_suit_data(self, data, private_key=None) -> bytes:
+    @staticmethod
+    def prepare_suit_data(data, private_key=None) -> bytes:
         """Convert data to suit format."""
         suit_obj = SuitEnvelopeTagged.from_obj(data)
         suit_obj.update_severable_digests()
@@ -94,12 +130,12 @@ class InputOutputMixin:
             suit_obj.sign(pk_data)
         return suit_obj.to_cbor()
 
-    def to_suit_file(self, file_name, data, private_key=None) -> None:
+    def to_suit_file(self, file_name, data, parse_hierarchy, private_key=None) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
             fh.write(self.prepare_suit_data(data, private_key))
 
-    def to_suit_file_simplified(self, file_name, data, private_key=None) -> None:
+    def to_suit_file_simplified(self, file_name, data, parse_hierarchy: bool, private_key=None) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
             suit_obj = SuitEnvelopeTaggedSimplified.from_obj(data)

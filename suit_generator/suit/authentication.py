@@ -127,10 +127,15 @@ class SuitDigestExt:
                 hfunc = SuitHash(obj["suit-digest-algorithm-id"])
                 with open(digest_dict["file"], "rb") as fd:
                     obj["suit-digest-bytes"] = hfunc.hash(fd.read())
+            elif "envelope" in digest_dict.keys():
+                hfunc = SuitHash(obj["suit-digest-algorithm-id"])
+                # called here to avoid circular import
+                from suit_generator.suit.envelope import SuitEnvelopeTagged
 
+                binary_data = SuitEnvelopeTagged.return_processed_binary_data(digest_dict["envelope"])
+                obj["suit-digest-bytes"] = hfunc.hash(binary_data)
             elif "raw" in digest_dict.keys():
                 obj["suit-digest-bytes"] = digest_dict["raw"]
-
             else:
                 raise ValueError(f"Unable to calculate digest from: {digest_dict}")
 

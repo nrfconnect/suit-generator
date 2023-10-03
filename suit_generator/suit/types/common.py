@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+
 from suit_generator.logger import log_call
 import functools
 import cbor2
@@ -357,8 +358,16 @@ class SuitKeyValue(SuitObject):
             if not (child := cls._get_method_and_name(k, "id")):
                 for item in cls._metadata.embedded:
                     try:
+                        try:
+                            # check payload content
+                            from suit_generator.suit.envelope import SuitEnvelopeTaggedSimplified
+
+                            SuitEnvelopeTaggedSimplified.from_cbor(v)
+                            item = suit_integrated_dependencies
+                        except Exception:
+                            pass
                         # TODO: refactoring required: workaround for multiple integrated payloads
-                        if item in value and item is suit_integrated_payloads:
+                        if item in value and (item is suit_integrated_payloads or item is suit_integrated_dependencies):
                             value[item].SuitIntegratedPayloadMap = {
                                 **value[item].SuitIntegratedPayloadMap,
                                 **cls._metadata.map[item].from_cbor(cbor2.dumps({k: v})).SuitIntegratedPayloadMap,

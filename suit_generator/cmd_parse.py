@@ -23,16 +23,23 @@ def add_arguments(parser):
         help="Type of output file, types are recognized by extension (.yaml, .json). "
         "Use this parameter if file extension does not match.",
     )
+    cmd_parse_arg_parser.add_argument(
+        "--parse-hierarchy",
+        default="False",
+        action="store_true",
+        help="Parse dependent envelopes found in the root envelope.",
+    )
 
 
-def main(input_file: str, output_file: str, output_format: str) -> None:
+def main(input_file: str, output_file: str, output_format: str, parse_hierarchy: bool = True) -> None:
     """Parse input file.
 
     :param input_file: input file path
     :param output_file: output file path
     :param output_format: output file format
+    :param parse_hierarchy: parse sub-manifests
 
     """
     envelope = SuitEnvelope()
     envelope.load(input_file, "suit")
-    envelope.dump(output_file, output_format)
+    envelope.dump(output_file, output_format, parse_hierarchy)
