@@ -26,7 +26,7 @@ SIGNED_OUTPUT_ENVELOPE = (
     SuitDigest:
       suit-digest-algorithm-id: cose-alg-sha-256
       suit-digest-bytes: 6658ea560262696dd1f13b782239a064da7c6c5cbaf52fded428a6fc83c7e5af
-    SuitAuthentication*:
+    SuitAuthentication1:
       CoseSign1Tagged:
         protected:
           suit-cose-algorithm-id: cose-alg-es-256

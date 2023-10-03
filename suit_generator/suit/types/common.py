@@ -18,6 +18,7 @@ import binascii
 import logging
 
 from suit_generator.suit.types.keys import suit_integrated_payloads, suit_integrated_dependencies
+from suit_generator.exceptions import GeneratorError
 
 log = logging.getLogger(__name__)
 
@@ -318,10 +319,21 @@ class SuitTupleNamed(SuitObject):
     def to_obj(self):
         """Dump SUIT representation to object."""
         value = {}
-        keys = [k for k, c in self._metadata.map.items()]
+        keys = list(self._metadata.map.keys())
+        if len([i for i in keys[:-1] if "*" in i]) > 0:
+            raise GeneratorError("Only last element can be defined in the metadata as dynamic(*)")
+        dynamic_element = keys[-1] if "*" in keys[-1] else None
         keys.reverse()
+        multiple_elements_index = 1
         for v in self.value:
-            value[keys.pop()] = v.to_obj()
+            if len(keys) > 0:
+                key = keys.pop().replace("*", str(multiple_elements_index))
+            elif dynamic_element is not None:
+                multiple_elements_index += 1
+                key = dynamic_element.replace("*", str(multiple_elements_index))
+            else:
+                raise GeneratorError("Unable to parse input object - too many elements")
+            value[key] = v.to_obj()
         return value
 
 
