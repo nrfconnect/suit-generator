@@ -4,6 +4,8 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Unit tests for ncs example signing script."""
+import shutil
+
 import pytest
 import binascii
 import pathlib
@@ -319,6 +321,7 @@ def test_ncs_signing_manifest_component_id_unknown(setup_and_teardown):
 
 def test_ncs_sign_cli_interface(setup_and_teardown):
     """Test if is possible to call cli interface."""
+    shutil.copyfile("key_private_es_256.pem", pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent / "ncs" / "key_private.pem")
     completed_process = subprocess.run(
         [
             sys.executable,
