@@ -11,6 +11,9 @@ import os
 import cbor2
 import subprocess
 import sys
+import uuid
+
+from mock import patch
 
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
@@ -24,6 +27,7 @@ from suit_generator.suit.types.keys import (
     suit_authentication_wrapper,
     suit_integrated_payloads,
     suit_cose_algorithm_id,
+    suit_cose_key_id,
 )
 
 from ncs.sign_script import Signer, SignerError
@@ -56,6 +60,13 @@ TEST_DATA = {
         "f035871a50101020003585fa202818141000458568614a40150fa6b4a53d5ad5fdfbe9de663e4d41ffe025014"
         "92af1425695e48bf429b2d51f2ab45035824822f582000112233445566778899aabbccddeeff0123456789abc"
         "deffedcba98765432100e1987d0010f020f074382030f0943821702"
+    ),
+    "ENVELOPE_2_UNSIGNED_COMPONENT_ID": (
+        "D86BA2025827815824822F58209C1D3533ABDC3CFFCB81ADDA3E5A1655D3C705AE8D9ACD4213AD89DC7BCB37B"
+        "50358A1A701010201035869A2028184414D4102451A0E0AA000451A000560000458528214A401507617DAA571"
+        "FD5A858F94E28D735CE9F4025008C1B59955E85FBC9E767BC29CE1B04D035824822F58205F70BF18A08600701"
+        "6E948B04AED3B82103A36BEA41755B6CDDFAF10ACE3C6EF0E190400094382170211508414A115692366696C65"
+        "2E62696E150217822F4005824149500DAB491F1E1F53D4AEA1CA3C67A4EBE5"
     ),
     "ENVELOPE_6_UNSIGNED_COMPONENT_LIST": (
         "d86ba3025827815824822f582071395a66f9cb583dbdc797ad6cd5d101531b14c082802b491c5c6745774c748003588a"
@@ -95,6 +106,8 @@ def setup_and_teardown(tmp_path_factory):
         fh.write(PRIVATE_KEYS["Ed25519"])
     with open("test_envelope.suit", "wb") as fh:
         fh.write(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
+    with open("test_envelope_manifest_component_id.suit", "wb") as fh:
+        fh.write(binascii.a2b_hex(TEST_DATA["ENVELOPE_2_UNSIGNED_COMPONENT_ID"]))
     yield
     # Cleanup environment
     #   - remove temp directory
@@ -218,14 +231,94 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
 
 
 def test_ncs_signing_unsupported(setup_and_teardown):
-    """Test if is possible to sign manifest."""
+    """Test if SignerError is raised in case of unsupported key used."""
     signer = Signer()
     signer.load_envelope("test_envelope.suit")
     with pytest.raises(SignerError):
         signer.sign("key_private_ed25519.pem")
 
 
+@patch("ncs.sign_script.DEFAULT_KEY_ID", 0x0C0FFE)
+def test_ncs_signing_manifest_component_id_known_default_key_used(setup_and_teardown):
+    """Test if default key id is selected in case of unknown suit-manifest-component-id received."""
+    signer = Signer()
+    signer.load_envelope("test_envelope_manifest_component_id.suit")
+    parsed_manifest_id = signer._get_manifest_class_id()
+
+    domain_name = uuid.uuid5(uuid.NAMESPACE_DNS, "nordicsemi.com")
+    expected_manifest_id = uuid.uuid5(domain_name, "unit_test_envelope").hex
+
+    assert parsed_manifest_id == expected_manifest_id
+
+    signer.sign("key_private_es_256.pem")
+    signer.save_envelope("test_envelope_signed.suit")
+
+    with open("test_envelope_signed.suit", "rb") as fh:
+        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
+
+    assert envelope is not None
+    assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope
+    assert hasattr(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper], "SuitAuthentication")
+    assert hasattr(
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[1],
+        "SuitAuthenticationBlock",
+    )
+    assert (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
+        .SuitHeaderMap[suit_cose_key_id]
+        .value
+        == 0x0C0FFE
+    )
+
+
+@patch("ncs.sign_script.KEY_IDS", {"unit_test_envelope": 0xFFEEDDBB, "some_other_sample": 0xFFFFFFFF})
+def test_ncs_signing_manifest_component_id_known_non_default(setup_and_teardown):
+    """Test if key_id is selected according to the received suit-manifest-component-id."""
+    signer = Signer()
+    signer.load_envelope("test_envelope_manifest_component_id.suit")
+
+    signer.sign("key_private_es_256.pem")
+    signer.save_envelope("test_envelope_signed.suit")
+
+    with open("test_envelope_signed.suit", "rb") as fh:
+        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
+
+    assert (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
+        .SuitHeaderMap[suit_cose_key_id]
+        .value
+        == 0xFFEEDDBB
+    )
+
+
+@patch("ncs.sign_script.DEFAULT_KEY_ID", 0xDEADBEEF)
+def test_ncs_signing_manifest_component_id_unknown(setup_and_teardown):
+    """Test if default key_id is used in case of not available suit-manifest-class-id."""
+    signer = Signer()
+    signer.load_envelope("test_envelope_manifest_component_id.suit")
+
+    signer.sign("key_private_es_256.pem")
+    signer.save_envelope("test_envelope_signed.suit")
+
+    with open("test_envelope_signed.suit", "rb") as fh:
+        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
+
+    assert (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
+        .SuitHeaderMap[suit_cose_key_id]
+        .value
+        == 0xDEADBEEF
+    )
+
+
 def test_ncs_sign_cli_interface(setup_and_teardown):
+    """Test if is possible to call cli interface."""
     completed_process = subprocess.run(
         [
             sys.executable,

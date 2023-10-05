@@ -3,10 +3,11 @@
 #
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
-"""Example implementation of script to sign SUIT envelopes."""
+"""The example implementation of the script to sign SUIT envelopes."""
 from __future__ import annotations
 
 import cbor2
+import uuid
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -30,9 +31,23 @@ SUIT_ALGORITHMS = {
     "cose-alg-es-521": -36,
 }
 
-SUIT_IDS = {"cose-alg": 1, "cose-key-id": 4}
+SUIT_IDS = {
+    "cose-alg": 1,
+    "cose-key-id": 4,
+    "suit-manifest": 3,
+    "suit-authentication-wrapper": 2,
+    "suit-manifest-component-id": 5,
+}
 
-KEY_IDS = defaultdict(lambda: 0x7FFFFFE0)
+DEFAULT_KEY_ID = 0x7FFFFFE0
+
+KEY_IDS = {
+    "nRF54H20_sample_root": 0x7FFFFFE0,
+    "nRF54H20_sample_app": 0x7FFFFFE0,
+    "nRF54H20_sample_rad": 0x7FFFFFE0
+}
+
+DOMAIN_NAME = "nordicsemi.com"
 
 
 class SignerError(Exception):
@@ -44,7 +59,14 @@ class SignerError(Exception):
 class Signer:
     """Signer implementation."""
 
-    def create_authentication_block(self, protected: dict | None, unprotected: dict | None, signature: bytes):
+    def __init__(self):
+        domain_name = uuid.uuid5(uuid.NAMESPACE_DNS, DOMAIN_NAME)
+        self._key_ids = defaultdict(lambda: DEFAULT_KEY_ID)
+        for key, val in KEY_IDS.items():
+            self._key_ids[uuid.uuid5(domain_name, key).hex] = val
+
+    @staticmethod
+    def create_authentication_block(protected: dict | None, unprotected: dict | None, signature: bytes):
         """Create Authentication Block."""
         data = [cbor2.dumps(protected), unprotected if unprotected is not None else {}, None, signature]
         auth_block = cbor2.CBORTag(18, data)
@@ -57,16 +79,16 @@ class Signer:
 
     def get_digest(self):
         """Return digest object."""
-        auth_block = cbor2.loads(self.envelope.value[2])
+        auth_block = cbor2.loads(self.envelope.value[SUIT_IDS["suit-authentication-wrapper"]])
         digest = cbor2.loads(auth_block[0])
         return digest
 
     def add_signature(self, signature: bytes, protected: dict, unprotected: dict | None = None):
         """Add signature object to the envelope."""
         new_auth = self.create_authentication_block(protected, unprotected, signature)
-        auth_block = cbor2.loads(self.envelope.value[2])
+        auth_block = cbor2.loads(self.envelope.value[SUIT_IDS["suit-authentication-wrapper"]])
         auth_block.append(cbor2.dumps(new_auth))
-        self.envelope.value[2] = cbor2.dumps(auth_block)
+        self.envelope.value[SUIT_IDS["suit-authentication-wrapper"]] = cbor2.dumps(auth_block)
 
     def load_envelope(self, input_file: Path) -> None:
         """Load suit envelope."""
@@ -102,6 +124,19 @@ class Signer:
             self._key.key_size // 8, byteorder="big"
         )
 
+    def _get_manifest_class_id(self):
+        manifest = cbor2.loads(self.envelope.value[SUIT_IDS["suit-manifest"]])
+        if (
+            SUIT_IDS["suit-manifest-component-id"] in manifest
+            and len(manifest[SUIT_IDS["suit-manifest-component-id"]]) == 2
+        ):
+            return manifest[SUIT_IDS["suit-manifest-component-id"]][1].hex()
+        else:
+            return None
+
+    def _get_key_id_for_manifest_class(self):
+        return self._key_ids[self._get_manifest_class_id()]
+
     def sign(self, private_key_path: Path) -> None:
         """Add signature to the envelope."""
         with open(private_key_path, "rb") as private_key:
@@ -109,7 +144,7 @@ class Signer:
         sign_method = self._get_sign_method()
         protected = {
             SUIT_IDS["cose-alg"]: SUIT_ALGORITHMS[self._algorithm_name],
-            SUIT_IDS["cose-key-id"]: cbor2.dumps(KEY_IDS["costam"]),
+            SUIT_IDS["cose-key-id"]: cbor2.dumps(self._get_key_id_for_manifest_class()),
         }
         cose = self.create_cose_structure(protected=protected)
         signature = sign_method(cose)
