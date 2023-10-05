@@ -23,7 +23,12 @@ class SuitEnvelope(InputOutputMixin):
         """Initialize SUIT envelope."""
         self._envelope = None
 
-    def dump(self, file_name: str | None = None, output_type: str = "AUTO", parse_hierarchy: bool = False,) -> None:
+    def dump(
+        self,
+        file_name: str | None = None,
+        output_type: str = "AUTO",
+        parse_hierarchy: bool = False,
+    ) -> None:
         """Dump internal envelope object into one of the supported file types or objects (yaml, json, cbor).
 
         :param file_name: input file path

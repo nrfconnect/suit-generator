@@ -36,6 +36,8 @@ KEY_IDS = defaultdict(lambda: 0x7FFFFFE0)
 
 
 class SignerError(Exception):
+    """Signer exception."""
+
     pass
 
 
@@ -44,20 +46,17 @@ class Signer:
 
     def create_authentication_block(self, protected: dict | None, unprotected: dict | None, signature: bytes):
         """Create Authentication Block."""
-
         data = [cbor2.dumps(protected), unprotected if unprotected is not None else {}, None, signature]
         auth_block = cbor2.CBORTag(18, data)
         return auth_block
 
     def create_cose_structure(self, protected: dict):
         """Create COSE Sig_structure."""
-
         data = ["Signature1", cbor2.dumps(protected), b"", cbor2.dumps(self.get_digest())]
         return cbor2.dumps(data)
 
     def get_digest(self):
         """Return digest object."""
-
         auth_block = cbor2.loads(self.envelope.value[2])
         digest = cbor2.loads(auth_block[0])
         return digest
@@ -70,6 +69,7 @@ class Signer:
         self.envelope.value[2] = cbor2.dumps(auth_block)
 
     def load_envelope(self, input_file: Path) -> None:
+        """Load suit envelope."""
         with open(input_file, "rb") as fh:
             self.envelope = cbor2.load(fh)
 
