@@ -17,35 +17,38 @@ from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
 from collections import defaultdict
+from enum import Enum, unique
 
 PRIVATE_KEY = Path(__file__).parent / "key_private.pem"
 
-SUIT_ALGORITHMS = {
-    "cose-alg-sha-256": -16,
-    "cose-alg-shake128": -18,
-    "cose-alg-sha-384": -43,
-    "cose-alg-sha-512": -44,
-    "cose-alg-shake256": -45,
-    "cose-alg-es-256": -7,
-    "cose-alg-es-384": -35,
-    "cose-alg-es-521": -36,
-}
 
-SUIT_IDS = {
-    "cose-alg": 1,
-    "cose-key-id": 4,
-    "suit-manifest": 3,
-    "suit-authentication-wrapper": 2,
-    "suit-manifest-component-id": 5,
-}
+@unique
+class SuitAlgorithms(Enum):
+    """Suit algorithms."""
+
+    COSE_ALG_SHA_256 = -16
+    COSE_ALG_SHAKE128 = -18
+    COSE_ALG_SHA_384 = -43
+    COSE_ALG_SHA_512 = -44
+    COSE_ALG_SHAKE256 = -45
+    COSE_ALG_ES_256 = -7
+    COSE_ALG_ES_384 = -35
+    COSE_ALG_ES_521 = -36
+
+
+class SuitIds(Enum):
+    """Suit elements identifiers."""
+
+    COSE_ALG = 1
+    COSE_KEY_ID = 4
+    SUIT_MANIFEST = 3
+    SUIT_AUTHENTICATION_WRAPPER = 2
+    SUIT_MANIFEST_COMPONENT_ID = 5
+
 
 DEFAULT_KEY_ID = 0x7FFFFFE0
 
-KEY_IDS = {
-    "nRF54H20_sample_root": 0x7FFFFFE0,
-    "nRF54H20_sample_app": 0x7FFFFFE0,
-    "nRF54H20_sample_rad": 0x7FFFFFE0
-}
+KEY_IDS = {"nRF54H20_sample_root": 0x7FFFFFE0, "nRF54H20_sample_app": 0x7FFFFFE0, "nRF54H20_sample_rad": 0x7FFFFFE0}
 
 DOMAIN_NAME = "nordicsemi.com"
 
@@ -60,6 +63,7 @@ class Signer:
     """Signer implementation."""
 
     def __init__(self):
+        """Initialize signer."""
         domain_name = uuid.uuid5(uuid.NAMESPACE_DNS, DOMAIN_NAME)
         self._key_ids = defaultdict(lambda: DEFAULT_KEY_ID)
         for key, val in KEY_IDS.items():
@@ -79,16 +83,16 @@ class Signer:
 
     def get_digest(self):
         """Return digest object."""
-        auth_block = cbor2.loads(self.envelope.value[SUIT_IDS["suit-authentication-wrapper"]])
+        auth_block = cbor2.loads(self.envelope.value[SuitIds.SUIT_AUTHENTICATION_WRAPPER.value])
         digest = cbor2.loads(auth_block[0])
         return digest
 
     def add_signature(self, signature: bytes, protected: dict, unprotected: dict | None = None):
         """Add signature object to the envelope."""
         new_auth = self.create_authentication_block(protected, unprotected, signature)
-        auth_block = cbor2.loads(self.envelope.value[SUIT_IDS["suit-authentication-wrapper"]])
+        auth_block = cbor2.loads(self.envelope.value[SuitIds.SUIT_AUTHENTICATION_WRAPPER.value])
         auth_block.append(cbor2.dumps(new_auth))
-        self.envelope.value[SUIT_IDS["suit-authentication-wrapper"]] = cbor2.dumps(auth_block)
+        self.envelope.value[SuitIds.SUIT_AUTHENTICATION_WRAPPER.value] = cbor2.dumps(auth_block)
 
     def load_envelope(self, input_file: Path) -> None:
         """Load suit envelope."""
@@ -111,7 +115,7 @@ class Signer:
     def _algorithm_name(self) -> str:
         """Get algorithm name."""
         if isinstance(self._key, EllipticCurvePrivateKey):
-            return f"cose-alg-es-{self._key.key_size}"
+            return f"COSE_ALG_ES_{self._key.key_size}"
         else:
             raise SignerError(f"Key {type(self._key)} not supported")
 
@@ -125,12 +129,12 @@ class Signer:
         )
 
     def _get_manifest_class_id(self):
-        manifest = cbor2.loads(self.envelope.value[SUIT_IDS["suit-manifest"]])
+        manifest = cbor2.loads(self.envelope.value[SuitIds.SUIT_MANIFEST.value])
         if (
-            SUIT_IDS["suit-manifest-component-id"] in manifest
-            and len(manifest[SUIT_IDS["suit-manifest-component-id"]]) == 2
+            SuitIds.SUIT_MANIFEST_COMPONENT_ID.value in manifest
+            and len(manifest[SuitIds.SUIT_MANIFEST_COMPONENT_ID.value]) == 2
         ):
-            return manifest[SUIT_IDS["suit-manifest-component-id"]][1].hex()
+            return manifest[SuitIds.SUIT_MANIFEST_COMPONENT_ID.value][1].hex()
         else:
             return None
 
@@ -143,8 +147,8 @@ class Signer:
             self._key = load_pem_private_key(private_key.read(), None)
         sign_method = self._get_sign_method()
         protected = {
-            SUIT_IDS["cose-alg"]: SUIT_ALGORITHMS[self._algorithm_name],
-            SUIT_IDS["cose-key-id"]: cbor2.dumps(self._get_key_id_for_manifest_class()),
+            SuitIds.COSE_ALG.value: SuitAlgorithms[self._algorithm_name].value,
+            SuitIds.COSE_KEY_ID.value: cbor2.dumps(self._get_key_id_for_manifest_class()),
         }
         cose = self.create_cose_structure(protected=protected)
         signature = sign_method(cose)
