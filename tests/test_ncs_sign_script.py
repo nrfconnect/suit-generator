@@ -321,7 +321,10 @@ def test_ncs_signing_manifest_component_id_unknown(setup_and_teardown):
 
 def test_ncs_sign_cli_interface(setup_and_teardown):
     """Test if is possible to call cli interface."""
-    shutil.copyfile("key_private_es_256.pem", pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent / "ncs" / "key_private.pem")
+    shutil.copyfile(
+        "key_private_es_256.pem",
+        pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent / "ncs" / "key_private.pem",
+    )
     completed_process = subprocess.run(
         [
             sys.executable,
