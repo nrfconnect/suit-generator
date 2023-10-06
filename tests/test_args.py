@@ -7,6 +7,7 @@
 
 from unittest import mock
 import argparse
+import pytest
 
 from suit_generator.args import parse_arguments
 
@@ -20,3 +21,56 @@ def test_create_cmd_mode_auto(mock_args):
     args = parse_arguments()
     assert args[0] == "create"
     assert vars(args[1]) == {"input_file": "test1.json", "output_file": "test2.suit"}
+
+
+@pytest.mark.parametrize(
+    "parameters",
+    [
+        ["create", "--input-file", "something.yaml", "--output-file", "something.suit"],
+        ["parse", "--input-file", "something.suit", "--output-file", "something.yaml"],
+        [
+            "convert",
+            "--input-file",
+            "key.pem",
+            "--output-file",
+            "key.c",
+            "--array-type",
+            "uint8_t",
+            "--array-name",
+            "key_buf",
+        ],
+        ["image", "boot", "--input-file", "envelope.suit", "--storage-output-file", "storage.hex"],
+        [
+            "image",
+            "update",
+            "--input-file",
+            "envelope.suit",
+            "--storage-output-file",
+            "storage.hex",
+            "--dfu-partition-output-file",
+            "out.hex",
+        ],
+        ["keys", "--output-file", "key.pem", "--type", "secp256r1", "--encoding", "pem", "--private-format", "pkcs1"],
+    ],
+)
+def test_args_supported(parameters):
+    """Ensure if application is able to parse all supported subcommands."""
+    arguments = ["test_string"] + parameters
+    with mock.patch("sys.argv", arguments):
+        parse_arguments()
+
+
+@pytest.mark.parametrize(
+    "parameters",
+    [
+        ["create", "--input-file", "something.yaml", "--output-unsupported-argument", "something.suit"],
+    ],
+)
+def test_args_unsupported(parameters, capsys):
+    """Ensure if application raises SystemExit in case of unsupported arguments."""
+    arguments = ["test_string"] + parameters
+    with mock.patch("sys.argv", arguments):
+        with pytest.raises(SystemExit):
+            parse_arguments()
+        out, err = capsys.readouterr()
+        assert "the following arguments are required: --output-file" in err
