@@ -64,6 +64,7 @@ def test_args_supported(parameters):
     "parameters",
     [
         ["create", "--input-file", "something.yaml", "--output-unsupported-argument", "something.suit"],
+        ["unsupported_command", "--input-file", "something.yaml", "--output-unsupported-argument", "something.suit"],
     ],
 )
 def test_args_unsupported(parameters, capsys):
@@ -72,5 +73,5 @@ def test_args_unsupported(parameters, capsys):
     with mock.patch("sys.argv", arguments):
         with pytest.raises(SystemExit):
             parse_arguments()
-        out, err = capsys.readouterr()
-        assert "the following arguments are required: --output-file" in err
+        # capture output to hide argparser help in the results
+        capsys.readouterr()

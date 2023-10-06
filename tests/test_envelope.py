@@ -10,9 +10,13 @@ import os
 import pathlib
 import deepdiff
 import pytest
+from unittest.mock import patch
 from cryptography.hazmat.primitives import hashes
 from suit_generator.envelope import SuitEnvelope
+from suit_generator.exceptions import GeneratorError
 from suit_generator.input_output import FileTypeException
+from suit_generator.suit.authentication import SuitDigest, SuitAuthenticationBlock
+from suit_generator.suit.types.common import Metadata, cbstr
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
@@ -619,7 +623,7 @@ def test_write_to_xml_auto_negative(mocker_json_open):
 
 
 def test_read_from_xml_auto_negative(mocker_json_open):
-    """est if not supported file exception if properly recognized."""
+    """Test if not supported file exception if properly recognized."""
     envelope = SuitEnvelope()
     with pytest.raises(FileTypeException):
         envelope.load("some_json_file.xml")
@@ -666,24 +670,50 @@ def setup_and_teardown(tmp_path_factory):
 
 @pytest.mark.parametrize("input_data", ["envelope_1", "envelope_2"])
 def test_envelope_unsigned_creation(setup_and_teardown, input_data):
+    """Test if is possible to create an envelope from input configuration file."""
     envelope = SuitEnvelope()
     envelope.load(f"{input_data}.json", input_type="json")
     envelope.dump(f"{input_data}.suit", output_type="suit")
 
 
 def test_envelope_signed_twice_parsing(setup_and_teardown):
+    """Test if is possible to parse an envelope signed twice."""
     envelope = SuitEnvelope()
     envelope.load("envelope_signed_twice.suit", input_type="suit")
     envelope.dump("envelope_signed_twice.yaml", output_type="yaml")
 
 
+@patch(
+    "suit_generator.suit.authentication.SuitAuthentication._metadata",
+    Metadata(map={"SuitDigest*": cbstr(SuitDigest), "SuitAuthentication*": SuitAuthenticationBlock}),
+)
+def test_envelope_parsing_wrong_internal_structure_dynamic_element_twice(setup_and_teardown):
+    """Test is exception is raised in case of wrong internal configuration - two dynamic elements."""
+    envelope = SuitEnvelope()
+    with pytest.raises(GeneratorError):
+        envelope.load("envelope_signed_twice.suit", input_type="suit")
+
+
+@patch(
+    "suit_generator.suit.authentication.SuitAuthentication._metadata",
+    Metadata(map={"SuitDigest*": cbstr(SuitDigest), "SuitAuthentication": SuitAuthenticationBlock}),
+)
+def test_envelope_parsing_wrong_internal_structure_dynamic_element_at_the_beginning(setup_and_teardown):
+    """Test is exception is raised in case of wrong internal configuration - wrong position of dynamic element."""
+    envelope = SuitEnvelope()
+    with pytest.raises(GeneratorError):
+        envelope.load("envelope_signed_twice.suit", input_type="suit")
+
+
 def calculate_hash(data):
+    """Calculate hash for passed data."""
     digest = hashes.Hash(hashes.SHA256())
     digest.update(data)
     return digest.finalize()
 
 
 def test_envelope_unsigned_creation_and_parsing(setup_and_teardown):
+    """Test if is possible to create and next parse an envelope."""
     envelope = SuitEnvelope()
     # create envelope_1
     envelope.load("envelope_1.json", input_type="json")
