@@ -3,7 +3,15 @@
 #
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
-"""The example implementation of the script to sign SUIT envelopes."""
+"""DO NOT USE in the production environment - this is an example script.
+
+It is highly NOT recommended to store private keys on the local machines.
+
+The script is available only to present the process of envelope signing
+and can be used as a base to integrate external Key Management System with the NCS build system.
+
+It is highly recommended to execute signing only in the secure environment.
+"""
 from __future__ import annotations
 
 import math
