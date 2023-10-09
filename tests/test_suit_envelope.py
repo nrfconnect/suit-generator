@@ -7,7 +7,6 @@
 import pytest
 import binascii
 
-from suit_generator.suit.authentication import CoseSigStructure
 from suit_generator.suit.envelope import SuitEnvelopeTagged, SuitEnvelopeTaggedSimplified
 from suit_generator.suit.types.keys import (
     suit_authentication_wrapper,
@@ -16,28 +15,9 @@ from suit_generator.suit.types.keys import (
     suit_manifest_version,
     suit_common,
     suit_integrated_payloads,
-    suit_cose_algorithm_id,
 )
-from deepdiff import DeepDiff
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
 
-PRIVATE_KEYS = {
-    "ES_256": b"""-----BEGIN PRIVATE KEY-----
-MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgCCbgTEad8JOIU8sg
-IJUKm7Lle0358XoaxNfbs4nqd4WhRANCAATt0J6l7OTtvmwI50cJVZo4KcUxMyJ7
-9PARbowFLQIODsPg2Df0wm/BKIAvRTgaIytt1dooYABdq+Kgg9vvOFUT
------END PRIVATE KEY-----""",
-    "ES_384": b"""-----BEGIN PRIVATE KEY-----
-MIG2AgEAMBAGByqGSM49AgEGBSuBBAAiBIGeMIGbAgEBBDCw/iNctq9pFyKI/fem
-p/CmNMyMyMnM29D4aajftXjkJQJv/ei/jTWFV5RbyBQiU8mhZANiAATp3RsCAE7E
-C+9ywexwCwCqFS5thWjpXJfcrN+KaqRJ65H5r1cHmZB7sLj/qIPgclrNWA+qau7H
-SybGG+k1OCi30FZSSo7Ozv8jarYr8NvoQnyI6+01Mo5TaOqC9a+41p8=
------END PRIVATE KEY-----
-""",
-}
+from deepdiff import DeepDiff
 
 TEST_DATA = {
     "ENVELOPE_1_UNSIGNED": (
@@ -122,6 +102,21 @@ TEST_DATA = {
         "6F726469632053656D69636F6E647563746F7220415341026E6E5246353432305F637075617070036E6E6F7264696373656D69"
         "2E636F6D04781C546865206E524635343230206170706C69636174696F6E20636F726505781A53616D706C65206170706C6963"
         "6174696F6E20636F7265204657066676312E302E30692366696C652E62696E4428FAF50C"
+    ),
+    "ENVELOPE_9_UNSIGNED_PROTECTED_KEY_ID": (
+        "D86BA202581B8247822F44DEADBEEF51D28447A201260442187BA0F644DEADBEEF03584BA40101020103583EA2028184414D41"
+        "02451A0E0AA000451A000560000458278214A201507617DAA571FD5A858F94E28D735CE9F40250D622BAFD4337518590BC6368"
+        "CDA7FBCA074382030F"
+    ),
+    "ENVELOPE_10_UNSIGNED_UNPROTECTED_KEY_ID": (
+        "D86BA202581C8247822F44DEADBEEF52D28443A10126A104431904D1F644DEADBEEF03584BA40101020103583EA2028184414D"
+        "4102451A0E0AA000451A000560000458278214A201507617DAA571FD5A858F94E28D735CE9F40250D622BAFD4337518590BC63"
+        "68CDA7FBCA074382030F"
+    ),
+    "ENVELOPE_11_UNSIGNED_PROTECTED_KEY_ID_TWO_AUTH_BLOCKS": (
+        "D86BA202582F8347822F44DEADBEEF52D28448A2012604431904D1A0F644DEADBEEF52D28448A2012604431904D1A0F644DEAD"
+        "BEEF03584BA40101020103583EA2028184414D4102451A0E0AA000451A000560000458278214A201507617DAA571FD5A858F94"
+        "E28D735CE9F40250D622BAFD4337518590BC6368CDA7FBCA074382030F"
     ),
 }
 
@@ -451,6 +446,134 @@ TEST_DATA_OBJECTS = {
             "suit-integrated-payloads": {"#file.bin": "file.bin"},
         }
     },
+    "SUIT_ENVELOPE_BASIC_KEY_ID_PROTECTED_NO_PAYLOAD": {
+        "SUIT_Envelope_Tagged": {
+            "suit-authentication-wrapper": {
+                "SuitDigest": {"suit-digest-algorithm-id": "cose-alg-sha-256", "suit-digest-bytes": "deadbeef"},
+                "SuitAuthenticationBlock": {
+                    "CoseSign1Tagged": {
+                        "protected": {"suit-cose-algorithm-id": "cose-alg-es-256", "suit-cose-key-id": 123},
+                        "unprotected": {},
+                        "payload": None,
+                        "signature": "DEADBEEF",
+                    },
+                },
+            },
+            "suit-manifest": {
+                "suit-manifest-version": 1,
+                "suit-manifest-sequence-number": 1,
+                "suit-common": {
+                    "suit-components": [["M", 2, 235577344, 352256]],
+                    "suit-shared-sequence": [
+                        {
+                            "suit-directive-override-parameters": {
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
+                            }
+                        }
+                    ],
+                },
+                "suit-validate": [
+                    {
+                        "suit-condition-image-match": [
+                            "suit-send-record-success",
+                            "suit-send-record-failure",
+                            "suit-send-sysinfo-success",
+                            "suit-send-sysinfo-failure",
+                        ]
+                    }
+                ],
+            },
+        }
+    },
+    "SUIT_ENVELOPE_BASIC_KEY_ID_UNPROTECTED_NO_PAYLOAD": {
+        "SUIT_Envelope_Tagged": {
+            "suit-authentication-wrapper": {
+                "SuitDigest": {"suit-digest-algorithm-id": "cose-alg-sha-256", "suit-digest-bytes": "deadbeef"},
+                "SuitAuthenticationBlock": {
+                    "CoseSign1Tagged": {
+                        "protected": {"suit-cose-algorithm-id": "cose-alg-es-256"},
+                        "unprotected": {"suit-cose-key-id": 1233},
+                        "payload": None,
+                        "signature": "DEADBEEF",
+                    }
+                },
+            },
+            "suit-manifest": {
+                "suit-manifest-version": 1,
+                "suit-manifest-sequence-number": 1,
+                "suit-common": {
+                    "suit-components": [["M", 2, 235577344, 352256]],
+                    "suit-shared-sequence": [
+                        {
+                            "suit-directive-override-parameters": {
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
+                            }
+                        }
+                    ],
+                },
+                "suit-validate": [
+                    {
+                        "suit-condition-image-match": [
+                            "suit-send-record-success",
+                            "suit-send-record-failure",
+                            "suit-send-sysinfo-success",
+                            "suit-send-sysinfo-failure",
+                        ]
+                    }
+                ],
+            },
+        }
+    },
+    "SUIT_ENVELOPE_BASIC_KEY_ID_PROTECTED_NO_PAYLOAD_TWO_AUTH_BLOCKS": {
+        "SUIT_Envelope_Tagged": {
+            "suit-authentication-wrapper": {
+                "SuitDigest": {"suit-digest-algorithm-id": "cose-alg-sha-256", "suit-digest-bytes": "deadbeef"},
+                "SuitAuthenticationBlock": {
+                    "CoseSign1Tagged": {
+                        "protected": {"suit-cose-algorithm-id": "cose-alg-es-256", "suit-cose-key-id": 1233},
+                        "unprotected": {},
+                        "payload": None,
+                        "signature": "DEADBEEF",
+                    }
+                },
+                "SuitAuthenticationBlock2": {
+                    "CoseSign1Tagged": {
+                        "protected": {"suit-cose-algorithm-id": "cose-alg-es-256", "suit-cose-key-id": 1233},
+                        "unprotected": {},
+                        "payload": None,
+                        "signature": "DEADBEEF",
+                    }
+                },
+            },
+            "suit-manifest": {
+                "suit-manifest-version": 1,
+                "suit-manifest-sequence-number": 1,
+                "suit-common": {
+                    "suit-components": [["M", 2, 235577344, 352256]],
+                    "suit-shared-sequence": [
+                        {
+                            "suit-directive-override-parameters": {
+                                "suit-parameter-vendor-identifier": {"RFC4122_UUID": "nordicsemi.com"},
+                                "suit-parameter-class-identifier": {"raw": "d622bafd4337518590bc6368cda7fbca"},
+                            }
+                        }
+                    ],
+                },
+                "suit-validate": [
+                    {
+                        "suit-condition-image-match": [
+                            "suit-send-record-success",
+                            "suit-send-record-failure",
+                            "suit-send-sysinfo-success",
+                            "suit-send-sysinfo-failure",
+                        ]
+                    }
+                ],
+            },
+        }
+    },
 }
 
 BINARY_FILE = (
@@ -461,6 +584,52 @@ BINARY_FILE = (
     "09ff005726080a1142cf82a26b2a99f9719d14195c5c783160424a181fec786a9a7c4fcfe85a2965cd013b6d5"
     "3bbc6dbdad58ff7f4d9b90a034bff33ab3bc5afd0b82c0f6aa911b0e8578c925381"
 )
+
+
+TEST_YAML_ENVELOPE_AUTH_TEMPLATE = {
+    """SUIT_Envelope_Tagged:
+      suit-authentication-wrapper:
+        SuitDigest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes: deadbeef
+        SuitAuthenticationBasic:
+          CoseSign1Tagged:
+            protected:
+              suit-cose-algorithm-id: cose-alg-es-256
+              suit-cose-key-id: 0x7fffffe0
+            unprotected: {}
+            payload: None,
+            signature: DEADBEEF,
+      suit-manifest:
+        suit-manifest-version: 1
+        suit-manifest-sequence-number: 1
+        suit-common:
+          suit-components:
+          - - M
+            - 2
+            - 235577344
+            - 352256
+          suit-shared-sequence:
+          - suit-directive-override-parameters:
+              suit-parameter-vendor-identifier:
+                RFC4122_UUID: nordicsemi.com
+              suit-parameter-class-identifier:
+                raw: d622bafd4337518590bc6368cda7fbca
+              suit-parameter-image-digest:
+                suit-digest-algorithm-id: cose-alg-sha-256
+                suit-digest-bytes:
+                  file: file.bin
+              suit-parameter-image-size:
+                file: file.bin
+        suit-validate:
+        - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
+      suit-integrated-payloads:
+        '#file.bin': file.bin"""
+}
 
 
 @pytest.mark.parametrize(
@@ -530,15 +699,18 @@ def test_parse_signed_twice_envelope():
 
 
 @pytest.mark.parametrize(
-    "input_envelope",
+    "input_envelope, check_integrated_payload",
     [
-        "UNSIGNED_ENVELOPE",
-        "SIGNED_ENVELOPE",
-        "SIGNED_ENVELOPE_TEXT",
-        "UNSIGNED_ENVELOPE_TWO_INTEGRATED_PAYLOADS",
+        ("UNSIGNED_ENVELOPE", True),
+        ("SIGNED_ENVELOPE", True),
+        ("SIGNED_ENVELOPE_TEXT", True),
+        ("UNSIGNED_ENVELOPE_TWO_INTEGRATED_PAYLOADS", True),
+        ("SUIT_ENVELOPE_BASIC_KEY_ID_PROTECTED_NO_PAYLOAD", False),
+        ("SUIT_ENVELOPE_BASIC_KEY_ID_UNPROTECTED_NO_PAYLOAD", False),
+        ("SUIT_ENVELOPE_BASIC_KEY_ID_PROTECTED_NO_PAYLOAD_TWO_AUTH_BLOCKS", False),
     ],
 )
-def test_conversion_obj_to_cbor(input_envelope):
+def test_conversion_obj_to_cbor(input_envelope, check_integrated_payload):
     """Test if is possible to convert object to cbor."""
     envelope = SuitEnvelopeTagged.from_obj(TEST_DATA_OBJECTS[input_envelope])
     assert type(envelope.SuitEnvelopeTagged.value.SuitEnvelope) is dict
@@ -553,12 +725,17 @@ def test_conversion_obj_to_cbor(input_envelope):
     )
     for required_item in [suit_manifest_sequence_number, suit_manifest_version, suit_common]:
         assert required_item in envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest.keys()
-    assert suit_integrated_payloads in envelope.SuitEnvelopeTagged.value.SuitEnvelope
+    assert (
+        suit_integrated_payloads in envelope.SuitEnvelopeTagged.value.SuitEnvelope if check_integrated_payload else True
+    )
     binary_envelope = envelope.to_cbor()
     hex = binary_envelope.hex()
     assert hex is not None
     envelope2 = SuitEnvelopeTagged.from_cbor(binary_envelope)
     assert binary_envelope.hex() == envelope2.to_cbor().hex()
+
+
+# TODO: add test to check if obj_to_internal has keyid in the structure!
 
 
 def test_conversion_obj_to_obj():
@@ -689,133 +866,8 @@ def test_digest_update_after_value_change():
     assert digest_bytes_after_update.hex() != digest_bytes_before_update.hex()
 
 
-@pytest.mark.parametrize(
-    "private_key",
-    ["ES_256", "ES_384"],
-)
-def test_envelope_signing(private_key):
-    """Test if is possible to sign manifest."""
-    envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
-    envelope.update_digest()
-    envelope.sign(PRIVATE_KEYS[private_key])
-    assert envelope is not None
-    assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope
-    assert hasattr(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper], "SuitAuthentication")
-    assert hasattr(
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[1],
-        "SuitAuthenticationBlock",
-    )
-    assert len(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication) == 2
-    assert hasattr(
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[0],
-        "SuitDigest",
-    )
-
-
-@pytest.mark.parametrize(
-    "input_data, amount_of_payloads",
-    [("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0), ("ENVELOPE_7_UNSIGNED_TWO_INTEGRATED_PAYLOADS", 2)],
-)
-def test_envelope_sign_and_verify(input_data, amount_of_payloads):
-    """Test if is possible to sign manifest and signature can be verified properly."""
-    envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA[input_data]))
-    if amount_of_payloads > 0:
-        assert (
-            len(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_integrated_payloads].SuitIntegratedPayloadMap)
-            == amount_of_payloads
-        )
-    digest_object = (
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-        .SuitAuthentication[0]
-        .SuitDigest.to_obj()
-    )
-    envelope.sign(PRIVATE_KEYS["ES_256"])
-    signature = (
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-        .SuitAuthentication[1]
-        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
-        .SuitHex
-    )
-    # extract r and s from signature and decode_signature
-    int_sig = int.from_bytes(signature, byteorder="big")
-    r = int_sig >> (32 * 8)
-    s = int_sig & sum([0xFF << x * 8 for x in range(0, 32)])
-    dss_signature = encode_dss_signature(r, s)
-    algorithm_name = (
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-        .SuitAuthentication[1]
-        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
-        .SuitHeaderMap[suit_cose_algorithm_id]
-        .value
-    )
-    cose_structure = CoseSigStructure.from_obj(
-        {
-            "context": "Signature1",
-            "body_protected": {"suit-cose-algorithm-id": algorithm_name},
-            "external_add": "",
-            "payload": digest_object,
-        }
-    )
-    binary_data = cose_structure.to_cbor()
-    public_key = load_pem_private_key(PRIVATE_KEYS["ES_256"], None).public_key()
-    public_key.verify(dss_signature, binary_data, ec.ECDSA(hashes.SHA256()))
-
-
 @pytest.mark.parametrize("input_envelope", ["ENVELOPE_1_UNSIGNED", "ENVELOPE_2_UNSIGNED", "ENVELOPE_3_UNSIGNED"])
 def test_parse_unsigned_simplified_envelope_parse_and_dump(input_envelope):
     """Test if is possible to parse complete unsigned envelope."""
     envelope = SuitEnvelopeTaggedSimplified.from_cbor(binascii.a2b_hex(TEST_DATA[input_envelope]))
     assert envelope.to_cbor().hex() == TEST_DATA[input_envelope]
-
-
-@pytest.mark.parametrize(
-    "input_data, amount_of_payloads",
-    [("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0), ("ENVELOPE_7_UNSIGNED_TWO_INTEGRATED_PAYLOADS", 2)],
-)
-def test_simplified_envelope_sign_and_verify(input_data, amount_of_payloads):
-    """Test if is possible to sign manifest and signature can be verified properly."""
-    envelope = SuitEnvelopeTaggedSimplified.from_cbor(binascii.a2b_hex(TEST_DATA[input_data]))
-    if amount_of_payloads > 0:
-        assert (
-            len(
-                envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[
-                    suit_integrated_payloads
-                ].SuitIntegratedPayloadMap
-            )
-            == amount_of_payloads
-        )
-    digest_object = (
-        envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[suit_authentication_wrapper]
-        .SuitAuthentication[0]
-        .SuitDigest.to_obj()
-    )
-    envelope.sign(PRIVATE_KEYS["ES_256"])
-    signature = (
-        envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[suit_authentication_wrapper]
-        .SuitAuthentication[1]
-        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
-        .SuitHex
-    )
-    # extract r and s from signature and decode_signature
-    int_sig = int.from_bytes(signature, byteorder="big")
-    r = int_sig >> (32 * 8)
-    s = int_sig & sum([0xFF << x * 8 for x in range(0, 32)])
-    dss_signature = encode_dss_signature(r, s)
-    algorithm_name = (
-        envelope.SuitEnvelopeTaggedSimplified.value.SuitEnvelopeSimplified[suit_authentication_wrapper]
-        .SuitAuthentication[1]
-        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
-        .SuitHeaderMap[suit_cose_algorithm_id]
-        .value
-    )
-    cose_structure = CoseSigStructure.from_obj(
-        {
-            "context": "Signature1",
-            "body_protected": {"suit-cose-algorithm-id": algorithm_name},
-            "external_add": "",
-            "payload": digest_object,
-        }
-    )
-    binary_data = cose_structure.to_cbor()
-    public_key = load_pem_private_key(PRIVATE_KEYS["ES_256"], None).public_key()
-    public_key.verify(dss_signature, binary_data, ec.ECDSA(hashes.SHA256()))

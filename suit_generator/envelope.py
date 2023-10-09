@@ -28,8 +28,6 @@ class SuitEnvelope(InputOutputMixin):
         file_name: str | None = None,
         output_type: str = "AUTO",
         parse_hierarchy: bool = False,
-        *,
-        private_key=None,
     ) -> None:
         """Dump internal envelope object into one of the supported file types or objects (yaml, json, cbor).
 
@@ -46,7 +44,7 @@ class SuitEnvelope(InputOutputMixin):
             output_type = "STDOUT"
 
         dump_method = self.get_serializer(output_type)
-        dump_method(file_name, self._envelope, parse_hierarchy, private_key)
+        dump_method(file_name, self._envelope, parse_hierarchy)
 
     def load(self, file_name: str, input_type: str = "AUTO") -> None:
         """Create internal envelope object from one of the supported file types.

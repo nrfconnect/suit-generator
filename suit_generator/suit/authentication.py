@@ -160,7 +160,7 @@ class SuitHeaderMap(SuitKeyValue):
     _metadata = Metadata(
         map={
             suit_cose_algorithm_id: SuitcoseSignAlg,
-            suit_cose_key_id: SuitBstr,
+            suit_cose_key_id: cbstr(SuitInt),
         }
     )
 
@@ -170,7 +170,6 @@ class SuitHeaderData(SuitUnion):
 
     _metadata = Metadata(
         children=[
-            SuitKeyValue,
             SuitHeaderMap,
         ]
     )

@@ -119,31 +119,23 @@ class InputOutputMixin:
             return suit.to_obj()
 
     @staticmethod
-    def prepare_suit_data(data, private_key=None) -> bytes:
+    def prepare_suit_data(data) -> bytes:
         """Convert data to suit format."""
         suit_obj = SuitEnvelopeTagged.from_obj(data)
         suit_obj.update_severable_digests()
         suit_obj.update_digest()
-        if private_key:
-            with open(private_key, "rb") as pk_fh:
-                pk_data = pk_fh.read()
-            suit_obj.sign(pk_data)
         return suit_obj.to_cbor()
 
-    def to_suit_file(self, file_name, data, parse_hierarchy, private_key=None) -> None:
+    def to_suit_file(self, file_name, data, parse_hierarchy) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
-            fh.write(self.prepare_suit_data(data, private_key))
+            fh.write(self.prepare_suit_data(data))
 
-    def to_suit_file_simplified(self, file_name, data, parse_hierarchy: bool, private_key=None) -> None:
+    def to_suit_file_simplified(self, file_name, data, parse_hierarchy: bool) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
             suit_obj = SuitEnvelopeTaggedSimplified.from_obj(data)
             suit_obj.update_digest()
-            if private_key:
-                with open(private_key, "rb") as pk_fh:
-                    pk_data = pk_fh.read()
-                suit_obj.sign(pk_data)
             fh.write(suit_obj.to_cbor())
 
     def get_serializer(self, output_type: str) -> Callable:

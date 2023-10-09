@@ -35,12 +35,6 @@ def monkey_patched_keys_arguments(cmd):
     return cmd, args
 
 
-def monkey_patched_sign_arguments(cmd):
-    """Monkey patched argument parser."""
-    args = Namespace(input_file="test1", private_key="json", output_file="test2")
-    return cmd, args
-
-
 def monkey_patched_main_create(input_file: str, output_format: str, output_file: str):
     """Monkey patched CMD create main."""
     pass
@@ -53,11 +47,6 @@ def monkey_patched_main_keys(output_file: str, key_type: str):
 
 def monkey_patched_main_parse(input_file: str, output_file: str, input_format: str):
     """Monkey patched CMD parse main."""
-    pass
-
-
-def monkey_patched_main_sign(input_file: str, output_file: str, private_key: str):
-    """Monkey patched CMD sign main."""
     pass
 
 
@@ -95,18 +84,6 @@ def test_cli_keys(monkeypatch):
         main()
     except Exception:
         assert False, "Not possible to call keys command."
-
-
-def test_cli_sign(monkeypatch):
-    """Test cli sign mapping."""
-    # monkey patch executor and argument parser and test cli executor dictionary
-    monkeypatch.setattr("suit_generator.cli.cmd_sign.main.__code__", monkey_patched_main_sign.__code__)
-    parse_args = partial(monkey_patched_sign_arguments, "sign")
-    monkeypatch.setattr("suit_generator.args.parse_arguments", parse_args)
-    try:
-        main()
-    except Exception:
-        assert False, "Not possible to call sign command."
 
 
 def test_cli_not_existing_cmd_mapping(monkeypatch):

@@ -12,7 +12,6 @@ from typing import Tuple
 from suit_generator.cmd_create import add_arguments as create_args
 from suit_generator.cmd_parse import add_arguments as parse_args
 from suit_generator.cmd_keys import add_arguments as key_args
-from suit_generator.cmd_sign import add_arguments as sign_args
 from suit_generator.cmd_image import add_arguments as image_args
 from suit_generator.cmd_convert import add_arguments as convert_args
 
@@ -23,7 +22,6 @@ def _parser() -> ArgumentParser:
     create_args(subparsers)
     parse_args(subparsers)
     key_args(subparsers)
-    sign_args(subparsers)
     image_args(subparsers)
     convert_args(subparsers)
     return parser
