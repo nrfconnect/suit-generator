@@ -6,6 +6,8 @@
 """The example implementation of the script to sign SUIT envelopes."""
 from __future__ import annotations
 
+import math
+
 import cbor2
 import uuid
 
@@ -56,8 +58,6 @@ DOMAIN_NAME = "nordicsemi.com"
 class SignerError(Exception):
     """Signer exception."""
 
-    pass
-
 
 class Signer:
     """Signer implementation."""
@@ -66,8 +66,8 @@ class Signer:
         """Initialize signer."""
         domain_name = uuid.uuid5(uuid.NAMESPACE_DNS, DOMAIN_NAME)
         self._key_ids = defaultdict(lambda: DEFAULT_KEY_ID)
-        for key, val in KEY_IDS.items():
-            self._key_ids[uuid.uuid5(domain_name, key).hex] = val
+        for name, val in KEY_IDS.items():
+            self._key_ids[uuid.uuid5(domain_name, name).hex] = val
 
     @staticmethod
     def create_authentication_block(protected: dict | None, unprotected: dict | None, signature: bytes):
@@ -124,8 +124,8 @@ class Signer:
         hash_map = {256: hashes.SHA256(), 384: hashes.SHA384(), 521: hashes.SHA512()}
         dss_signature = self._key.sign(input_data, ec.ECDSA(hash_map[self._key.key_size]))
         r, s = decode_dss_signature(dss_signature)
-        return r.to_bytes(self._key.key_size // 8, byteorder="big") + s.to_bytes(
-            self._key.key_size // 8, byteorder="big"
+        return r.to_bytes(math.ceil(self._key.key_size / 8), byteorder="big") + s.to_bytes(
+            math.ceil(self._key.key_size / 8), byteorder="big"
         )
 
     def _get_manifest_class_id(self):

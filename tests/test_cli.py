@@ -35,12 +35,6 @@ def monkey_patched_keys_arguments(cmd):
     return cmd, args
 
 
-def monkey_patched_sign_arguments(cmd):
-    """Monkey patched argument parser."""
-    args = Namespace(input_file="test1", private_key="json", output_file="test2")
-    return cmd, args
-
-
 def monkey_patched_main_create(input_file: str, output_format: str, output_file: str):
     """Monkey patched CMD create main."""
     pass
@@ -53,11 +47,6 @@ def monkey_patched_main_keys(output_file: str, key_type: str):
 
 def monkey_patched_main_parse(input_file: str, output_file: str, input_format: str):
     """Monkey patched CMD parse main."""
-    pass
-
-
-def monkey_patched_main_sign(input_file: str, output_file: str, private_key: str):
-    """Monkey patched CMD sign main."""
     pass
 
 

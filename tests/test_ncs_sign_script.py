@@ -49,6 +49,15 @@ C+9ywexwCwCqFS5thWjpXJfcrN+KaqRJ65H5r1cHmZB7sLj/qIPgclrNWA+qau7H
 SybGG+k1OCi30FZSSo7Ozv8jarYr8NvoQnyI6+01Mo5TaOqC9a+41p8=
 -----END PRIVATE KEY-----
 """,
+    "ES_521": b"""-----BEGIN PRIVATE KEY-----
+MIHuAgEAMBAGByqGSM49AgEGBSuBBAAjBIHWMIHTAgEBBEIB+FeSvnnlrN47qdge
+TO/tO6YhB9uzWbk75EZlGkXPdR24dEgCdHJ5kYi7O01Zj8Qq5HBkdU7xE98vyJRD
+fM0qjUOhgYkDgYYABAG0p3FRhnknwe7NJA4d8a70yo5068yvJsEnKVBIFQW5bptW
+Rl4Ca2KpIMJF2EJW2JzQvb7EtDlDbhO+16XIC4XiZwFC3r/xdMtIlvuwiLI66kXg
+FllgzoE3Rc2ZeGLOuD2SGi9H6iVhwynzSIl7RWnfhW8PtC2bT0smQ7D4YP9aO/k0
+1g==
+-----END PRIVATE KEY-----
+""",
     "Ed25519": b"""-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIBiOzhb2OjnrKpySHYKDeeFbKHZdQzitUKd/plugHOJ6
 -----END PRIVATE KEY-----
@@ -104,6 +113,8 @@ def setup_and_teardown(tmp_path_factory):
         fh.write(PRIVATE_KEYS["ES_256"])
     with open("key_private_es_384.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["ES_384"])
+    with open("key_private_es_521.pem", "wb") as fh:
+        fh.write(PRIVATE_KEYS["ES_521"])
     with open("key_private_ed25519.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["Ed25519"])
     with open("test_envelope.suit", "wb") as fh:
@@ -126,7 +137,7 @@ def test_ncs_cose(setup_and_teardown):
 
 
 def test_ncs_auth_block(setup_and_teardown):
-    """Test if is possible to create cose structure using ncs sign_script.py."""
+    """Test if is possible to create authentication block using ncs sign_script.py."""
     signer = Signer()
     signer.load_envelope("test_envelope.suit")
     auth_block = signer.create_authentication_block({}, {}, b"\xDE\xAD\xBE\xEF")
@@ -134,7 +145,7 @@ def test_ncs_auth_block(setup_and_teardown):
 
 
 def test_ncs_get_digest_object(setup_and_teardown):
-    """Test if is possible to create cose structure using ncs sign_script.py."""
+    """Test if is possible to extract digest object using ncs sign_script.py."""
     signer = Signer()
     signer.load_envelope("test_envelope.suit")
     assert signer.get_digest() == [
@@ -145,7 +156,7 @@ def test_ncs_get_digest_object(setup_and_teardown):
 
 @pytest.mark.parametrize(
     "private_key",
-    ["es_256", "es_384"],
+    ["es_256", "es_384", "es_521"],
 )
 def test_ncs_signing(setup_and_teardown, private_key):
     """Test if is possible to sign manifest."""
