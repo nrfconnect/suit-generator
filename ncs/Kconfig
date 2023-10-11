@@ -22,19 +22,53 @@ config SUIT_ENVELOPE_SEQUENCE_NUM
     int "Sequence number of the generated SUIT manifest"
     default 0
 
-config SUIT_ENVELOPE_DEFAULT_TEMPLATE
-    string "Path to the default envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/default_app_rad_cores_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+config SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
+    bool "Create hierarchical manifest"
+    select EXPERIMENTAL
     help
-      Path to the template, that is used if the application directory does not
+        Create hierarchical root manifest with it's dependent sub-manifests
+    default n
+
+config SUIT_ENVELOPE_DEFAULT_TEMPLATE
+    string "Path to the default envelope template (deprecated)"
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/default_app_rad_cores_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_hierarchical_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
+    help
+      Path to the root template, that is used if the application directory does not
+      contain an input root envelope template file.
+      This KConfig is available for backward compatibility and will be removed soon.
+
+config SUIT_ENVELOPE_ROOT_TEMPLATE
+    string "Path to the default root envelope template"
+    default SUIT_ENVELOPE_DEFAULT_TEMPLATE
+    help
+      Path to the default root envelope template, that is used if the application directory does not
       contain an input envelope template file.
 
-config SUIT_ENVELOPE_EDITABLE_TEMPLATE
-    string "Path to the input envelope template"
-    default "../../envelope.yaml.jinja2"
+if SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
+
+config SUIT_ENVELOPE_APP_TEMPLATE
+    string "Path to the default application envelope template"
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2"
     help
-      Path to the input editable template used to create binary envelopes.
-      This file is created by the build system during first build from the SUIT_ENVELOPE_DEFAULT_TEMPLATE.
+      Path to the default application envelope template, that is used if the application directory does not
+      contain an input application envelope template file.
+
+config SUIT_ENVELOPE_HCI_RPMSG_SUBIMAGE_TEMPLATE
+    string "Path to the default radio envelope template"
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/rad_envelope.yaml.jinja2"
+    help
+      Path to the default radio envelope template, that is used if the application directory does not
+      contain an input application envelope template file.
+
+endif # SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
+
+config SUIT_ENVELOPE_EDITABLE_TEMPLATES_LOCATION
+    string "Path to the folder with envelope templates"
+    default "../../"
+    help
+      Path to the folder containing editable templates used to create binary envelopes.
+      Input templates are created by the build system during first build from the SUIT_ENVELOPE_DEFAULT_TEMPLATE.
       You can use either absolute or relative path.
       In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
 
