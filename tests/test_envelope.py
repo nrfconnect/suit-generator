@@ -688,7 +688,7 @@ def test_envelope_signed_twice_parsing(setup_and_teardown):
     Metadata(map={"SuitDigest*": cbstr(SuitDigest), "SuitAuthentication*": SuitAuthenticationBlock}),
 )
 def test_envelope_parsing_wrong_internal_structure_dynamic_element_twice(setup_and_teardown):
-    """Test is exception is raised in case of wrong internal configuration - two dynamic elements."""
+    """Test if exception is raised in case of wrong internal configuration - two dynamic elements."""
     envelope = SuitEnvelope()
     with pytest.raises(GeneratorError):
         envelope.load("envelope_signed_twice.suit", input_type="suit")
@@ -699,7 +699,7 @@ def test_envelope_parsing_wrong_internal_structure_dynamic_element_twice(setup_a
     Metadata(map={"SuitDigest*": cbstr(SuitDigest), "SuitAuthentication": SuitAuthenticationBlock}),
 )
 def test_envelope_parsing_wrong_internal_structure_dynamic_element_at_the_beginning(setup_and_teardown):
-    """Test is exception is raised in case of wrong internal configuration - wrong position of dynamic element."""
+    """Test if exception is raised in case of wrong internal configuration - wrong position of dynamic element."""
     envelope = SuitEnvelope()
     with pytest.raises(GeneratorError):
         envelope.load("envelope_signed_twice.suit", input_type="suit")
