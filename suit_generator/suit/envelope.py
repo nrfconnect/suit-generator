@@ -12,8 +12,6 @@ from __future__ import annotations
 import binascii
 import pathlib
 
-import cbor2
-
 from suit_generator.suit.payloads import SuitIntegratedPayloadMap
 from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, SuitBstr, cbstr
 from suit_generator.suit.authentication import SuitAuthentication, SuitHash
@@ -99,8 +97,7 @@ class SuitBasicEnvelopeOperationsMixin:
                     .value
                 )
                 try:
-                    # use cbor2.loads to unpack embedded cbor
-                    object_data = cbor2.loads(self.SuitEnvelopeTagged.value.SuitEnvelope[severable_element].to_cbor())
+                    object_data = self.SuitEnvelopeTagged.value.SuitEnvelope[severable_element].to_cbor()
                 except KeyError:
                     # Data for digest calculation not available so skipp this element.
                     # This is expected case for creation of booting images when severable elements has been removed.
