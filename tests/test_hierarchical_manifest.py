@@ -13,6 +13,7 @@ import yaml
 import json
 from cryptography.hazmat.primitives import hashes
 from suit_generator.envelope import SuitEnvelope
+from suit_generator.suit.envelope import SuitEnvelopeTagged
 from suit_generator.suit.types.keys import suit_integrated_dependencies
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
@@ -1652,6 +1653,28 @@ def test_envelope_creation(setup_and_teardown, input_data):
     input_type = input_data.suffix[1:]
     envelope.load(input_data, input_type=input_type)
     envelope.dump(f"{pathlib.Path(input_data).stem}.suit", output_type="suit", parse_hierarchy=True)
+    envelope.load(f"{pathlib.Path(input_data).stem}.suit", input_type="suit")
+    # ensure that digest of dependent manifest is calculated properly
+    # get values stored in the root manifest
+    rad_sub_manifest_digest = envelope._envelope["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-install"][1][
+        "suit-directive-override-parameters"
+    ]["suit-parameter-image-digest"]["suit-digest-bytes"]
+    app_sub_manifest_digest = envelope._envelope["SUIT_Envelope_Tagged"]["suit-manifest"]["suit-install"][6][
+        "suit-directive-override-parameters"
+    ]["suit-parameter-image-digest"]["suit-digest-bytes"]
+    # parse dependent manifest
+    e1_rad = SuitEnvelopeTagged.from_cbor(
+        binascii.a2b_hex(envelope._envelope["SUIT_Envelope_Tagged"]["suit-integrated-dependencies"]["#rad.suit"])
+    )
+    e2_app = SuitEnvelopeTagged.from_cbor(
+        binascii.a2b_hex(envelope._envelope["SUIT_Envelope_Tagged"]["suit-integrated-dependencies"]["#app.suit"])
+    )
+    # get digests stored in the dependent manifests
+    rad_root_digest = e1_rad.get_digest().SuitDigestRaw[1].SuitDigestBytes.hex()
+    app_root_digest = e2_app.get_digest().SuitDigestRaw[1].SuitDigestBytes.hex()
+    # ensure that root values are equal to digest stored in the sub-manifest
+    assert rad_sub_manifest_digest == rad_root_digest
+    assert app_sub_manifest_digest == app_root_digest
 
 
 def calculate_hash(data):
