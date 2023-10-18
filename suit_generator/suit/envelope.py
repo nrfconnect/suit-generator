@@ -78,7 +78,7 @@ class SuitBasicEnvelopeOperationsMixin:
             1
         ].SuitDigestBytes = new_digest
 
-    def _get_digest(self):
+    def get_digest(self):
         """Return digest from parsed envelope."""
         return self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest
 
