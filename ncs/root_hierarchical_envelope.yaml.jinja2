@@ -64,9 +64,9 @@ SUIT_Envelope_Tagged:
       suit-dependencies:
         # Key is the index of suit-components that describe the dependency manifest
         "0": {}
-        "1": {}
-        "2": {}
-
+{%- for component_element in component_list %}
+        "{{ component_element }}": {}
+{%- endfor %}
     suit-validate:
     - suit-directive-set-component-index: [{{ component_list|join(',') }}]
     - suit-condition-dependency-integrity:
