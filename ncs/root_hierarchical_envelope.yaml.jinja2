@@ -1,0 +1,173 @@
+{%- set component_index = 0 %}
+{%- set component_list = [] %}
+SUIT_Envelope_Tagged:
+  suit-authentication-wrapper:
+    SuitDigest:
+      suit-digest-algorithm-id: cose-alg-sha-256
+  suit-manifest:
+    suit-manifest-version: 1
+    suit-manifest-sequence-number: {{ version }}
+    suit-common:
+      suit-components:
+      - - CAND_MFST
+        - 0
+{%- if hci_rpmsg_subimage is defined %}
+    {%- set component_index = component_index + 1 %}
+    {%- set hci_rpmsg_subimage_component_index = component_index %}
+    {{- component_list.append( hci_rpmsg_subimage_component_index ) or ""}}
+      - - INSTLD_MFST
+        - RFC4122_UUID:
+            namespace: nordicsemi.com
+            name: nRF54H20_sample_rad
+{%- endif %}
+{%- if app is defined %}
+    {%- set component_index = component_index + 1 %}
+    {%- set app_component_index = component_index %}
+    {{- component_list.append( app_component_index ) or ""}}
+      - - INSTLD_MFST
+        - RFC4122_UUID:
+            namespace: nordicsemi.com
+            name: nRF54H20_sample_app
+{%- endif %}
+      suit-shared-sequence:
+{%- if hci_rpmsg_subimage is defined %}
+      - suit-directive-set-component-index: {{ hci_rpmsg_subimage_component_index }}
+      - suit-directive-override-parameters:
+          suit-parameter-vendor-identifier:
+            RFC4122_UUID: nordicsemi.com
+          suit-parameter-class-identifier:
+            RFC4122_UUID:
+              namespace: nordicsemi.com
+              name: nRF54H20_sample_rad
+{%- endif %}
+{%- if app is defined %}
+      - suit-directive-set-component-index: {{ app_component_index }}
+      - suit-directive-override-parameters:
+          suit-parameter-vendor-identifier:
+            RFC4122_UUID: nordicsemi.com
+          suit-parameter-class-identifier:
+            RFC4122_UUID:
+              namespace: nordicsemi.com
+              name: nRF54H20_sample_app
+{%- endif %}
+      - suit-directive-set-component-index: [{{ component_list|join(',') }}]
+      - suit-condition-vendor-identifier:
+        - suit-send-record-success
+        - suit-send-record-failure
+        - suit-send-sysinfo-success
+        - suit-send-sysinfo-failure
+      - suit-condition-class-identifier:
+        - suit-send-record-success
+        - suit-send-record-failure
+        - suit-send-sysinfo-success
+        - suit-send-sysinfo-failure
+      suit-dependencies:
+        # Key is the index of suit-components that describe the dependency manifest
+        "0": {}
+{%- for component_element in component_list %}
+        "{{ component_element }}": {}
+{%- endfor %}
+    suit-validate:
+    - suit-directive-set-component-index: [{{ component_list|join(',') }}]
+    - suit-condition-dependency-integrity:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-directive-process-dependency:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+
+    suit-invoke:
+    - suit-directive-set-component-index: [{{ component_list|join(',') }}]
+    - suit-condition-dependency-integrity:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-directive-process-dependency:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+
+    suit-install:
+    - suit-directive-set-component-index: 0
+{%- if hci_rpmsg_subimage is defined %}
+    - suit-directive-override-parameters:
+        suit-parameter-uri: '#{{ hci_rpmsg_subimage['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            envelope: {{ hci_rpmsg_subimage['binary'] | replace('zephyr.bin', hci_rpmsg_subimage['name'] ~ '.suit') }}
+        suit-parameter-image-size:
+          envelope: {{ hci_rpmsg_subimage['binary'] | replace('zephyr.bin', hci_rpmsg_subimage['name'] ~ '.suit') }}
+    - suit-directive-fetch:
+      - suit-send-record-failure
+    - suit-condition-image-match:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-condition-dependency-integrity:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-directive-process-dependency:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+{%- endif %}
+{%- if app is defined %}
+    - suit-directive-override-parameters:
+        suit-parameter-uri: '#{{ app['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            envelope: {{ app['binary'] | replace('zephyr.bin', app['name'] ~ '.suit') }}
+        suit-parameter-image-size:
+          envelope: {{ app['binary'] | replace('zephyr.bin', app['name'] ~ '.suit') }}
+    - suit-directive-fetch:
+      - suit-send-record-failure
+    - suit-condition-image-match:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-condition-dependency-integrity:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-directive-process-dependency:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+{%- endif %}
+    suit-text:
+      suit-digest-algorithm-id: cose-alg-sha-256
+    suit-manifest-component-id:
+    - INSTLD_MFST
+    - RFC4122_UUID:
+        namespace: nordicsemi.com
+        name: nRF54H20_sample_root
+  suit-text:
+    '["CAND_MFST", 0]':
+      suit-text-vendor-name: Nordic Semiconductor ASA
+      suit-text-model-name: nRF54H20
+      suit-text-vendor-domain: nordicsemi.com
+      suit-text-model-info: The nRF54H20 root manifest
+      suit-text-component-description: Sample root manifest
+      suit-text-component-version: v1.0.0
+  suit-integrated-dependencies:
+{%- if hci_rpmsg_subimage is defined %}
+    '#{{ hci_rpmsg_subimage['name'] }}': {{ hci_rpmsg_subimage['binary'] | replace('zephyr.bin', hci_rpmsg_subimage['name'] ~ '.suit') }}
+{%- endif %}
+{%- if app is defined %}
+    '#{{ app['name'] }}': {{ app['binary'] | replace('zephyr.bin', app['name'] ~ '.suit') }}
+{%- endif %}
