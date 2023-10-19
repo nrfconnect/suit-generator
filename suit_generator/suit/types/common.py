@@ -236,7 +236,8 @@ class SuitUnion(SuitObject):
             try:
                 value = child.from_cbor(cbstr)
                 break
-            except ValueError:
+            except (ValueError, MemoryError, cbor2.CBORError):
+                # fixme: need to be improved (detect possible MemoryError prior to occurring) - NCSDK-24195
                 pass
         else:
             raise ValueError("Not possible to deserialize data")
