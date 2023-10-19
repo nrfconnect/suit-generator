@@ -59,7 +59,6 @@ parent_parser = ArgumentParser(add_help=False)
 parent_parser.add_argument(
     "--core", action="append", required=True, help="Configuration of sample name:location of binaries:location of edt"
 )
-parent_parser.add_argument("--output-envelope", required=True, help="Location of output envelope.")
 parent_parser.add_argument("--zephyr-base", required=True, help="Location of zephyr directory.")
 
 parser = ArgumentParser(add_help=False)
@@ -76,6 +75,9 @@ cmd_template_arg_parser.add_argument("--version", required=True, default=1, help
 cmd_template_arg_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
 cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
 
+cmd_storage_arg_parser.add_argument(
+    "--input-envelope", required=True, action="append", help="Location of input envelope(s)."
+)
 cmd_storage_arg_parser.add_argument("--storage-output-file", required=True, help="Input binary SUIT envelope.")
 
 arguments = parser.parse_args()
@@ -83,10 +85,10 @@ arguments = parser.parse_args()
 sys.path.insert(0, os.path.join(arguments.zephyr_base, "scripts", "dts", "python-devicetree", "src"))
 
 configuration = read_configurations(arguments.core)
-configuration["output_envelope"] = arguments.output_envelope
 
 if arguments.command == TEMPLATE_CMD:
     configuration["version"] = arguments.version
+    configuration["output_envelope"] = arguments.output_suit
     output_suit_content = render_template(arguments.template_suit, configuration)
     with open(arguments.output_suit, "w") as output_file:
         output_file.write(output_suit_content)
@@ -94,9 +96,10 @@ if arguments.command == TEMPLATE_CMD:
 elif arguments.command == STORAGE_CMD:
     # fixme: envelope_address, update_candidate_info_address and dfu_max_caches shall be extracted from DTS
     ImageCreator.create_files_for_boot(
-        input_file=arguments.output_envelope,
+        input_files=arguments.input_envelope,
         storage_output_file=arguments.storage_output_file,
         envelope_address=ImageCreator.default_envelope_address,
+        envelope_slot_size=ImageCreator.default_envelope_slot_size,
         update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
         dfu_max_caches=ImageCreator.default_dfu_max_caches,
     )

@@ -61,7 +61,13 @@ class SuitEnvelope(InputOutputMixin):
 
     def sever(self) -> None:
         """Get rid of severable elements."""
-        severable = ["suit-payload-fetch", "suit-install", "suit-text", "suit-integrated-payloads"]
+        severable = [
+            "suit-payload-fetch",
+            "suit-install",
+            "suit-text",
+            "suit-integrated-payloads",
+            "suit-integrated-dependencies",
+        ]
         [
             self._envelope["SUIT_Envelope_Tagged"].pop(k, None)
             for k in list(self._envelope["SUIT_Envelope_Tagged"].keys())

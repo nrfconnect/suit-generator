@@ -5,6 +5,8 @@
 #
 """Use SUIT envelope to generate hex files allowing boot/update execution path."""
 
+from __future__ import annotations
+
 import os
 import struct
 
@@ -34,7 +36,7 @@ def add_arguments(parser):
         ImageCreator.IMAGE_CMD_UPDATE, help="Generate .hex files for update execution path"
     )
 
-    cmd_image_boot.add_argument("--input-file", required=True, help="Input SUIT file; an envelope")
+    cmd_image_boot.add_argument("--input-file", required=True, action="append", help="Input SUIT file; an envelope")
     cmd_image_boot.add_argument(
         "--storage-output-file", required=True, help="Output hex file with SUIT storage contents"
     )
@@ -52,6 +54,13 @@ def add_arguments(parser):
         type=lambda x: int(x, 0),
         default=ImageCreator.default_envelope_address,
         help=f"Address of installed envelope in SUIT storage. Default: 0x{ImageCreator.default_envelope_address:08X}",
+    )
+    cmd_image_boot.add_argument(
+        "--envelope-slot-size",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_envelope_slot_size,
+        help=f"Envelope slot size in SUIT storage. Default: 0x{ImageCreator.default_envelope_slot_size:08X}",
     )
     cmd_image_boot.add_argument(
         "--dfu-max-caches",
@@ -103,6 +112,7 @@ class ImageCreator:
 
     default_update_candidate_info_address = 0x0E1EEC00
     default_envelope_address = 0x0E1EED80
+    default_envelope_slot_size = 2048
     default_dfu_partition_address = 0x0E100000
     default_dfu_max_caches = 4
 
@@ -181,9 +191,10 @@ class ImageCreator:
 
     @staticmethod
     def _create_suit_storage_file_for_boot(
-        envelope: SuitEnvelope,
+        envelopes: list[SuitEnvelope],
         update_candidate_info_address: int,
         installed_envelope_address: int,
+        envelope_slot_size: int,
         file_name: str,
         dfu_max_caches: int,
     ) -> None:
@@ -193,13 +204,25 @@ class ImageCreator:
             ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
         )
 
-        # Installed envelope
-        envelope_hex = IntelHex()
-        envelope_hex.frombytes(ImageCreator._prepare_envelope_slot_binary(envelope), installed_envelope_address)
-
         # The suit storage file for boot path combines update candidate info and installed envelope
         combined_hex = IntelHex(uci_hex)
-        combined_hex.merge(envelope_hex)
+
+        # Installed envelopes
+        envelope_address = installed_envelope_address
+
+        for envelope in envelopes:
+            envelope_bytes = ImageCreator._prepare_envelope_slot_binary(envelope)
+            if len(envelope_bytes) > envelope_slot_size:
+                raise GeneratorError(
+                    f"Input envelope ({envelope}) exceeds slot size ({len(envelope_bytes)} > {envelope_slot_size})."
+                )
+
+            envelope_hex = IntelHex()
+            envelope_hex.frombytes(envelope_bytes, envelope_address)
+
+            combined_hex.merge(envelope_hex)
+            envelope_address += envelope_slot_size
+
         combined_hex.write_hex_file(file_name)
 
     @staticmethod
@@ -227,10 +250,11 @@ class ImageCreator:
 
     @staticmethod
     def create_files_for_boot(
-        input_file: str,
+        input_files: list[str],
         storage_output_file: str,
         update_candidate_info_address: int,
         envelope_address: int,
+        envelope_slot_size: int,
         dfu_max_caches: int,
     ) -> None:
         """Create storage and payload hex files allowing boot execution path.
@@ -241,13 +265,21 @@ class ImageCreator:
         :param envelope_address: address of installed envelope in SUIT storage
         """
         try:
-            envelope = SuitEnvelope()
-            envelope.load(input_file, "suit")
+            envelopes = []
+            for input_file in input_files:
+                envelope = SuitEnvelope()
+                envelope.load(input_file, "suit")
 
-            envelope.sever()
+                envelope.sever()
+                envelopes.append(envelope)
 
             ImageCreator._create_suit_storage_file_for_boot(
-                envelope, update_candidate_info_address, envelope_address, storage_output_file, dfu_max_caches
+                envelopes,
+                update_candidate_info_address,
+                envelope_address,
+                envelope_slot_size,
+                storage_output_file,
+                dfu_max_caches,
             )
         except FileNotFoundError as error:
             raise GeneratorError(error)
@@ -302,6 +334,7 @@ def main(**kwargs) -> None:
             kwargs["storage_output_file"],
             kwargs["update_candidate_info_address"],
             kwargs["envelope_address"],
+            kwargs["envelope_slot_size"],
             kwargs["dfu_max_caches"],
         )
     elif kwargs["image"] == ImageCreator.IMAGE_CMD_UPDATE:

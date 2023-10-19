@@ -211,10 +211,11 @@ def test_boot_subcommand_nonexisting_input_file():
     with pytest.raises(GeneratorError):
         cmd_image_main(
             image="boot",
-            input_file="nonexisting",
+            input_file=["nonexisting"],
             storage_output_file="",
             update_candidate_info_address=0,
             envelope_address=0,
+            envelope_slot_size=2048,
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=0,
@@ -228,10 +229,11 @@ def test_boot_subcommand_manifest_without_component_id(mocker):
     with pytest.raises(GeneratorError):
         cmd_image_main(
             image="boot",
-            input_file="some_input",
+            input_file=["some_input"],
             storage_output_file="some_output.hex",
             update_candidate_info_address=0x0E1EEC00,
             envelope_address=0x0E1EED80,
+            envelope_slot_size=2048,
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=4,
@@ -244,10 +246,11 @@ def test_boot_subcommand_success(mocker):
 
     cmd_image_main(
         image="boot",
-        input_file="some_input",
+        input_file=["some_input"],
         storage_output_file="some_output.hex",
         update_candidate_info_address=0x0E1EEC00,
         envelope_address=0x0E1EED80,
+        envelope_slot_size=2048,
         dfu_partition_output_file="",
         dfu_partition_address=0,
         dfu_max_caches=4,
@@ -304,10 +307,11 @@ def test_malformed_envelope(mocker):
     with pytest.raises(SUITError):
         cmd_image_main(
             image="boot",
-            input_file="some_input",
+            input_file=["some_input"],
             storage_output_file="some_output.hex",
             update_candidate_info_address=0x0E1FE000,
             envelope_address=0x0E1FF000,
+            envelope_slot_size=2048,
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=0,
