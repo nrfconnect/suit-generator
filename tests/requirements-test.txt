@@ -1,4 +1,6 @@
 pytest
 pytest-mock
+pytest-cov
+coverage
 deepdiff
 intelhex
