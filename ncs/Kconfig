@@ -59,7 +59,14 @@ config SUIT_ENVELOPE_HCI_RPMSG_SUBIMAGE_TEMPLATE
     default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/rad_envelope.yaml.jinja2"
     help
       Path to the default radio envelope template, that is used if the application directory does not
-      contain an input application envelope template file.
+      contain an input radio envelope template file.
+
+config SUIT_ENVELOPE_MULTIPROTOCOL_RPMSG_SUBIMAGE_TEMPLATE
+    string "Path to the default multiprotocol radio envelope template"
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/multiprotocol_rad_envelope.yaml.jinja2"
+    help
+      Path to the default multiprotocol radio envelope template, that is used if the application
+      directory does not contain an input radio envelope template file.
 
 endif # SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
 
