@@ -20,6 +20,15 @@ SUIT_Envelope_Tagged:
             namespace: nordicsemi.com
             name: nRF54H20_sample_rad
 {%- endif %}
+{%- if multiprotocol_rpmsg_subimage is defined %}
+    {%- set component_index = component_index + 1 %}
+    {%- set multiprotocol_rpmsg_subimage_component_index = component_index %}
+    {{- component_list.append( multiprotocol_rpmsg_subimage_component_index ) or ""}}
+      - - INSTLD_MFST
+        - RFC4122_UUID:
+            namespace: nordicsemi.com
+            name: nRF54H20_sample_rad
+{%- endif %}
 {%- if app is defined %}
     {%- set component_index = component_index + 1 %}
     {%- set app_component_index = component_index %}
@@ -32,6 +41,16 @@ SUIT_Envelope_Tagged:
       suit-shared-sequence:
 {%- if hci_rpmsg_subimage is defined %}
       - suit-directive-set-component-index: {{ hci_rpmsg_subimage_component_index }}
+      - suit-directive-override-parameters:
+          suit-parameter-vendor-identifier:
+            RFC4122_UUID: nordicsemi.com
+          suit-parameter-class-identifier:
+            RFC4122_UUID:
+              namespace: nordicsemi.com
+              name: nRF54H20_sample_rad
+{%- endif %}
+{%- if multiprotocol_rpmsg_subimage is defined %}
+      - suit-directive-set-component-index: {{ multiprotocol_rpmsg_subimage_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
             RFC4122_UUID: nordicsemi.com
@@ -122,6 +141,33 @@ SUIT_Envelope_Tagged:
       - suit-send-sysinfo-success
       - suit-send-sysinfo-failure
 {%- endif %}
+{%- if multiprotocol_rpmsg_subimage is defined %}
+    - suit-directive-override-parameters:
+        suit-parameter-uri: '#{{ multiprotocol_rpmsg_subimage['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            envelope: {{ multiprotocol_rpmsg_subimage['binary'] | replace('zephyr.bin', multiprotocol_rpmsg_subimage['name'] ~ '.suit') }}
+        suit-parameter-image-size:
+          envelope: {{ multiprotocol_rpmsg_subimage['binary'] | replace('zephyr.bin', multiprotocol_rpmsg_subimage['name'] ~ '.suit') }}
+    - suit-directive-fetch:
+      - suit-send-record-failure
+    - suit-condition-image-match:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-condition-dependency-integrity:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-directive-process-dependency:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+{%- endif %}
 {%- if app is defined %}
     - suit-directive-override-parameters:
         suit-parameter-uri: '#{{ app['name'] }}'
@@ -167,6 +213,9 @@ SUIT_Envelope_Tagged:
   suit-integrated-dependencies:
 {%- if hci_rpmsg_subimage is defined %}
     '#{{ hci_rpmsg_subimage['name'] }}': {{ hci_rpmsg_subimage['binary'] | replace('zephyr.bin', hci_rpmsg_subimage['name'] ~ '.suit') }}
+{%- endif %}
+{%- if multiprotocol_rpmsg_subimage is defined %}
+    '#{{ multiprotocol_rpmsg_subimage['name'] }}': {{ multiprotocol_rpmsg_subimage['binary'] | replace('zephyr.bin', multiprotocol_rpmsg_subimage['name'] ~ '.suit') }}
 {%- endif %}
 {%- if app is defined %}
     '#{{ app['name'] }}': {{ app['binary'] | replace('zephyr.bin', app['name'] ~ '.suit') }}
