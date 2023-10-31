@@ -1,6 +1,6 @@
 pytest
 pytest-mock
 pytest-cov
-coverage
+coverage>=6.3
 deepdiff
 intelhex
