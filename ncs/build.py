@@ -13,7 +13,7 @@ import pathlib
 from jinja2 import Template
 from argparse import ArgumentParser
 
-sys.path.append(str(pathlib.Path(__file__).parents[1].absolute()))
+sys.path.insert(0, str(pathlib.Path(__file__).parents[1].absolute()))
 
 from suit_generator.cmd_image import ImageCreator  # noqa: E402
 

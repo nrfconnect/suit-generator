@@ -11,12 +11,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from typing import cast
 
 from suit_generator.logger import log_call
 import functools
 import cbor2
 import binascii
 import logging
+import struct
 
 from suit_generator.suit.types.keys import suit_integrated_payloads, suit_integrated_dependencies
 from suit_generator.exceptions import GeneratorError
@@ -91,6 +93,83 @@ class SuitObject:
         """Initialize object."""
         setattr(self, self.__class__.__name__, value)
 
+    @staticmethod
+    def decode_cbor_length(subtype: int, data, allow_indefinite: bool = False) -> int | None:
+        """Decode cbor object length.
+
+        https://github.com/agronholm/cbor2/blob/master/cbor2/_decoder.py#L258-L272
+        """
+        try:
+            if subtype < 24:
+                return subtype
+            elif subtype == 24:
+                return data[0][0]
+            elif subtype == 25:
+                return cast(int, struct.unpack(">H", data[:2])[0])
+            elif subtype == 26:
+                return cast(int, struct.unpack(">L", data[:4])[0])
+            elif subtype == 27:
+                return cast(int, struct.unpack(">Q", data[:8])[0])
+            elif subtype == 31 and allow_indefinite:
+                return None
+            else:
+                raise Exception("unknown unsigned integer subtype 0x%x" % subtype)
+        except Exception:
+            raise cbor2.CBORDecodeError("Not possible to detect cbor length!")
+
+    @staticmethod
+    def validate_cbor(cbstr):
+        """Validate cbor.
+
+        NCSDK-24195, https://github.com/agronholm/cbor2/issues/186 - due to bug in cbor2 package verify if cbstr
+        does not contain data which will cause that cbor2 library will request huge amount of memory.
+
+        :param cbstr:
+        :return:
+        """
+        requested_memory_len = None
+        cbor_item_type = cbstr[0] >> 5
+        cbor_item_count = cbstr[0] & 31
+        if 1 < cbor_item_type < 7 and 23 < cbor_item_count < 28:
+            try:
+                # Check only for long field encoding (String, Items, Tag) with short count in range 24 - 27
+                requested_memory_len = SuitObject.decode_cbor_length(cbor_item_count, cbstr[1:])
+            except cbor2.CBORDecodeError:
+                # Exception means that it is not possible to extract size which automatically does not mean
+                # that this value should not be parsed by cbor2 package
+                pass
+        if requested_memory_len and requested_memory_len > len(cbstr):
+            raise ValueError(
+                f"Requested memory for cbstr parsed object {requested_memory_len} "
+                f"is greater than cbstr length itself: {len(cbstr)}"
+            )
+
+    @staticmethod
+    def deserialize_cbor(cbstr):
+        """Verify and deserialize cbor object."""
+        # Ensure that cbor2.loads() will not consume all the available memory
+        SuitObject.validate_cbor(cbstr)
+        try:
+            return cbor2.loads(cbstr)
+        except Exception:
+            # Catch all exceptions since cbor2.loads raises a lot of different exceptions for invalid data:
+            #   Payload in hex -> Exception type
+            #   c11b9b9b9b0000000000 -> OverflowError
+            #   c11b1616161616161616161616161616 -> OSError
+            #   95393b7b7b7b7b7b7b7b7b7b7b7b7b7b -> MemoryError
+            #   d8250010600000006010000000000000 -> TypeError
+            #   d81e84ffffffff -> SystemError
+            #   d8234129 -> re.error
+            raise ValueError("Cannot deserialize data!")
+
+    @staticmethod
+    def serialize_cbor(obj):
+        """Serialize cbor object."""
+        try:
+            return cbor2.dumps(obj)
+        except Exception:
+            raise ValueError("Cannot serialize data!")
+
     @property
     def value(self):
         """Link to dynamically created SUIT attribute."""
@@ -121,16 +200,16 @@ class SuitObject:
     @classmethod
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
-        return cls(cbor2.loads(cbstr))
+        return cls(cls.deserialize_cbor(cbstr))
 
     def to_cbor(self):
         """Dump SUIT representation to cbor."""
-        return cbor2.dumps(self.value)
+        return self.serialize_cbor(self.value)
 
-    @staticmethod
-    def ensure_cbor(data):
+    @classmethod
+    def ensure_cbor(cls, data):
         """Ensure data cbor encoded."""
-        return cbor2.dumps(data) if not isinstance(data, bytes) else data
+        return cls.serialize_cbor(data) if not isinstance(data, bytes) else data
 
 
 class SuitBchar(SuitObject):
@@ -155,7 +234,7 @@ class SuitBchar(SuitObject):
 
     def to_cbor(self):
         """Dump SUIT representation to cbor encoded bytes."""
-        return cbor2.dumps(self.value.encode())
+        return self.serialize_cbor(self.value.encode())
 
 
 class SuitEnum(SuitObject):
@@ -171,7 +250,7 @@ class SuitEnum(SuitObject):
     @classmethod
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
-        if child := [i for i in cls._metadata.children if i.id == cbor2.loads(cbstr)]:
+        if child := [i for i in cls._metadata.children if i.id == cls.deserialize_cbor(cbstr)]:
             return cls(child[0].name)
         else:
             raise ValueError(f"Key {cbstr.hex()} not found")
@@ -179,7 +258,7 @@ class SuitEnum(SuitObject):
     def to_cbor(self):
         """Dump SUIT representation to cbor encoded bytes."""
         if child := [i for i in self._metadata.children if i.name == self.value]:
-            return cbor2.dumps(child[0].id)
+            return self.serialize_cbor(child[0].id)
         else:
             raise Exception(f"not possible to create cbor for name {self.value}")
 
@@ -224,8 +303,6 @@ class SuitBool(SuitObject):
         super().__init__(value)
 
 
-# TODO: maybe is worth to remove suit union at all and add configuration, required occurrences etc. as a metadata
-#   to simplify methods and internal structures?
 class SuitUnion(SuitObject):
     """Representation of different sub-items stored in the same location (alternatives)."""
 
@@ -236,8 +313,7 @@ class SuitUnion(SuitObject):
             try:
                 value = child.from_cbor(cbstr)
                 break
-            except (ValueError, MemoryError, cbor2.CBORError):
-                # fixme: need to be improved (detect possible MemoryError prior to occurring) - NCSDK-24195
+            except ValueError:
                 pass
         else:
             raise ValueError("Not possible to deserialize data")
@@ -272,7 +348,7 @@ class SuitTupleNamed(SuitObject):
     @classmethod
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
-        if not isinstance(value_list := cbor2.loads(cbstr), list):
+        if not isinstance(value_list := cls.deserialize_cbor(cbstr), list):
             raise ValueError(f"Expected list with values, received: {value_list}")
 
         # children = list(cls._metadata.map.values())
@@ -299,8 +375,8 @@ class SuitTupleNamed(SuitObject):
         """Dump SUIT representation to cbor encoded bytes."""
         data = []
         for v in self.value:
-            data.append(cbor2.loads(v.to_cbor()))
-        return cbor2.dumps(data)
+            data.append(self.deserialize_cbor(v.to_cbor()))
+        return self.serialize_cbor(data)
 
     @classmethod
     def from_obj(cls, obj):
@@ -352,7 +428,7 @@ class SuitKeyValue(SuitObject):
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
         value = {}
-        kv_dict = cbor2.loads(cbstr)
+        kv_dict = cls.deserialize_cbor(cbstr)
         if not isinstance(kv_dict, dict):
             raise ValueError(f"Expected key-value storage, received: {kv_dict}")
         for k, v in kv_dict.items():
@@ -371,10 +447,12 @@ class SuitKeyValue(SuitObject):
                         if item in value and (item is suit_integrated_payloads or item is suit_integrated_dependencies):
                             value[item].SuitIntegratedPayloadMap = {
                                 **value[item].SuitIntegratedPayloadMap,
-                                **cls._metadata.map[item].from_cbor(cbor2.dumps({k: v})).SuitIntegratedPayloadMap,
+                                **cls._metadata.map[item]
+                                .from_cbor(cls.serialize_cbor({k: v}))
+                                .SuitIntegratedPayloadMap,
                             }
                         else:
-                            value[item] = cls._metadata.map[item].from_cbor(cbor2.dumps({k: v}))
+                            value[item] = cls._metadata.map[item].from_cbor(cls.serialize_cbor({k: v}))
                     except ValueError:
                         log.warning(f"Not possible to deserialize data for {k}")
             else:
@@ -386,10 +464,10 @@ class SuitKeyValue(SuitObject):
         data = {}
         for k, v in self.value.items():
             if k is suit_integrated_payloads or k is suit_integrated_dependencies:
-                data.update(cbor2.loads(v.to_cbor()))
+                data.update(self.deserialize_cbor(v.to_cbor()))
             else:
-                data[k.id] = cbor2.loads(v.to_cbor())
-        return cbor2.dumps(data)
+                data[k.id] = self.deserialize_cbor(v.to_cbor())
+        return self.serialize_cbor(data)
 
     @classmethod
     def from_obj(cls, obj):
@@ -413,7 +491,7 @@ class SuitKeyValue(SuitObject):
                 value = v.to_obj()
             else:
                 key = k.to_obj()
-                value = cbor2.loads(v.value)
+                value = self.deserialize_cbor(v.value)
             obj[key] = value
         return obj
 
@@ -425,14 +503,14 @@ class SuitKeyValueUnnamed(SuitObject):
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
         ret = {}
-        kv_dict = cbor2.loads(cbstr)
+        kv_dict = cls.deserialize_cbor(cbstr)
         # TODO: shall be moved to cbor loader to simplify methods body
         if not isinstance(kv_dict, dict):
             raise ValueError(f"Expected key-value storage, received: {kv_dict}")
         for k, v in kv_dict.items():
             for c_k, c_v in cls._metadata.map.items():
                 try:
-                    key = c_k.from_cbor(cbor2.dumps(k))
+                    key = c_k.from_cbor(cls.serialize_cbor(k))
                     # fixme: both if's could be removed at all
                     if isinstance(key, list):
                         key = tuple(key)
@@ -454,11 +532,11 @@ class SuitKeyValueUnnamed(SuitObject):
         """Dump SUIT representation to cbor encoded bytes."""
         obj = {}
         for k, v in self.value.items():
-            key = cbor2.loads(v[0].to_cbor())
+            key = self.deserialize_cbor(v[0].to_cbor())
             if isinstance(key, list):
                 key = tuple(key)
-            obj[key] = cbor2.loads(v[1].to_cbor())
-        return cbor2.dumps(obj)
+            obj[key] = self.deserialize_cbor(v[1].to_cbor())
+        return self.serialize_cbor(obj)
 
     @classmethod
     def from_obj(cls, obj):
@@ -493,7 +571,7 @@ class SuitKeyValueTuple(SuitKeyValue):
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
         value = {}
-        k, v = cbor2.loads(cbstr)
+        k, v = cls.deserialize_cbor(cbstr)
 
         if not (child := cls._get_method_and_name(k)):
             raise ValueError(f"Unknown parameter: {k}")
@@ -506,10 +584,10 @@ class SuitKeyValueTuple(SuitKeyValue):
         obj = []
         for k, v in self.value.items():
             key = k.id
-            value = cbor2.loads(v.to_cbor())
+            value = self.deserialize_cbor(v.to_cbor())
             obj.append(key)
             obj.append(value)
-        return cbor2.dumps(obj)
+        return self.serialize_cbor(obj)
 
 
 class SuitTstr(SuitObject):
@@ -538,7 +616,7 @@ class SuitBstr(SuitObject):
 
     def to_cbor(self):
         """Dump SUIT representation to cbor encoded bytes."""
-        return cbor2.dumps(self.value)
+        return self.serialize_cbor(self.value)
 
     @classmethod
     def from_obj(cls, obj):
@@ -567,14 +645,16 @@ class SuitTag(SuitObject):
     @classmethod
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
-        cbor = cbor2.loads(cbstr)
+        cbor = cls.deserialize_cbor(cbstr)
         if cls._metadata.tag.value != cbor.tag:
             raise ValueError(f"CBOR tag not found in: {cbor}")
-        return cls(cbor2.CBORTag(cbor.tag, cls._metadata.children[0].from_cbor(cbor2.dumps(cbor.value))))
+        return cls(cbor2.CBORTag(cbor.tag, cls._metadata.children[0].from_cbor(cls.serialize_cbor(cbor.value))))
 
     def to_cbor(self):
         """Dump SUIT representation to cbor encoded bytes."""
-        return cbor2.dumps(cbor2.CBORTag(self._metadata.tag.value, cbor2.loads(self.value.value.to_cbor())))
+        return self.serialize_cbor(
+            cbor2.CBORTag(self._metadata.tag.value, self.deserialize_cbor(self.value.value.to_cbor()))
+        )
 
     @classmethod
     def from_obj(cls, obj):
@@ -599,7 +679,7 @@ class SuitList(SuitObject):
     @classmethod
     def from_cbor(cls, cbstr):
         """Restore SUIT representation from passed CBOR."""
-        values = cbor2.loads(cbstr)
+        values = cls.deserialize_cbor(cbstr)
         if not isinstance(values, list):
             raise ValueError(f"Unable to construct list from: {values}")
         # TODO: to refactor or remove
@@ -617,16 +697,16 @@ class SuitList(SuitObject):
         data = []
         for v in self.value:
             if self._group is not None:
-                z = cbor2.loads(v.to_cbor())
+                z = self.deserialize_cbor(v.to_cbor())
                 if isinstance(z, list):
                     z = tuple(z)
                 data.extend(z)
             else:
-                z = cbor2.loads(v.to_cbor())
+                z = self.deserialize_cbor(v.to_cbor())
                 if isinstance(z, list):
                     z = tuple(z)
                 data.append(z)
-        return cbor2.dumps(data)
+        return self.serialize_cbor(data)
 
     @classmethod
     def from_obj(cls, obj):
@@ -658,12 +738,12 @@ class SuitBitfield(SuitObject):
         """Restore SUIT representation from passed CBOR."""
         value = []
         bitsum = 0
-        bitval = cbor2.loads(cbstr)
+        bitval = cls.deserialize_cbor(cbstr)
         for bit in range(cls._bit_length):
             bitmask = 1 << bit
             if bitval & bitmask:
                 bitsum += bitmask
-                bit_obj = cls._bit_class.from_cbor(cbor2.dumps(bitmask))
+                bit_obj = cls._bit_class.from_cbor(cls.serialize_cbor(bitmask))
                 value.append(bit_obj)
         if bitsum != bitval:
             raise ValueError(f"Unable to represent the value {bitval} using {cls._bit_length} bits.")
@@ -673,8 +753,8 @@ class SuitBitfield(SuitObject):
         """Dump SUIT representation to cbor encoded bytes."""
         value = 0
         for bit in self.value:
-            value += cbor2.loads(bit.to_cbor())
-        return cbor2.dumps(value)
+            value += self.deserialize_cbor(bit.to_cbor())
+        return self.serialize_cbor(value)
 
     @classmethod
     def from_obj(cls, obj):
