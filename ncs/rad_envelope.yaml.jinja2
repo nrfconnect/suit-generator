@@ -46,7 +46,7 @@ SUIT_Envelope_Tagged:
       - suit-send-record-failure
     suit-install:
     - suit-directive-override-parameters:
-        suit-parameter-uri: '#{{ hci_rpmsg_subimage['binary'] }}'
+        suit-parameter-uri: '#{{ hci_rpmsg_subimage['name'] }}'
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
