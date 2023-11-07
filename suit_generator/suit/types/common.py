@@ -8,18 +8,17 @@
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """
 from __future__ import annotations
-
-import json
 from dataclasses import dataclass
 from typing import cast
-
-from suit_generator.logger import log_call
 import functools
-import cbor2
 import binascii
 import logging
 import struct
+import json
 
+import cbor2
+
+from suit_generator.logger import log_call
 from suit_generator.suit.types.keys import suit_integrated_payloads, suit_integrated_dependencies
 from suit_generator.exceptions import GeneratorError
 
@@ -123,9 +122,6 @@ class SuitObject:
 
         NCSDK-24195, https://github.com/agronholm/cbor2/issues/186 - due to bug in cbor2 package verify if cbstr
         does not contain data which will cause that cbor2 library will request huge amount of memory.
-
-        :param cbstr:
-        :return:
         """
         requested_memory_len = None
         cbor_item_type = cbstr[0] >> 5

@@ -32,6 +32,8 @@ def fuzz_tstr(data):
         fuzz_bytes = fdp.ConsumeBytes(16)
         SuitTstr.from_cbor(fuzz_bytes)
     except ValueError:
+        # ValueError is expected for some payloads since it's used by all suit-generator levels to report
+        # not valid data.
         pass
 
 

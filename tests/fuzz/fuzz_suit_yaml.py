@@ -99,6 +99,8 @@ def fuzz_yaml_component_id(data):
         env2 = SuitEnvelopeTagged.from_cbor(cbor1)
         env2.to_cbor()
     except ValueError:
+        # ValueError is expected for some payloads since it's used by all suit-generator levels to report
+        # not valid data.
         pass
 
 

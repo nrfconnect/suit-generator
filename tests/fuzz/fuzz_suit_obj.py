@@ -288,6 +288,8 @@ def fuzz_full_path(data):
         cbor2 = env2.to_cbor()
         assert cbor1.hex() == cbor2.hex()
     except ValueError:
+        # ValueError is expected for some payloads since it's used by all suit-generator levels to report
+        # not valid data.
         pass
 
 
