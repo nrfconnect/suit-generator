@@ -36,6 +36,8 @@ config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     help
       Path to the root template, that is used if the application directory does not
       contain an input root envelope template file.
+      You can use either absolute or relative path.
+      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
       This KConfig is available for backward compatibility and will be removed soon.
 
 config SUIT_ENVELOPE_ROOT_TEMPLATE
@@ -44,6 +46,8 @@ config SUIT_ENVELOPE_ROOT_TEMPLATE
     help
       Path to the default root envelope template, that is used if the application directory does not
       contain an input envelope template file.
+      You can use either absolute or relative path.
+      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
 
 if SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
 
@@ -53,6 +57,8 @@ config SUIT_ENVELOPE_APP_TEMPLATE
     help
       Path to the default application envelope template, that is used if the application directory does not
       contain an input application envelope template file.
+      You can use either absolute or relative path.
+      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
 
 config SUIT_ENVELOPE_HCI_RPMSG_SUBIMAGE_TEMPLATE
     string "Path to the default radio envelope template"
@@ -67,6 +73,8 @@ config SUIT_ENVELOPE_MULTIPROTOCOL_RPMSG_SUBIMAGE_TEMPLATE
     help
       Path to the default multiprotocol radio envelope template, that is used if the application
       directory does not contain an input radio envelope template file.
+      You can use either absolute or relative path.
+      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
 
 endif # SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
 
