@@ -1,0 +1,8 @@
+# CODEOWNERS for autoreview assigning in github@
+
+* @robertstypa
+/ncs @tomchy @robertstypa
+/suit_generator @tomchy @robertstypa
+/suit_generator/cmd_image.py @adsz-nordic @tomchy @robertstypa
+/suit_generator/cmd_convert.py @adsz-nordic @tomchy @robertstypa
+/suit_generator/cmd_keys.py @adsz-nordic @tomchy @robertstypa
