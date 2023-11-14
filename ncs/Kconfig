@@ -27,7 +27,7 @@ config SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
     select EXPERIMENTAL
     help
         Create hierarchical root manifest with it's dependent sub-manifests
-    default n
+    default y
 
 config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     string "Path to the default envelope template (deprecated)"
