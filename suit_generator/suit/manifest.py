@@ -268,7 +268,7 @@ class SuitCommand(SuitUnion):
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[SuitBchar, cbstr(SuitTstr), SuitUUID, cbstr(SuitUint), SuitBstr])
+    _metadata = Metadata(children=[SuitUUID, SuitBchar, cbstr(SuitTstr), cbstr(SuitUint), SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):

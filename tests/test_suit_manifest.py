@@ -12,6 +12,7 @@ from suit_generator.suit.manifest import (
     SuitComponents,
     SuitComponentIdentifier,
     SuitCommandSequence,
+    SuitComponentIdentifierPart,
 )
 
 from suit_generator.suit.types.keys import suit_common, suit_manifest_version, suit_manifest_sequence_number
@@ -28,6 +29,7 @@ TEST_DATA = {
     ),
     "COMPONENTS_DATA": "81814100",
     "COMPONENT_IDENTIFIER_DATA": "814100",
+    "COMPONENT_IDENTIFIER_DATA_MEMORY_ERROR": "ab5b2ca0b0a0000000a0a0a0",
     "COMMAND_SEQUENCE_DATA": (
         "8614a40150fa6b4a53d5ad5fdfbe9de663e4d41ffe02501492af1425695e48bf429b2d51f2ab45035824822f5820001122334455"
         "66778899aabbccddeeff0123456789abcdeffedcba98765432100e1987d0010f020f"
@@ -81,6 +83,7 @@ TEST_DATA_COMPONENT_IDENTIFIER_DATA = [
     [
         (SuitComponents, "COMPONENTS_DATA"),
         (SuitComponentIdentifier, "COMPONENT_IDENTIFIER_DATA"),
+        (SuitComponentIdentifierPart, "COMPONENT_IDENTIFIER_DATA_MEMORY_ERROR"),
         (SuitCommandSequence, "COMMAND_SEQUENCE_DATA"),
         (SuitCommon, "COMMON_DATA"),
     ],

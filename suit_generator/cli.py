@@ -9,7 +9,7 @@ if __name__ == "__main__":
     import sys
     import pathlib
 
-    sys.path.append(str(pathlib.Path(__file__).parents[1].absolute()))
+    sys.path.insert(0, str(pathlib.Path(__file__).parents[1].absolute()))
 
 from suit_generator import cmd_parse, cmd_keys, cmd_convert, cmd_create, cmd_image, args
 from suit_generator.exceptions import GeneratorError, SUITError
