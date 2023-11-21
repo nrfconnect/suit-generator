@@ -44,8 +44,6 @@ SUIT_Envelope_Tagged:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
               file: {{ _802154_rpmsg_subimage['binary'] }}
-          suit-parameter-image-size:
-            file: {{ _802154_rpmsg_subimage['binary'] }}
     suit-validate:
     - suit-directive-set-component-index: 0
     - suit-condition-image-match:
@@ -86,7 +84,7 @@ SUIT_Envelope_Tagged:
         namespace: nordicsemi.com
         name: nRF54H20_sample_rad
   suit-text:
-    '["MEM", 3, 235225088, 350208]':
+  '["MEM", {{ _802154_rpmsg_subimage['dt'].label2node['cpu'].unit_addr }}, {{ get_absolute_address(_802154_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition']) }}, {{ _802154_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}]':
       suit-text-vendor-name: Nordic Semiconductor ASA
       suit-text-model-name: nRF54H20_cpurad
       suit-text-vendor-domain: nordicsemi.com
