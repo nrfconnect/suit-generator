@@ -140,8 +140,6 @@ SUIT_Envelope_Tagged:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
             envelope: {{ hci_rpmsg_subimage['binary'] | replace('zephyr.bin', hci_rpmsg_subimage['name'] ~ '.suit') }}
-        suit-parameter-image-size:
-          envelope: {{ hci_rpmsg_subimage['binary'] | replace('zephyr.bin', hci_rpmsg_subimage['name'] ~ '.suit') }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -167,8 +165,6 @@ SUIT_Envelope_Tagged:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
             envelope: {{ multiprotocol_rpmsg_subimage['binary'] | replace('zephyr.bin', multiprotocol_rpmsg_subimage['name'] ~ '.suit') }}
-        suit-parameter-image-size:
-          envelope: {{ multiprotocol_rpmsg_subimage['binary'] | replace('zephyr.bin', multiprotocol_rpmsg_subimage['name'] ~ '.suit') }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -194,8 +190,6 @@ SUIT_Envelope_Tagged:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
             envelope: {{ _802154_rpmsg_subimage['binary'] | replace('zephyr.bin', _802154_rpmsg_subimage['name'] ~ '.suit') }}
-        suit-parameter-image-size:
-          envelope: {{ _802154_rpmsg_subimage['binary'] | replace('zephyr.bin', _802154_rpmsg_subimage['name'] ~ '.suit') }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -221,8 +215,6 @@ SUIT_Envelope_Tagged:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
             envelope: {{ app['binary'] | replace('zephyr.bin', app['name'] ~ '.suit') }}
-        suit-parameter-image-size:
-          envelope: {{ app['binary'] | replace('zephyr.bin', app['name'] ~ '.suit') }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
