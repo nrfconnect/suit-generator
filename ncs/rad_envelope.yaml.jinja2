@@ -45,7 +45,7 @@ SUIT_Envelope_Tagged:
             suit-digest-bytes:
               file: {{ hci_rpmsg_subimage['binary'] }}
           suit-parameter-image-size:
-            file: {{ app['binary'] }}
+            file: {{ hci_rpmsg_subimage['binary'] }}
     suit-validate:
     - suit-directive-set-component-index: 0
     - suit-condition-image-match:
