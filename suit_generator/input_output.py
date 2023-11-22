@@ -40,10 +40,12 @@ class InputOutputMixin:
         "suit_simplified": "from_suit_file_simplified",
     }
 
+    DEFAULT_ENCODING = "utf-8"
+
     @classmethod
     def from_json_file(cls, file_name: str) -> dict:
         """Read json file and return dict."""
-        with open(file_name, "r") as fh:
+        with open(file_name, "r", encoding=cls.DEFAULT_ENCODING) as fh:
             data = json.load(fh)
         return data
 
@@ -61,13 +63,13 @@ class InputOutputMixin:
     @classmethod
     def to_json_file(cls, file_name: str, data: dict, parse_hierarchy: bool, *args) -> None:
         """Write dict content into json file."""
-        with open(file_name, "w") as fh:
+        with open(file_name, "w", encoding=cls.DEFAULT_ENCODING) as fh:
             json.dump(cls.parse_json_submanifests(data) if parse_hierarchy is True else data, fh, sort_keys=False)
 
     @classmethod
     def from_yaml_file(cls, file_name) -> dict:
         """Read yaml file and return dict."""
-        with open(file_name, "r") as fh:
+        with open(file_name, "r", encoding=cls.DEFAULT_ENCODING) as fh:
             data = yaml.load(fh, Loader=yaml.SafeLoader)
         return data
 
@@ -92,7 +94,7 @@ class InputOutputMixin:
     @classmethod
     def to_yaml_file(cls, file_name, data, parse_hierarchy: bool, *args) -> None:
         """Write dict content into yaml file."""
-        with open(file_name, "w") as fh:
+        with open(file_name, "w", encoding=cls.DEFAULT_ENCODING) as fh:
             yaml.dump(cls.parse_yaml_submanifests(data) if parse_hierarchy is True else data, fh, sort_keys=False)
 
     @classmethod

@@ -93,6 +93,8 @@ def add_arguments(parser):
 class KeyConverter:
     """Creates a C file with public key data in form of an array from a private key stored in PEM format."""
 
+    DEFAULT_ENCODING = "utf-8"
+
     default_array_type = "uint8_t"
     default_array_name = "key_buf"
     default_length_type = "size_t"
@@ -187,7 +189,7 @@ class KeyConverter:
 
     def _prepare_header(self) -> str:
         if self._header_file:
-            with open(self._header_file, "r") as fd:
+            with open(self._header_file, "r", encoding=self.DEFAULT_ENCODING) as fd:
                 contents = fd.read()
             if len(contents) > 0:
                 contents += KeyConverter.newline * 2
@@ -236,7 +238,7 @@ class KeyConverter:
 
     def _prepare_footer(self) -> str:
         if self._footer_file:
-            with open(self._footer_file, "r") as fd:
+            with open(self._footer_file, "r", encoding=self.DEFAULT_ENCODING) as fd:
                 contents = fd.read()
             if len(contents) > 0:
                 contents = KeyConverter.newline + contents
@@ -300,7 +302,7 @@ class KeyConverter:
 
     def generate_c_file(self):
         """Create a C file containing public key data stored as an array."""
-        with open(self._output_file, "w") as fd:
+        with open(self._output_file, "w", encoding=self.DEFAULT_ENCODING) as fd:
             fd.write(self.prepare_file_contents())
 
 
