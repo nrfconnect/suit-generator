@@ -47,7 +47,7 @@ SUIT_Envelope_Tagged:
         - suit-send-sysinfo-success
         - suit-send-sysinfo-failure
 {%-  if app is defined %}
-      - suit-directive-set-component-index: true
+      - suit-directive-set-component-index: {{ app_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-image-digest:
             suit-digest-algorithm-id: cose-alg-sha-256
@@ -97,6 +97,10 @@ SUIT_Envelope_Tagged:
     - suit-directive-set-component-index: 0
     - suit-directive-override-parameters:
         suit-parameter-uri: '#{{ app['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            file: {{ app['binary'] }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -123,8 +127,6 @@ SUIT_Envelope_Tagged:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
             file: {{ hci_rpmsg_subimage['binary'] }}
-        suit-parameter-image-size:
-          file: {{ hci_rpmsg_subimage['binary'] }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:

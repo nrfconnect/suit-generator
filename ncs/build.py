@@ -9,6 +9,7 @@ import os
 import sys
 import pickle
 import pathlib
+import re
 
 from jinja2 import Template
 from argparse import ArgumentParser
@@ -36,7 +37,14 @@ def read_configurations(configurations):
         name, binary, edt = config.split(",")
         with open(edt, "rb") as edt_handler:
             edt = pickle.load(edt_handler)
-            data[name] = {"name": name, "config": convert(edt), "dt": edt, "binary": binary}
+            # add prefix _ to the names starting with digits, for example:
+            #   802154_rpmsg_subimage will be available in the templates as _802154_rpmsg_subimage
+            data[f"_{name}" if re.match("^[0-9].*]", name) else name] = {
+                "name": name,
+                "config": convert(edt),
+                "dt": edt,
+                "binary": binary,
+            }
     data["get_absolute_address"] = get_absolute_address
     return data
 
