@@ -1,2 +1,5 @@
 "CI-suit-dfu-test":
   - "**/*"
+
+"CI-matter-test":
+  - "**/*"
