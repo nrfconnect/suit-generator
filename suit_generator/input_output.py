@@ -48,7 +48,7 @@ class InputOutputMixin:
         return data
 
     @classmethod
-    def parse_json_submanifests(cls, data):
+    def parse_json_submanifests(cls, data: dict) -> dict:
         """Parse sub-manifests."""
         if suit_integrated_dependencies.name in data["SUIT_Envelope_Tagged"]:
             for key in data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name]:
@@ -65,14 +65,14 @@ class InputOutputMixin:
             json.dump(cls.parse_json_submanifests(data) if parse_hierarchy is True else data, fh, sort_keys=False)
 
     @classmethod
-    def from_yaml_file(cls, file_name) -> dict:
+    def from_yaml_file(cls, file_name: str) -> dict:
         """Read yaml file and return dict."""
         with open(file_name, "r") as fh:
             data = yaml.load(fh, Loader=yaml.SafeLoader)
         return data
 
     @classmethod
-    def parse_yaml_submanifests(cls, data):
+    def parse_yaml_submanifests(cls, data: dict) -> dict:
         """Parse sub-manifest and store as yaml anchors."""
         if suit_integrated_dependencies.name in data["SUIT_Envelope_Tagged"]:
             if "SUIT_Dependent_Manifests" not in data:
@@ -90,20 +90,20 @@ class InputOutputMixin:
         return data
 
     @classmethod
-    def to_yaml_file(cls, file_name, data, parse_hierarchy: bool, *args) -> None:
+    def to_yaml_file(cls, file_name: str, data: dict, parse_hierarchy: bool, *args) -> None:
         """Write dict content into yaml file."""
         with open(file_name, "w") as fh:
             yaml.dump(cls.parse_yaml_submanifests(data) if parse_hierarchy is True else data, fh, sort_keys=False)
 
     @classmethod
-    def to_stdout(cls, file_name, data, parse_hierarchy: bool, *args) -> None:
+    def to_stdout(cls, file_name: str, data: dict, parse_hierarchy: bool, *args) -> None:
         """Dump as yaml into STDOUT."""
         print(
             yaml.dump(cls.parse_yaml_submanifests(data) if parse_hierarchy is True else data, sort_keys=False), end=""
         )
 
     @classmethod
-    def from_suit_file(cls, file_name) -> dict:
+    def from_suit_file(cls, file_name: str) -> dict:
         """Read suit file and return dict."""
         with open(file_name, "rb") as fh:
             data = fh.read()
@@ -111,7 +111,7 @@ class InputOutputMixin:
             return suit.to_obj()
 
     @classmethod
-    def from_suit_file_simplified(cls, file_name) -> dict:
+    def from_suit_file_simplified(cls, file_name: str) -> dict:
         """Read suit file and return dict."""
         with open(file_name, "rb") as fh:
             data = fh.read()
@@ -119,19 +119,19 @@ class InputOutputMixin:
             return suit.to_obj()
 
     @staticmethod
-    def prepare_suit_data(data) -> bytes:
+    def prepare_suit_data(data: dict) -> bytes:
         """Convert data to suit format."""
         suit_obj = SuitEnvelopeTagged.from_obj(data)
         suit_obj.update_severable_digests()
         suit_obj.update_digest()
         return suit_obj.to_cbor()
 
-    def to_suit_file(self, file_name, data, parse_hierarchy) -> None:
+    def to_suit_file(self, file_name: str, data: dict, parse_hierarchy: bool) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
             fh.write(self.prepare_suit_data(data))
 
-    def to_suit_file_simplified(self, file_name, data, parse_hierarchy: bool) -> None:
+    def to_suit_file_simplified(self, file_name: str, data: dict, parse_hierarchy: bool) -> None:
         """Write dict content into suit file."""
         with open(file_name, "wb") as fh:
             suit_obj = SuitEnvelopeTaggedSimplified.from_obj(data)

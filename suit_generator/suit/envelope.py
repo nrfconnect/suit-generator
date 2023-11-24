@@ -108,7 +108,7 @@ class SuitBasicEnvelopeOperationsMixin:
                 ].value.SuitDigest.SuitDigestRaw[1].value = binascii.a2b_hex(hash_func.hash(object_data))
 
     @classmethod
-    def return_processed_binary_data(cls, obj: dict | str):
+    def return_processed_binary_data(cls, obj: dict | str) -> bytes:
         """Return binary SUIT envelope with updated digests."""
         if isinstance(obj, dict):
             suit_obj = cls.from_obj(obj)

@@ -132,7 +132,7 @@ class SuitUUID(SuitBstr):
     """Representation of SUIT UUID identifier."""
 
     @classmethod
-    def from_cbor(cls, cbstr):
+    def from_cbor(cls, cbstr: bytes) -> SuitBstr:
         """Restore SUIT representation from passed CBOR."""
         # The RFC4122 UUID consists of 16 bytes.
         if len(cbstr) != 16:
@@ -140,7 +140,7 @@ class SuitUUID(SuitBstr):
         return super().from_cbor(cbstr)
 
     @classmethod
-    def from_obj(cls, obj):
+    def from_obj(cls, obj: dict) -> SuitBstr:
         """Restore SUIT representation from passed object."""
         if not isinstance(obj, dict):
             raise ValueError(f"Expected dict, received: {obj}")
@@ -165,7 +165,7 @@ class SuitUUID(SuitBstr):
         else:
             raise ValueError(f"Unable to parse UUID: {obj}")
 
-    def to_obj(self):
+    def to_obj(self) -> dict:
         """Dump SUIT representation to object."""
         return {"raw": super().to_obj()}
 
@@ -173,12 +173,12 @@ class SuitUUID(SuitBstr):
 class SuitImageSize(SuitUint):
     """Representation of SUIT image size parameter."""
 
-    def to_obj(self):
+    def to_obj(self) -> dict:
         """Dump SUIT representation to object."""
         return {"raw": super().to_obj()}
 
     @classmethod
-    def from_obj(cls, obj):
+    def from_obj(cls, obj: dict) -> SuitUint:
         """Restore SUIT representation from passed object."""
         if not isinstance(obj, dict):
             raise ValueError(f"Expected dict, received: {obj}")
