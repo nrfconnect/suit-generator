@@ -93,7 +93,7 @@ class SuitObject:
         setattr(self, self.__class__.__name__, value)
 
     @staticmethod
-    def decode_cbor_length(subtype: int, data, allow_indefinite: bool = False) -> int | None:
+    def decode_cbor_length(subtype: int, data: bytes, allow_indefinite: bool = False) -> int | None:
         """Decode cbor object length.
 
         https://github.com/agronholm/cbor2/blob/master/cbor2/_decoder.py#L258-L272
@@ -102,7 +102,7 @@ class SuitObject:
             if subtype < 24:
                 return subtype
             elif subtype == 24:
-                return data[0][0]
+                return data[0]
             elif subtype == 25:
                 return cast(int, struct.unpack(">H", data[:2])[0])
             elif subtype == 26:
