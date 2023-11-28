@@ -126,7 +126,8 @@ class SuitObject:
         requested_memory_len = None
         cbor_item_type = cbstr[0] >> 5
         cbor_item_count = cbstr[0] & 31
-        if 1 < cbor_item_type < 7 and 23 < cbor_item_count < 28:
+        # fixme: do not validate CBORTag length
+        if 1 < cbor_item_type < 6 and 23 < cbor_item_count < 28:
             try:
                 # Check only for long field encoding (String, Items, Tag) with short count in range 24 - 27
                 requested_memory_len = SuitObject.decode_cbor_length(cbor_item_count, cbstr[1:])
