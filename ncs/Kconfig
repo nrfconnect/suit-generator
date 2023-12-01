@@ -118,23 +118,11 @@ config SUIT_ENVELOPE_SIGN_SCRIPT
 config SUIT_PREPARE_SECDOM_UPDATE
   bool "Create SUIT envelope for SDFW update"
   depends on IS_SECURE_DOMAIN_FW
-  default n
+  default y if !HW_REVISION_SOC1
 
-config SUIT_ENVELOPE_CREATE_SECDOM_UPDATE_YAML_SCRIPT
-  string "Location of script for preparing secdom yaml envelope"
-  depends on SUIT_PREPARE_SECDOM_UPDATE
-  help
-      Python script called to generate yaml file for secure domain update.
-      Script requires parameters:
-      - --secdom-update-payload-uri - URI to be used in the yaml
-      - --secdom-update-payload-file - path to secure domain update payload
-      - --template-file - jinja2 template file for creating the yaml file
-      - --envelope-yaml-file - the yaml file to be generated
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/create_secdom_update_envelope_yaml.py"
-
-config SUIT_ENVELOPE_SECDOM_YAML_TEMPLATE_FILE
+config SUIT_ENVELOPE_SECDOM_TEMPLATE
   string "Location of template file for preparing secdom yaml envelope"
-  depends on SUIT_PREPARE_SECDOM_UPDATE
+  depends on !HW_REVISION_SOC1
   help
       Jinja2 template file used to generate yaml file for secure domain update.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/secdom_update_envelope.yaml.jinja2"

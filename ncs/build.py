@@ -20,6 +20,7 @@ from suit_generator.cmd_image import ImageCreator  # noqa: E402
 
 TEMPLATE_CMD = "template"
 STORAGE_CMD = "storage"
+UPDATE_CMD = "update"
 
 
 def convert(edt_object):
@@ -88,6 +89,21 @@ cmd_storage_arg_parser.add_argument(
 )
 cmd_storage_arg_parser.add_argument("--storage-output-file", required=True, help="Input binary SUIT envelope.")
 
+cmd_update_arg_parser = subparsers.add_parser(
+    UPDATE_CMD, help="Generate files needed for Secure Domain update", parents=[parent_parser]
+)
+
+cmd_update_arg_parser.add_argument("--input-file", required=True, help="SUIT envelope in binary format")
+cmd_update_arg_parser.add_argument(
+    "--storage-output-file", required=True, help="SUIT storage output file in HEX format"
+)
+cmd_update_arg_parser.add_argument(
+    "--dfu-partition-output-file", required=True, help="DFU partition output file in HEX format"
+)
+cmd_update_arg_parser.add_argument(
+    "--dfu-partition-address", required=True, type=lambda x: int(x, 0), help="Start address of DFU partition"
+)
+
 arguments = parser.parse_args()
 
 sys.path.insert(0, os.path.join(arguments.zephyr_base, "scripts", "dts", "python-devicetree", "src"))
@@ -110,5 +126,14 @@ elif arguments.command == STORAGE_CMD:
         envelope_slot_size=ImageCreator.default_envelope_slot_size,
         envelope_slot_count=ImageCreator.default_envelope_slot_count,
         update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
+        dfu_max_caches=ImageCreator.default_dfu_max_caches,
+    )
+elif arguments.command == UPDATE_CMD:
+    ImageCreator.create_files_for_update(
+        input_file=arguments.input_file,
+        storage_output_file=arguments.storage_output_file,
+        dfu_partition_output_file=arguments.dfu_partition_output_file,
+        update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
+        dfu_partition_address=arguments.dfu_partition_address,
         dfu_max_caches=ImageCreator.default_dfu_max_caches,
     )
