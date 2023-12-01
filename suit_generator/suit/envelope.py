@@ -99,7 +99,7 @@ class SuitBasicEnvelopeOperationsMixin:
                 try:
                     object_data = self.SuitEnvelopeTagged.value.SuitEnvelope[severable_element].to_cbor()
                 except KeyError:
-                    # Data for digest calculation not available so skipp this element.
+                    # Data for digest calculation not available so skip this element.
                     # This is expected case for creation of booting images when severable elements has been removed.
                     continue
                 hash_func = SuitHash(alg)

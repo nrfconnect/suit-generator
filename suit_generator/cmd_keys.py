@@ -62,7 +62,7 @@ class KeyGenerator:
     """Key pair generator."""
 
     # Key types supported by KeyGenerator.
-    # secp* curves are mapped to their corresponding classes for easier instatiation.
+    # secp* curves are mapped to their corresponding classes for easier instantiation.
     # ed* curves use different approach and don't need such mapping.
     supported_key_types = {
         "secp256r1": ec.SECP256R1,
