@@ -440,6 +440,10 @@ class SuitKeyValue(SuitObject):
                             item = suit_integrated_dependencies
                         except Exception:
                             pass
+
+                        if item not in cls._metadata.map:
+                            raise ValueError(f"Impossible to create embedded element: {item}")
+
                         # TODO: refactoring required: workaround for multiple integrated payloads
                         if item in value and (item is suit_integrated_payloads or item is suit_integrated_dependencies):
                             value[item].SuitIntegratedPayloadMap = {
