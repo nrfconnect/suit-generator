@@ -40,6 +40,7 @@ class SuitEnvelopeSimplified(SuitKeyValue):
             suit_install: SuitBstr,
             suit_text: SuitBstr,
             suit_integrated_payloads: SuitIntegratedPayloadMap,
+            suit_integrated_dependencies: SuitIntegratedPayloadMap,
         },
         embedded=[suit_integrated_payloads],
     )
