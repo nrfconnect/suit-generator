@@ -108,6 +108,7 @@ elif arguments.command == STORAGE_CMD:
         storage_output_file=arguments.storage_output_file,
         envelope_address=ImageCreator.default_envelope_address,
         envelope_slot_size=ImageCreator.default_envelope_slot_size,
+        envelope_slot_count=ImageCreator.default_envelope_slot_count,
         update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
         dfu_max_caches=ImageCreator.default_dfu_max_caches,
     )

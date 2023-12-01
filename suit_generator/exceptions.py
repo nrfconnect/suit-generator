@@ -16,4 +16,4 @@ class SUITError(Exception):
 
 
 class SignerError(Exception):
-    """Indicates errors related to envelope signer (e.g. unsuported key type))."""
+    """Indicates errors related to envelope signer (e.g. unsupported key type))."""

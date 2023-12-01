@@ -253,7 +253,7 @@ class KeyConverter:
 
         public_key_numbers = private_key.public_key().public_numbers()
 
-        # Make sure that if bit length is not alligned to 8, full bytes will be used
+        # Make sure that if bit length is not aligned to 8, full bytes will be used
         x_byte_length = (public_key_numbers.x.bit_length() + 7) // 8
         y_byte_length = (public_key_numbers.y.bit_length() + 7) // 8
 
@@ -290,7 +290,7 @@ class KeyConverter:
         return text
 
     def prepare_file_contents(self):
-        """Prepare a C file text containg public key data stored as an array."""
+        """Prepare a C file text containing public key data stored as an array."""
         text = self._prepare_header()
         text += self._prepare_array_definition()
         text += self._prepare_array()

@@ -63,6 +63,13 @@ def add_arguments(parser):
         help=f"Envelope slot size in SUIT storage. Default: 0x{ImageCreator.default_envelope_slot_size:08X}",
     )
     cmd_image_boot.add_argument(
+        "--envelope-slot-count",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_envelope_slot_count,
+        help=f"Max number of envelope slots in SUIT storage. Default: {ImageCreator.default_envelope_slot_count}",
+    )
+    cmd_image_boot.add_argument(
         "--dfu-max-caches",
         required=False,
         type=int,
@@ -113,6 +120,7 @@ class ImageCreator:
     default_update_candidate_info_address = 0x0E1EB000
     default_envelope_address = 0x0E1EB180
     default_envelope_slot_size = 2048
+    default_envelope_slot_count = 8
     default_dfu_partition_address = 0x0E100000
     default_dfu_max_caches = 4
 
@@ -195,6 +203,7 @@ class ImageCreator:
         update_candidate_info_address: int,
         installed_envelope_address: int,
         envelope_slot_size: int,
+        envelope_slot_count: int,
         file_name: str,
         dfu_max_caches: int,
     ) -> None:
@@ -209,6 +218,7 @@ class ImageCreator:
 
         # Installed envelopes
         envelope_address = installed_envelope_address
+        envelope_slot = 0
 
         for envelope in envelopes:
             envelope_bytes = ImageCreator._prepare_envelope_slot_binary(envelope)
@@ -216,12 +226,25 @@ class ImageCreator:
                 raise GeneratorError(
                     f"Input envelope ({envelope}) exceeds slot size ({len(envelope_bytes)} > {envelope_slot_size})."
                 )
+            else:
+                envelope_bytes = envelope_bytes + b"\xFF" * (envelope_slot_size - len(envelope_bytes))
 
             envelope_hex = IntelHex()
             envelope_hex.frombytes(envelope_bytes, envelope_address)
 
             combined_hex.merge(envelope_hex)
             envelope_address += envelope_slot_size
+            envelope_slot += 1
+
+        while envelope_slot < envelope_slot_count:
+            envelope_bytes = b"\xFF" * envelope_slot_size
+
+            envelope_hex = IntelHex()
+            envelope_hex.frombytes(envelope_bytes, envelope_address)
+
+            combined_hex.merge(envelope_hex)
+            envelope_address += envelope_slot_size
+            envelope_slot += 1
 
         combined_hex.write_hex_file(file_name)
 
@@ -255,6 +278,7 @@ class ImageCreator:
         update_candidate_info_address: int,
         envelope_address: int,
         envelope_slot_size: int,
+        envelope_slot_count: int,
         dfu_max_caches: int,
     ) -> None:
         """Create storage and payload hex files allowing boot execution path.
@@ -263,6 +287,9 @@ class ImageCreator:
         :param storage_output_file: file path to hex file with SUIT storage contents
         :param update_candidate_info_address: address of SUIT storage update candidate info
         :param envelope_address: address of installed envelope in SUIT storage
+        :param envelope_slot_size: number of bytes, reserved to store a single envelope,
+        :param envelope_slot_count: number of envelope slots in SUIT storage,
+        :param dfu_max_caches: maximum number of caches, allowed to be passed inside update candidate info,
         """
         try:
             envelopes = []
@@ -278,6 +305,7 @@ class ImageCreator:
                 update_candidate_info_address,
                 envelope_address,
                 envelope_slot_size,
+                envelope_slot_count,
                 storage_output_file,
                 dfu_max_caches,
             )
@@ -335,6 +363,7 @@ def main(**kwargs) -> None:
             kwargs["update_candidate_info_address"],
             kwargs["envelope_address"],
             kwargs["envelope_slot_size"],
+            kwargs["envelope_slot_count"],
             kwargs["dfu_max_caches"],
         )
     elif kwargs["image"] == ImageCreator.IMAGE_CMD_UPDATE:
