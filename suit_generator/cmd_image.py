@@ -117,11 +117,11 @@ class ImageCreator:
     ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY = 1
     ENVELOPE_SLOT_ENVELOPE_BSTR_KEY = 2
 
-    default_update_candidate_info_address = 0x0E1EB000
-    default_envelope_address = 0x0E1EB180
+    default_update_candidate_info_address = 0x0E1E7000
+    default_envelope_address = 0x0E1E7180
     default_envelope_slot_size = 2048
     default_envelope_slot_count = 8
-    default_dfu_partition_address = 0x0E100000
+    default_dfu_partition_address = 0x0E155000
     default_dfu_max_caches = 4
 
     UPDATE_MAGIC_VALUE_AVAILABLE = 0x55AA55AA
