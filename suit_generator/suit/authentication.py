@@ -56,13 +56,13 @@ class SuitHash:
         "cose-alg-shake256": hashes.SHAKE256(32),
     }
 
-    def __init__(self, hash_name):
+    def __init__(self, hash_name: str) -> None:
         """Initialize object."""
         if hash_name not in self._hash_func.keys():
             raise ValueError(f"Unsupported hash algorithm: {hash_name}")
         self._hash_name = hash_name
 
-    def hash(self, bstr):
+    def hash(self, bstr: bytes) -> str:
         """Compute hash value."""
         func = hashes.Hash(self._hash_func[self._hash_name], backend=default_backend())
         func.update(bstr)
@@ -104,12 +104,12 @@ class SuitDigestExt:
     """Representation of SUIT digest ext."""
 
     @classmethod
-    def from_cbor(cls, cbstr):
+    def from_cbor(cls, cbstr: bytes):
         """Restore SUIT representation from passed CBOR string."""
         raise ValueError("The extended digest class can be used only with objects")
 
     @classmethod
-    def from_obj(cls, obj):
+    def from_obj(cls, obj: dict) -> SuitDigestRaw:
         """Restore SUIT representation from passed object."""
         # fixme: workaround to handle suit-text (SuitTextMap) in the manifest, without this workaround obj has
         #  additional suit-digest-bytes key which is not supported by suit-text (SuitTextMap)

@@ -16,7 +16,7 @@ class SuitIntegratedPayloadMap(SuitKeyValueUnnamed):
     _metadata = Metadata(map={SuitTstr: SuitHex})
 
     @classmethod
-    def from_obj(cls, obj):
+    def from_obj(cls, obj: dict) -> SuitKeyValueUnnamed:
         """Restore SUIT representation from passed object."""
         ret = {}
         for k, v in obj.items():
