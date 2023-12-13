@@ -39,11 +39,11 @@ EXPECTED_GENERATED_FILE_ORIGINAL = """const uint8_t public_key[] = {
 @pytest.fixture
 def mocker_existing_file(mocker):
     getsize_data = mocker.Mock()
-    getsize_data.side_effect = lambda x: len(PRIVATE_KEY_FILE_NONEMPTY)
+    getsize_data.side_effect = lambda _: len(PRIVATE_KEY_FILE_NONEMPTY)
     mocker.patch("os.path.getsize", getsize_data)
 
     exists_data = mocker.Mock()
-    exists_data.side_effect = lambda x: True
+    exists_data.side_effect = lambda _: True
     mocker.patch("os.path.exists", exists_data)
 
 
@@ -59,7 +59,7 @@ def default_converter(mocker_existing_file):
 @pytest.fixture
 def mocker_header_and_key(mocker):
     getsize_data = mocker.Mock()
-    getsize_data.side_effect = lambda _: 1  # Just ensure it nonnegative
+    getsize_data.side_effect = lambda _: 1  # Just ensure it is nonnegative
     mocker.patch("os.path.getsize", getsize_data)
 
     exists_data = mocker.Mock()
@@ -76,7 +76,7 @@ def mocker_header_and_key(mocker):
 @pytest.fixture
 def mocker_key_and_footer(mocker):
     getsize_data = mocker.Mock()
-    getsize_data.side_effect = lambda _: 1  # Just ensure it nonnegative
+    getsize_data.side_effect = lambda _: 1  # Just ensure it is nonnegative
     mocker.patch("os.path.getsize", getsize_data)
 
     exists_data = mocker.Mock()
@@ -93,7 +93,7 @@ def mocker_key_and_footer(mocker):
 @pytest.fixture
 def mocker_header_key_and_footer(mocker):
     getsize_data = mocker.Mock()
-    getsize_data.side_effect = lambda _: 1  # Just ensure it nonnegative
+    getsize_data.side_effect = lambda _: 1  # Just ensure it is nonnegative
     mocker.patch("os.path.getsize", getsize_data)
 
     exists_data = mocker.Mock()
@@ -127,11 +127,11 @@ def valid_converter(mocker_existing_file):
 @pytest.fixture
 def mocker_empty_file(mocker):
     exists_data = mocker.Mock()
-    exists_data.side_effect = lambda x: True
+    exists_data.side_effect = lambda _: True
     mocker.patch("os.path.exists", exists_data)
 
     size_data = mocker.Mock()
-    size_data.side_effect = lambda x: 0
+    size_data.side_effect = lambda _: 0
     mocker.patch("os.path.getsize", size_data)
 
     mocked_data = mocker.mock_open(read_data="")
@@ -153,11 +153,11 @@ def mocker_footer_file_nonempty(mocker):
 @pytest.fixture
 def mocker_private_key_file_nonempty(mocker):
     getsize_data = mocker.Mock()
-    getsize_data.side_effect = lambda x: len(PRIVATE_KEY_FILE_NONEMPTY)
+    getsize_data.side_effect = lambda _: len(PRIVATE_KEY_FILE_NONEMPTY)
     mocker.patch("os.path.getsize", getsize_data)
 
     exists_data = mocker.Mock()
-    exists_data.side_effect = lambda x: True
+    exists_data.side_effect = lambda _: True
     mocker.patch("os.path.exists", exists_data)
 
     mocked_data = mocker.mock_open(read_data=PRIVATE_KEY_FILE_NONEMPTY)
@@ -168,16 +168,32 @@ def test_validate_invalid_input_file():
     # GIVEN empty input file name
     # WHEN converter is created
     # THEN it raises an exception
-    with pytest.raises(ValueError):
+    with pytest.raises(FileNotFoundError):
         KeyConverter(input_file="", output_file="some_output_file")
 
 
-def test_validate_invalid_output_file():
-    # GIVEN empty output file name
+def test_validate_whitespace_input_file(mocker_existing_file):
+    # GIVEN input file name consisting of white spaces
     # WHEN converter is created
+    # THEN it does not raise an exception
+    KeyConverter(input_file=" ", output_file="some_output_file")
+
+
+def test_validate_invalid_output_file(mocker_existing_file):
+    # GIVEN converter created with empty output file name
+    converter = KeyConverter(input_file="some_input_file", output_file="")
+    # WHEN file contents are prepared
     # THEN it raises an exception
-    with pytest.raises(ValueError):
-        KeyConverter(input_file="some_input_file", output_file="")
+    with pytest.raises(FileNotFoundError):
+        converter.prepare_file_contents()
+
+
+def test_validate_whitespace_output_file(mocker_private_key_file_nonempty):
+    # GIVEN converter created with output file name consisting of white spaces
+    converter = KeyConverter(input_file="some_input_file", output_file=" ")
+    # WHEN file contents are prepared
+    # THEN it does not raise exception
+    converter.prepare_file_contents()
 
 
 def test_validate_array_type():
