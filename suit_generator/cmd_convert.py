@@ -160,10 +160,6 @@ class KeyConverter:
         self._validate()
 
     def _validate(self):
-        if self._input_file.strip() == "":
-            raise ValueError(f"Invalid input file: {self._input_file}")
-        if self._output_file.strip() == "":
-            raise ValueError(f"Invalid output file: {self._output_file}")
         if self._array_type.strip() == "":
             raise ValueError(f"Invalid array_type: {self._array_type}")
         if self._array_name.strip() == "":
