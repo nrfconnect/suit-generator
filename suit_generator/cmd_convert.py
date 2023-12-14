@@ -72,6 +72,7 @@ def add_arguments(parser):
     cmd_convert_arg_parser.add_argument(
         "--indentation-count",
         required=False,
+        type=int,
         default=KeyConverter.default_indentation_count,
         help=f"Number of indentation characters to put at the beginning of array lines. "
         f"Default: {KeyConverter.default_indentation_count}",
@@ -170,6 +171,8 @@ class KeyConverter:
             raise ValueError(f"Invalid length_name: {self._length_name}")
         if self._columns_count <= 0:
             raise ValueError(f"Invalid columns count: {self._columns_count}")
+        if self._indentation_count < 0:
+            raise ValueError(f"Invalid indentation count: {self._indentation_count}")
 
         # Header and footer files can be empty
         # no length and no const are boolean and both values are allowed

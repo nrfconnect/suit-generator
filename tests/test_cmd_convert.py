@@ -35,6 +35,26 @@ EXPECTED_GENERATED_FILE_ORIGINAL = """const uint8_t public_key[] = {
 };
 """
 
+EXPECTED_GENERATED_FILE_INDENT_0 = """const uint8_t public_key[] = {
+0xed, 0xd0, 0x9e, 0xa5, 0xec, 0xe4, 0xed, 0xbe, 0x6c, 0x08, 0xe7, 0x47,
+0x09, 0x55, 0x9a, 0x38, 0x29, 0xc5, 0x31, 0x33, 0x22, 0x7b, 0xf4, 0xf0,
+0x11, 0x6e, 0x8c, 0x05, 0x2d, 0x02, 0x0e, 0x0e, 0xc3, 0xe0, 0xd8, 0x37,
+0xf4, 0xc2, 0x6f, 0xc1, 0x28, 0x80, 0x2f, 0x45, 0x38, 0x1a, 0x23, 0x2b,
+0x6d, 0xd5, 0xda, 0x28, 0x60, 0x00, 0x5d, 0xab, 0xe2, 0xa0, 0x83, 0xdb,
+0xef, 0x38, 0x55, 0x13
+};
+"""
+
+EXPECTED_GENERATED_FILE_INDENT_8 = """const uint8_t public_key[] = {
+        0xed, 0xd0, 0x9e, 0xa5, 0xec, 0xe4, 0xed, 0xbe, 0x6c, 0x08, 0xe7, 0x47,
+        0x09, 0x55, 0x9a, 0x38, 0x29, 0xc5, 0x31, 0x33, 0x22, 0x7b, 0xf4, 0xf0,
+        0x11, 0x6e, 0x8c, 0x05, 0x2d, 0x02, 0x0e, 0x0e, 0xc3, 0xe0, 0xd8, 0x37,
+        0xf4, 0xc2, 0x6f, 0xc1, 0x28, 0x80, 0x2f, 0x45, 0x38, 0x1a, 0x23, 0x2b,
+        0x6d, 0xd5, 0xda, 0x28, 0x60, 0x00, 0x5d, 0xab, 0xe2, 0xa0, 0x83, 0xdb,
+        0xef, 0x38, 0x55, 0x13
+};
+"""
+
 
 @pytest.fixture
 def mocker_existing_file(mocker):
@@ -199,7 +219,7 @@ def test_validate_whitespace_output_file(mocker_private_key_file_nonempty):
 def test_validate_array_type():
     # GIVEN empty array variable type
     # WHEN converter is created
-    # THEN it rases an exception
+    # THEN it raises an exception
     with pytest.raises(ValueError):
         KeyConverter(input_file="some_input_file", output_file="some_output_file", array_type="")
 
@@ -207,7 +227,7 @@ def test_validate_array_type():
 def test_validate_array_name():
     # GIVEN empty array variable name
     # WHEN converter is created
-    # THEN it rases an exception
+    # THEN it raises an exception
     with pytest.raises(ValueError):
         KeyConverter(input_file="some_input_file", output_file="some_output_file", array_name="")
 
@@ -215,7 +235,7 @@ def test_validate_array_name():
 def test_validate_length_type():
     # GIVEN empty length variable type
     # WHEN converter is created
-    # THEN it rases an exception
+    # THEN it raises an exception
     with pytest.raises(ValueError):
         KeyConverter(input_file="some_input_file", output_file="some_output_file", length_type="")
 
@@ -223,7 +243,7 @@ def test_validate_length_type():
 def test_validate_length_name():
     # GIVEN empty length variable name
     # WHEN converter is created
-    # THEN it rases an exception
+    # THEN it raises an exception
     with pytest.raises(ValueError):
         KeyConverter(input_file="some_input_file", output_file="some_output_file", length_name="")
 
@@ -231,7 +251,7 @@ def test_validate_length_name():
 def test_validate_columns_count_zero():
     # GIVEN columns count set to zero
     # WHEN converter is created
-    # THEN it rases an exception
+    # THEN it raises an exception
     with pytest.raises(ValueError):
         KeyConverter(input_file="some_input_file", output_file="some_output_file", columns_count=0)
 
@@ -239,9 +259,24 @@ def test_validate_columns_count_zero():
 def test_validate_columns_count_negative():
     # GIVEN columns count set to negative value
     # WHEN converter is created
-    # THEN it rases an exception
+    # THEN it raises an exception
     with pytest.raises(ValueError):
         KeyConverter(input_file="some_input_file", output_file="some_output_file", columns_count=-123)
+
+
+def test_validate_negative_indentation_count(mocker_private_key_file_nonempty):
+    # GIVEN indentation count set to -4
+    # WHEN converter is created
+    # THEN it raises an exception
+    with pytest.raises(ValueError):
+        KeyConverter(
+            input_file="key_private.pem",
+            output_file="some_output_file",
+            array_name="public_key",
+            no_length=True,
+            columns_count=12,
+            indentation_count=-4,
+        )
 
 
 def test_prepare_header_no_header_file(default_converter):
@@ -542,3 +577,35 @@ def test_file_contents_with_header_and_footer(mocker_header_key_and_footer):
         contents
         == HEADER_FILE_DATA_NON_EMPTY + "\n\n" + EXPECTED_GENERATED_FILE_ORIGINAL + "\n" + FOOTER_FILE_DATA_NON_EMPTY
     )
+
+
+def test_file_contents_indentation_0(mocker_private_key_file_nonempty):
+    # GIVEN converter with indentation count set to 0
+    converter = KeyConverter(
+        input_file="key_private.pem",
+        output_file="some_output_file",
+        array_name="public_key",
+        no_length=True,
+        columns_count=12,
+        indentation_count=0,
+    )
+    # WHEN file contents are generated
+    contents = converter.prepare_file_contents()
+    # THEN they match expected content
+    assert contents == EXPECTED_GENERATED_FILE_INDENT_0
+
+
+def test_file_contents_indentation_8(mocker_private_key_file_nonempty):
+    # GIVEN converter with indentation count set to 8
+    converter = KeyConverter(
+        input_file="key_private.pem",
+        output_file="some_output_file",
+        array_name="public_key",
+        no_length=True,
+        columns_count=12,
+        indentation_count=8,
+    )
+    # WHEN file contents are generated
+    contents = converter.prepare_file_contents()
+    # THEN they match expected content
+    assert contents == EXPECTED_GENERATED_FILE_INDENT_8
