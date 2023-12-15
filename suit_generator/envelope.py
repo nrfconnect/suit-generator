@@ -6,6 +6,7 @@
 """SUIT envelope internal representation."""
 from __future__ import annotations
 from suit_generator.input_output import InputOutputMixin
+from suit_generator.envelope_api import EnvelopeApiMixin
 import pathlib
 
 
@@ -16,7 +17,7 @@ class FileTypeException(Exception):
     pass
 
 
-class SuitEnvelope(InputOutputMixin):
+class SuitEnvelope(InputOutputMixin, EnvelopeApiMixin):
     """Main SUIT envelope class."""
 
     def __init__(self):
