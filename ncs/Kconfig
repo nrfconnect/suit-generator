@@ -139,4 +139,17 @@ config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_SIGNATURE_BIN
   string "Name of Imprimatur's build artifact containing signature of the SDFW update candidate"
   default "signature.bin"
 
+config SUIT_LOG_SECDOM_VERSION
+  bool "Log version of Secdom FW during its startup"
+  help
+    For testing purposes.
+  default n
+
+config SUIT_SECDOM_VERSION
+  string "Version of Secdom FW"
+  help
+    For testing Secdom FW updates.
+    Version of Secdom FW to be logged during its startup.
+  default "0.0.1"
+
 endif # SUIT_ENVELOPE
