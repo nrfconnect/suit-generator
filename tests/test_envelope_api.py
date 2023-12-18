@@ -92,7 +92,7 @@ TEST_DATA = {
         "manifest-version": 1,
         "digest": "132447d4c398cc4730e28757ac121906e59d6e2bd65bd6912cc776cf17c4f3dc",
         "digest-algorithm": "cose-alg-sha-256",
-        "manifest-component-id": ['I', {'raw': '08c1b59955e85fbc9e767bc29ce1b04d'}],
+        "manifest-component-id": ["I", {"raw": "08c1b59955e85fbc9e767bc29ce1b04d"}],
     },
     "ENVELOPE_6_YAML_SIGNATURE_HARDCODED_NO_COMPONENT_ID": {
         "filename": "some_envelope.yaml",
@@ -180,12 +180,12 @@ TEST_DATA = {
         "ENVELOPE_4_SIGNED_TWO_TIMES",
         "ENVELOPE_5_WITH_MANIFEST_COMPONENT_ID",
         "ENVELOPE_6_YAML_SIGNATURE_HARDCODED_NO_COMPONENT_ID",
-        "ENVELOPE_7_YAML_NO_SIGNATURE_COMPONENT_ID_AVAILABLE"
+        "ENVELOPE_7_YAML_NO_SIGNATURE_COMPONENT_ID_AVAILABLE",
     ],
 )
 def test_envelope_api_number(mocker, input_data):
     """Test if envelope can be created from json."""
-    if pathlib.Path(TEST_DATA[input_data]["filename"]).suffix == '.suit':
+    if pathlib.Path(TEST_DATA[input_data]["filename"]).suffix == ".suit":
         mocked_data = mocker.mock_open(read_data=binascii.a2b_hex(TEST_DATA[input_data]["input"]))
     else:
         mocked_data = mocker.mock_open(read_data=TEST_DATA[input_data]["input"])
