@@ -1,5 +1,11 @@
-import pathlib
+#
+# Copyright (c) 2023 Nordic Semiconductor ASA
+#
+# SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+#
+"""Unit tests for envelope_api.py implementation."""
 
+import pathlib
 import pytest
 import binascii
 from suit_generator.envelope import SuitEnvelope
