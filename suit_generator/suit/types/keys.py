@@ -17,6 +17,18 @@ class suit_key:
     name: None | str = None
 
 
+class suit_digest_bytes(suit_key):
+    """suit-digest-bytes metadata."""
+
+    name = "suit-digest-bytes"
+
+
+class suit_digest_algorithm_id(suit_key):
+    """suit-digest-algorithm-id metadata."""
+
+    name = "suit-digest-algorithm-id"
+
+
 class suit_manifest_version(suit_key):
     """suit-manifest-version metadata."""
 

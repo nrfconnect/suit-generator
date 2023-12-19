@@ -42,6 +42,8 @@ from suit_generator.suit.types.keys import (
     cose_alg_shake256,
     cose_alg_es_256,
     cose_alg_es_384,
+    suit_digest_algorithm_id,
+    suit_digest_bytes,
 )
 
 
@@ -94,8 +96,8 @@ class SuitDigestRaw(SuitTupleNamed):
 
     _metadata = Metadata(
         map={
-            "suit-digest-algorithm-id": SuitCoseHashAlg,
-            "suit-digest-bytes": SuitDigestBytes,
+            suit_digest_algorithm_id.name: SuitCoseHashAlg,
+            suit_digest_bytes.name: SuitDigestBytes,
         }
     )
 
@@ -113,20 +115,20 @@ class SuitDigestExt:
         """Restore SUIT representation from passed object."""
         # fixme: workaround to handle suit-text (SuitTextMap) in the manifest, without this workaround obj has
         #  additional suit-digest-bytes key which is not supported by suit-text (SuitTextMap)
-        if "suit-digest-algorithm-id" not in obj.keys():
+        if suit_digest_algorithm_id.name not in obj.keys():
             cls(SuitDigestRaw.from_obj(obj))
         if not isinstance(obj, dict):
             raise ValueError(f"Expected dict, received: {obj}")
-        if "suit-digest-bytes" not in obj.keys():
-            obj["suit-digest-bytes"] = ""
+        if suit_digest_bytes.name not in obj.keys():
+            obj[suit_digest_bytes.name] = ""
 
-        elif isinstance(obj["suit-digest-bytes"], dict):
-            digest_dict = obj["suit-digest-bytes"]
+        elif isinstance(obj[suit_digest_bytes.name], dict):
+            digest_dict = obj[suit_digest_bytes.name]
 
             if "file" in digest_dict.keys():
-                hfunc = SuitHash(obj["suit-digest-algorithm-id"])
+                hfunc = SuitHash(obj[suit_digest_algorithm_id.name])
                 with open(digest_dict["file"], "rb") as fd:
-                    obj["suit-digest-bytes"] = hfunc.hash(fd.read())
+                    obj[suit_digest_bytes.name] = hfunc.hash(fd.read())
             elif "envelope" in digest_dict.keys():
                 from suit_generator.suit.envelope import SuitEnvelopeTagged
 
@@ -137,9 +139,9 @@ class SuitDigestExt:
                         sub_envelope = SuitEnvelopeTagged.from_cbor(fh.read())
                 sub_envelope.update_severable_digests()
                 sub_envelope.update_digest()
-                obj["suit-digest-bytes"] = sub_envelope.get_digest().SuitDigestRaw[1].SuitDigestBytes.hex()
+                obj[suit_digest_bytes.name] = sub_envelope.get_digest().SuitDigestRaw[1].SuitDigestBytes.hex()
             elif "raw" in digest_dict.keys():
-                obj["suit-digest-bytes"] = digest_dict["raw"]
+                obj[suit_digest_bytes.name] = digest_dict["raw"]
             else:
                 raise ValueError(f"Unable to calculate digest from: {digest_dict}")
 
