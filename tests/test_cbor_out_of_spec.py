@@ -11,7 +11,6 @@ from jinja2 import Environment, BaseLoader
 
 
 from suit_generator.suit.envelope import SuitEnvelopeTagged
-from suit_generator.suit.types.common import SuitObject
 from suit_generator.suit.manifest import (
     SuitIndex,
     SuitComponentIdentifierPart,
@@ -256,7 +255,7 @@ def test_envelope_conversion_empty():
     """Check if ValueError is reported for missing raw suit_manifest_component_id."""
     rtemplate = Environment(loader=BaseLoader).from_string(INPUT_YAML_JINJA)
     rendered_input = rtemplate.render({"suit_manifest_component_id": ""})
-    test_object = yaml.load(rendered_input)
+    test_object = yaml.load(rendered_input, Loader=yaml.Loader)
     with pytest.raises(ValueError):
         SuitEnvelopeTagged.from_obj(test_object)
 
