@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import os
 import struct
+import uuid
+from enum import Enum
 
 from cbor2 import dumps as cbor_dumps
 from intelhex import IntelHex, bin2hex
@@ -109,13 +111,274 @@ def add_arguments(parser):
     )
 
 
-class ImageCreator:
-    """Helper class for extracting data from SUIT envelope and creating hex files."""
+class ManifestRole(Enum):
+    """Role of the manifest inside the system."""
+
+    UNKNOWN = 0x00
+    SEC_TOP = 0x10
+    SEC_SDFW = 0x11
+    SEC_SYSCTRL = 0x12
+    APP_ROOT = 0x20
+    APP_RECOVERY = 0x21
+    APP_LOCAL_1 = 0x22
+    APP_LOCAL_2 = 0x23
+    APP_LOCAL_3 = 0x24
+    RAD_RECOVERY = 0x30
+    RAD_LOCAL_1 = 0x31
+    RAD_LOCAL_2 = 0x32
+
+
+class EnvelopeStorage:
+    """Class generating SUIT storage binary in legacy format."""
 
     ENVELOPE_SLOT_VERSION = 1
     ENVELOPE_SLOT_VERSION_KEY = 0
     ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY = 1
     ENVELOPE_SLOT_ENVELOPE_BSTR_KEY = 2
+
+    _LAYOUT = [
+        {
+            "role": ManifestRole.APP_ROOT,
+            "offset": 2048 * 0,
+            "size": 2048,
+        },
+        {
+            "role": ManifestRole.APP_LOCAL_1,
+            "offset": 2048 * 1,
+            "size": 2048,
+        },
+        {
+            "role": ManifestRole.RAD_LOCAL_1,
+            "offset": 2048 * 2,
+            "size": 2048,
+        },
+        {
+            "role": ManifestRole.SEC_TOP,
+            "offset": 2048 * 3,
+            "size": 2048,
+        },
+        {
+            "role": ManifestRole.SEC_SDFW,
+            "offset": 2048 * 4,
+            "size": 2048,
+        },
+        {
+            "role": ManifestRole.SEC_SYSCTRL,
+            "offset": 2048 * 5,
+            "size": 2048,
+        },
+    ]
+
+    # Default manifest role assignments
+    _CLASS_ROLE_ASSIGNMENTS = [
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_sample_root",
+            "role": ManifestRole.APP_ROOT,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_sample_app",
+            "role": ManifestRole.APP_LOCAL_1,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_sample_rad",
+            "role": ManifestRole.RAD_LOCAL_1,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_nordic_top",
+            "role": ManifestRole.SEC_TOP,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_sec",
+            "role": ManifestRole.SEC_SDFW,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_sys",
+            "role": ManifestRole.SEC_SYSCTRL,
+        },
+    ]
+
+    def __init__(self, base_address: int, load_defaults=True):
+        """Create object generating binary SUIT storage."""
+        self._assignments = []
+        self._base_address = base_address
+        self._envelopes = {}
+
+        if load_defaults:
+            for entry in self._CLASS_ROLE_ASSIGNMENTS:
+                self.assign_role(entry["vendor_name"], entry["class_name"], entry["role"])
+
+    def assign_role(self, vendor_name: str, class_name: str, role: ManifestRole):
+        """Assign role to envelope, identified by vendor and class name."""
+        vid = uuid.uuid5(uuid.NAMESPACE_DNS, vendor_name)
+        self._assignments.append(
+            {
+                "vendor_id": vid,
+                "class_id": uuid.uuid5(vid, class_name),
+                "role": role,
+            }
+        )
+
+    def _find_class(self, role: ManifestRole) -> bytes:
+        for entry in self._assignments:
+            if entry["role"] == role:
+                return entry["class_id"]
+        return None
+
+    def _find_role(self, class_id: bytes) -> ManifestRole:
+        for entry in self._assignments:
+            if entry["class_id"].hex == class_id.hex():
+                return entry["role"]
+        return None
+
+    def _find_slot(self, class_id: bytes) -> (int, int):
+        role = self._find_role(class_id)
+        if role is not None:
+            for entry in self._LAYOUT:
+                if entry["role"] == role:
+                    return (entry["offset"], entry["size"])
+        return None
+
+    def add_envelope(self, envelope: SuitEnvelope):
+        """Add binary envelope to the SUIT storage."""
+        severed_envelope = envelope.prepare_suit_data(envelope._envelope)
+        manifest_dict = envelope._envelope["SUIT_Envelope_Tagged"]["suit-manifest"]
+
+        if "suit-manifest-component-id" not in manifest_dict.keys():
+            raise GeneratorError("The suit-manifest-component-id manifest field is mandatory")
+
+        # Generate a key-value pair with manifest component ID to find its offset inside installed envelope
+        manifest_component_id = manifest_dict["suit-manifest-component-id"]
+        manifest_dict = {"suit-manifest-component-id": manifest_component_id}
+        manifest_cbor = SuitManifest.from_obj(manifest_dict).to_cbor()
+
+        # Cut the CBOR dictionary element count and find the key-value pair offset
+        component_id_offset = severed_envelope.find(manifest_cbor[1:])
+
+        # Move the offset, cutting the common prefix to get the offset to the raw UUID
+        class_id_offset = component_id_offset + len(cbor_dumps([cbor_dumps("INSTLD_MFST"), b"#"]))
+
+        envelope_slot = {
+            EnvelopeStorage.ENVELOPE_SLOT_VERSION_KEY: EnvelopeStorage.ENVELOPE_SLOT_VERSION,
+            EnvelopeStorage.ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY: class_id_offset,
+            EnvelopeStorage.ENVELOPE_SLOT_ENVELOPE_BSTR_KEY: severed_envelope,
+        }
+
+        envelope_bytes = cbor_dumps(envelope_slot)
+        class_id = severed_envelope[class_id_offset : class_id_offset + 16]
+
+        role = self._find_role(class_id)
+        if role is None:
+            raise GeneratorError(
+                f"Unable to identify role for manifest with class id {class_id.hex()} / {self._assignments}"
+            )
+
+        slot = self._find_slot(class_id)
+        if slot is None:
+            raise GeneratorError(f"Unable to find slot for manifest with class id {class_id.hex()}")
+
+        if slot[1] < len(envelope_bytes):
+            raise GeneratorError(f"Unable to fit manifest with class id ({len(class_id.hex())} > {slot})")
+
+        if role in self._envelopes.keys():
+            raise GeneratorError(f"Manifest with role {role} already added")
+
+        self._envelopes[role] = envelope_bytes
+
+    def as_intelhex(self):
+        """Export SUIT storage in Intel HEX format."""
+        combined_hex = IntelHex()
+
+        for entry in self._LAYOUT:
+            max_size = entry["size"]
+            role = entry["role"]
+
+            if role in self._envelopes:
+                if len(self._envelopes[role]) > max_size:
+                    raise GeneratorError(
+                        f"Unable to fit envelope with role {role} inside the envelope slot (max: {max_size} bytes)"
+                    )
+                envelope_bytes = self._envelopes[role].ljust(max_size, b"\xFF")
+            else:
+                envelope_bytes = b"\xFF" * max_size
+
+            envelope_hex = IntelHex()
+            envelope_hex.frombytes(envelope_bytes, self._base_address + entry["offset"])
+
+            combined_hex.merge(envelope_hex)
+
+        return combined_hex
+
+
+class EnvelopeStorageV2(EnvelopeStorage):
+    """Class generating SUIT storage binary in upcoming format."""
+
+    _LAYOUT = [
+        {
+            "role": ManifestRole.SEC_TOP,
+            "offset": 768,
+            "size": 1280,
+        },
+        {
+            "role": ManifestRole.SEC_SDFW,
+            "offset": 2048,
+            "size": 1024,
+        },
+        {
+            "role": ManifestRole.SEC_SYSCTRL,
+            "offset": 3072,
+            "size": 1024,
+        },
+        {
+            "role": ManifestRole.RAD_RECOVERY,
+            "offset": 4096 + 1024 * 1,
+            "size": 1024,
+        },
+        {
+            "role": ManifestRole.RAD_LOCAL_1,
+            "offset": 4096 + 1024 * 2,
+            "size": 1024,
+        },
+        {
+            "role": ManifestRole.RAD_LOCAL_2,
+            "offset": 4096 + 1024 * 3,
+            "size": 1024,
+        },
+        {
+            "role": ManifestRole.APP_ROOT,
+            "offset": 8192 + 1024 * 1,
+            "size": 2048,
+        },
+        {
+            "role": ManifestRole.APP_RECOVERY,
+            "offset": 8192 + 1024 * 3,
+            "size": 2048,
+        },
+        {
+            "role": ManifestRole.APP_LOCAL_1,
+            "offset": 8192 + 1024 * 5,
+            "size": 1024,
+        },
+        {
+            "role": ManifestRole.APP_LOCAL_2,
+            "offset": 8192 + 1024 * 6,
+            "size": 1024,
+        },
+        {
+            "role": ManifestRole.APP_LOCAL_3,
+            "offset": 8192 + 1024 * 7,
+            "size": 1024,
+        },
+    ]
+
+
+class ImageCreator:
+    """Helper class for extracting data from SUIT envelope and creating hex files."""
 
     default_update_candidate_info_address = 0x0E1E7000
     default_envelope_address = 0x0E1E7180
@@ -171,33 +434,6 @@ class ImageCreator:
         return uci.pack(*struct_values)
 
     @staticmethod
-    def _prepare_envelope_slot_binary(envelope: SuitEnvelope) -> bytes:
-        severed_envelope = envelope.prepare_suit_data(envelope._envelope)
-        manifest_dict = envelope._envelope["SUIT_Envelope_Tagged"]["suit-manifest"]
-
-        if "suit-manifest-component-id" not in manifest_dict.keys():
-            raise GeneratorError("The suit-manifest-component-id manifest field is mandatory")
-
-        # Generate a key-value pair with manifest component ID to find its offset inside installed envelope
-        manifest_component_id = manifest_dict["suit-manifest-component-id"]
-        manifest_dict = {"suit-manifest-component-id": manifest_component_id}
-        manifest_cbor = SuitManifest.from_obj(manifest_dict).to_cbor()
-
-        # Cut the CBOR dictionary element count and find the key-value pair offset
-        component_id_offset = severed_envelope.find(manifest_cbor[1:])
-
-        # Move the offset, cutting the common prefix to get the offset to the raw UUID
-        class_id_offset = component_id_offset + len(cbor_dumps([cbor_dumps("INSTLD_MFST"), b"#"]))
-
-        envelope_slot = {
-            ImageCreator.ENVELOPE_SLOT_VERSION_KEY: ImageCreator.ENVELOPE_SLOT_VERSION,
-            ImageCreator.ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY: class_id_offset,
-            ImageCreator.ENVELOPE_SLOT_ENVELOPE_BSTR_KEY: severed_envelope,
-        }
-
-        return cbor_dumps(envelope_slot)
-
-    @staticmethod
     def _create_suit_storage_file_for_boot(
         envelopes: list[SuitEnvelope],
         update_candidate_info_address: int,
@@ -216,35 +452,10 @@ class ImageCreator:
         # The suit storage file for boot path combines update candidate info and installed envelope
         combined_hex = IntelHex(uci_hex)
 
-        # Installed envelopes
-        envelope_address = installed_envelope_address
-        envelope_slot = 0
-
+        storage = EnvelopeStorage(installed_envelope_address)
         for envelope in envelopes:
-            envelope_bytes = ImageCreator._prepare_envelope_slot_binary(envelope)
-            if len(envelope_bytes) > envelope_slot_size:
-                raise GeneratorError(
-                    f"Input envelope ({envelope}) exceeds slot size ({len(envelope_bytes)} > {envelope_slot_size})."
-                )
-            else:
-                envelope_bytes = envelope_bytes + b"\xFF" * (envelope_slot_size - len(envelope_bytes))
-
-            envelope_hex = IntelHex()
-            envelope_hex.frombytes(envelope_bytes, envelope_address)
-
-            combined_hex.merge(envelope_hex)
-            envelope_address += envelope_slot_size
-            envelope_slot += 1
-
-        while envelope_slot < envelope_slot_count:
-            envelope_bytes = b"\xFF" * envelope_slot_size
-
-            envelope_hex = IntelHex()
-            envelope_hex.frombytes(envelope_bytes, envelope_address)
-
-            combined_hex.merge(envelope_hex)
-            envelope_address += envelope_slot_size
-            envelope_slot += 1
+            storage.add_envelope(envelope)
+        combined_hex.merge(storage.as_intelhex())
 
         combined_hex.write_hex_file(file_name)
 
