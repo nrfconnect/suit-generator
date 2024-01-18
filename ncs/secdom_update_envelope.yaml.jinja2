@@ -20,7 +20,7 @@ SUIT_Envelope_Tagged:
           suit-parameter-class-identifier:
             RFC4122_UUID:
               namespace: nordicsemi.com
-              name: nRF54H20_sec_sys
+              name: nRF54H20_sec
       - suit-condition-vendor-identifier:
         - suit-send-record-success
         - suit-send-record-failure
@@ -46,6 +46,6 @@ SUIT_Envelope_Tagged:
     - INSTLD_MFST
     - RFC4122_UUID:
         namespace: nordicsemi.com
-        name: nRF54H20_sec_sys
+        name: nRF54H20_sec
   suit-integrated-payloads:
     '#{{ secdom['name'] }}': {{ secdom['binary'] }}
