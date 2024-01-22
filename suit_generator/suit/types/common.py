@@ -570,7 +570,10 @@ class SuitKeyValueTuple(SuitKeyValue):
     def from_cbor(cls, cbstr: bytes) -> SuitKeyValueTuple:
         """Restore SUIT representation from passed CBOR."""
         value = {}
-        k, v = cls.deserialize_cbor(cbstr)
+        cbor = cls.deserialize_cbor(cbstr)
+        if not isinstance(cbor, list):
+            raise ValueError(f"Unable to create Key/Value tuple from {cbstr}")
+        k, v = cbor
 
         if not (child := cls._get_method_and_name(k)):
             raise ValueError(f"Unknown parameter: {k}")
