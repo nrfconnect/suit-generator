@@ -14,6 +14,7 @@ from suit_generator.cmd_parse import add_arguments as parse_args
 from suit_generator.cmd_keys import add_arguments as key_args
 from suit_generator.cmd_image import add_arguments as image_args
 from suit_generator.cmd_convert import add_arguments as convert_args
+from suit_generator.cmd_mpi import add_arguments as mpi_args
 
 
 def _parser() -> ArgumentParser:
@@ -24,6 +25,7 @@ def _parser() -> ArgumentParser:
     key_args(subparsers)
     image_args(subparsers)
     convert_args(subparsers)
+    mpi_args(subparsers)
     return parser
 
 
