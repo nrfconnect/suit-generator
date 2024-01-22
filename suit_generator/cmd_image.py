@@ -278,9 +278,9 @@ class EnvelopeStorage:
         class_id_offset = component_id_offset + len(cbor_dumps([cbor_dumps("INSTLD_MFST"), b"#"]))
 
         envelope_slot = {
-            EnvelopeStorage.ENVELOPE_SLOT_VERSION_KEY: EnvelopeStorage.ENVELOPE_SLOT_VERSION,
-            EnvelopeStorage.ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY: class_id_offset,
-            EnvelopeStorage.ENVELOPE_SLOT_ENVELOPE_BSTR_KEY: severed_envelope,
+            self.ENVELOPE_SLOT_VERSION_KEY: self.ENVELOPE_SLOT_VERSION,
+            self.ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY: class_id_offset,
+            self.ENVELOPE_SLOT_ENVELOPE_BSTR_KEY: severed_envelope,
         }
 
         envelope_bytes = cbor_dumps(envelope_slot)
@@ -338,7 +338,7 @@ class EnvelopeStorage:
         return combined_hex
 
 
-class EnvelopeStorageV2(EnvelopeStorage):
+class EnvelopeStorageNrf54h20(EnvelopeStorage):
     """Class generating SUIT storage binary in upcoming format."""
 
     _LAYOUT = [
@@ -414,12 +414,12 @@ class EnvelopeStorageV2(EnvelopeStorage):
 class ImageCreator:
     """Helper class for extracting data from SUIT envelope and creating hex files."""
 
-    default_update_candidate_info_address = 0x0E1E7000
-    default_envelope_address = 0x0E1E7180
+    default_update_candidate_info_address = 0x0E1E9340
+    default_envelope_address = 0x0E1E7000
     default_envelope_slot_size = 2048
     default_envelope_slot_count = 8
     default_dfu_partition_address = 0x0E155000
-    default_dfu_max_caches = 4
+    default_dfu_max_caches = 6
 
     UPDATE_MAGIC_VALUE_AVAILABLE = 0x55AA55AA
 
@@ -502,7 +502,7 @@ class ImageCreator:
 
         combined_hex = IntelHex(uci_hex)
 
-        storage = EnvelopeStorage(installed_envelope_address)
+        storage = EnvelopeStorageNrf54h20(installed_envelope_address)
         for envelope in envelopes:
             storage.add_envelope(envelope)
         combined_hex.merge(storage.as_intelhex())
@@ -526,7 +526,7 @@ class ImageCreator:
             ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
         )
 
-        storage = EnvelopeStorage(installed_envelope_address)
+        storage = EnvelopeStorageNrf54h20(installed_envelope_address)
         for envelope in envelopes:
             storage.add_envelope(envelope)
 
