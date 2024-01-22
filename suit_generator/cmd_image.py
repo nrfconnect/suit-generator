@@ -218,8 +218,8 @@ class EnvelopeStorage:
         vid = uuid.uuid5(uuid.NAMESPACE_DNS, vendor_name)
         self._assignments.append(
             {
-                "vendor_id": vid,
-                "class_id": uuid.uuid5(vid, class_name),
+                "vendor_id": vid.bytes,
+                "class_id": uuid.uuid5(vid, class_name).bytes,
                 "role": role,
             }
         )
@@ -232,7 +232,7 @@ class EnvelopeStorage:
 
     def _find_role(self, class_id: bytes) -> ManifestRole:
         for entry in self._assignments:
-            if entry["class_id"].hex == class_id.hex():
+            if entry["class_id"].hex() == class_id.hex():
                 return entry["role"]
         return None
 
