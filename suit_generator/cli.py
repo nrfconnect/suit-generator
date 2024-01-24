@@ -30,7 +30,7 @@ COMMAND_EXECUTORS = {
 }
 
 
-def main() -> int:
+def main() -> None:
     """Parse input arguments and call passed CMD executor."""
     command, arguments = args.parse_arguments()
     # passing arguments as kwargs used to simplify commands calling, improve documentation and error handling
@@ -38,12 +38,10 @@ def main() -> int:
         COMMAND_EXECUTORS[command](**vars(arguments))
     except GeneratorError as error:
         print(f"Error: {error}")
-        return 1
+        exit(1)
     except SUITError as error:
         print(f"SUIT error: {error}")
-        return 2
-    else:
-        return 0
+        exit(1)
 
 
 if __name__ == "__main__":
