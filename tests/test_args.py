@@ -39,7 +39,7 @@ def test_create_cmd_mode_auto(mock_args):
             "--array-name",
             "key_buf",
         ],
-        ["image", "boot", "--input-file", "envelope.suit", "--storage-output-file", "storage.hex"],
+        ["image", "boot", "--input-file", "envelope.suit", "--storage-output-directory", "."],
         [
             "image",
             "update",

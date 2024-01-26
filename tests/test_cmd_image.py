@@ -960,7 +960,7 @@ def test_boot_subcommand_nonexisting_input_file():
         cmd_image_main(
             image="boot",
             input_file=["nonexisting"],
-            storage_output_file="",
+            storage_output_directory="",
             update_candidate_info_address=0,
             envelope_address=0,
             envelope_slot_size=2048,
@@ -979,7 +979,7 @@ def test_boot_subcommand_manifest_without_component_id(mocker):
         cmd_image_main(
             image="boot",
             input_file=["some_input"],
-            storage_output_file="some_output.hex",
+            storage_output_directory="some_output",
             update_candidate_info_address=0x0E1EEC00,
             envelope_address=0x0E1EED80,
             envelope_slot_size=2048,
@@ -997,7 +997,7 @@ def test_boot_subcommand_success(mocker):
     cmd_image_main(
         image="boot",
         input_file=["some_input"],
-        storage_output_file="some_output.hex",
+        storage_output_directory="some_output",
         update_candidate_info_address=0x0E1EEC00,
         envelope_address=0x0E1EED80,
         envelope_slot_size=2048,
@@ -1059,7 +1059,7 @@ def test_malformed_envelope(mocker):
         cmd_image_main(
             image="boot",
             input_file=["some_input"],
-            storage_output_file="some_output.hex",
+            storage_output_directory="some_output",
             update_candidate_info_address=0x0E1FE000,
             envelope_address=0x0E1FF000,
             envelope_slot_size=2048,
