@@ -77,7 +77,7 @@ cmd_template_arg_parser = subparsers.add_parser(
     TEMPLATE_CMD, help="Generate SUIT configuration files based on input templates.", parents=[parent_parser]
 )
 cmd_storage_arg_parser = subparsers.add_parser(
-    STORAGE_CMD, help="Generate SUIT storage required by scecure domain.", parents=[parent_parser]
+    STORAGE_CMD, help="Generate SUIT storage required by secure domain.", parents=[parent_parser]
 )
 
 cmd_template_arg_parser.add_argument("--version", required=True, default=1, help="Update version.")
@@ -87,7 +87,9 @@ cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Outpu
 cmd_storage_arg_parser.add_argument(
     "--input-envelope", required=True, action="append", help="Location of input envelope(s)."
 )
-cmd_storage_arg_parser.add_argument("--storage-output-file", required=True, help="Input binary SUIT envelope.")
+cmd_storage_arg_parser.add_argument(
+    "--storage-output-directory", required=True, help="Directory path to store hex files with SUIT storage contents"
+)
 
 cmd_update_arg_parser = subparsers.add_parser(
     UPDATE_CMD, help="Generate files needed for Secure Domain update", parents=[parent_parser]
@@ -121,7 +123,7 @@ elif arguments.command == STORAGE_CMD:
     # fixme: envelope_address, update_candidate_info_address and dfu_max_caches shall be extracted from DTS
     ImageCreator.create_files_for_boot(
         input_files=arguments.input_envelope,
-        storage_output_file=arguments.storage_output_file,
+        storage_output_directory=arguments.storage_output_directory,
         envelope_address=ImageCreator.default_envelope_address,
         envelope_slot_size=ImageCreator.default_envelope_slot_size,
         envelope_slot_count=ImageCreator.default_envelope_slot_count,

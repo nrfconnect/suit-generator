@@ -40,7 +40,7 @@ def add_arguments(parser):
 
     cmd_image_boot.add_argument("--input-file", required=True, action="append", help="Input SUIT file; an envelope")
     cmd_image_boot.add_argument(
-        "--storage-output-file", required=True, help="Output hex file with SUIT storage contents"
+        "--storage-output-directory", required=True, help="Output hex file with SUIT storage contents"
     )
     cmd_image_boot.add_argument(
         "--update-candidate-info-address",
@@ -128,6 +128,14 @@ class ManifestRole(Enum):
     RAD_LOCAL_2 = 0x32
 
 
+class ManifestDomain(Enum):
+    """Domains in the system."""
+
+    SECURE = 0x10
+    APPLICATION = 0x20
+    RADIO = 0x30
+
+
 class EnvelopeStorage:
     """Class generating SUIT storage binary in legacy format."""
 
@@ -141,31 +149,37 @@ class EnvelopeStorage:
             "role": ManifestRole.APP_ROOT,
             "offset": 2048 * 0,
             "size": 2048,
+            "domain": ManifestDomain.APPLICATION,
         },
         {
             "role": ManifestRole.APP_LOCAL_1,
             "offset": 2048 * 1,
             "size": 2048,
+            "domain": ManifestDomain.APPLICATION,
         },
         {
             "role": ManifestRole.RAD_LOCAL_1,
             "offset": 2048 * 2,
             "size": 2048,
+            "domain": ManifestDomain.RADIO,
         },
         {
             "role": ManifestRole.SEC_TOP,
             "offset": 2048 * 3,
             "size": 2048,
+            "domain": ManifestDomain.SECURE,
         },
         {
             "role": ManifestRole.SEC_SDFW,
             "offset": 2048 * 4,
             "size": 2048,
+            "domain": ManifestDomain.SECURE,
         },
         {
             "role": ManifestRole.SEC_SYSCTRL,
             "offset": 2048 * 5,
             "size": 2048,
+            "domain": ManifestDomain.SECURE,
         },
     ]
 
@@ -290,13 +304,18 @@ class EnvelopeStorage:
 
         self._envelopes[role] = envelope_bytes
 
-    def as_intelhex(self):
+    def as_intelhex(self, storage_domain: ManifestDomain = None):
         """Export SUIT storage in Intel HEX format."""
         combined_hex = IntelHex()
+        envelope_count = 0
 
         for entry in self._LAYOUT:
             max_size = entry["size"]
             role = entry["role"]
+            domain = entry["domain"]
+
+            if storage_domain is not None and storage_domain != domain:
+                continue
 
             if role in self._envelopes:
                 if len(self._envelopes[role]) > max_size:
@@ -304,6 +323,7 @@ class EnvelopeStorage:
                         f"Unable to fit envelope with role {role} inside the envelope slot (max: {max_size} bytes)"
                     )
                 envelope_bytes = self._envelopes[role].ljust(max_size, b"\xFF")
+                envelope_count += 1
             else:
                 envelope_bytes = b"\xFF" * max_size
 
@@ -311,6 +331,9 @@ class EnvelopeStorage:
             envelope_hex.frombytes(envelope_bytes, self._base_address + entry["offset"])
 
             combined_hex.merge(envelope_hex)
+
+        if envelope_count <= 0:
+            return None
 
         return combined_hex
 
@@ -323,56 +346,67 @@ class EnvelopeStorageV2(EnvelopeStorage):
             "role": ManifestRole.SEC_TOP,
             "offset": 768,
             "size": 1280,
+            "domain": ManifestDomain.SECURE,
         },
         {
             "role": ManifestRole.SEC_SDFW,
             "offset": 2048,
             "size": 1024,
+            "domain": ManifestDomain.SECURE,
         },
         {
             "role": ManifestRole.SEC_SYSCTRL,
             "offset": 3072,
             "size": 1024,
+            "domain": ManifestDomain.SECURE,
         },
         {
             "role": ManifestRole.RAD_RECOVERY,
             "offset": 4096 + 1024 * 1,
             "size": 1024,
+            "domain": ManifestDomain.RADIO,
         },
         {
             "role": ManifestRole.RAD_LOCAL_1,
             "offset": 4096 + 1024 * 2,
             "size": 1024,
+            "domain": ManifestDomain.RADIO,
         },
         {
             "role": ManifestRole.RAD_LOCAL_2,
             "offset": 4096 + 1024 * 3,
             "size": 1024,
+            "domain": ManifestDomain.RADIO,
         },
         {
             "role": ManifestRole.APP_ROOT,
             "offset": 8192 + 1024 * 1,
             "size": 2048,
+            "domain": ManifestDomain.APPLICATION,
         },
         {
             "role": ManifestRole.APP_RECOVERY,
             "offset": 8192 + 1024 * 3,
             "size": 2048,
+            "domain": ManifestDomain.APPLICATION,
         },
         {
             "role": ManifestRole.APP_LOCAL_1,
             "offset": 8192 + 1024 * 5,
             "size": 1024,
+            "domain": ManifestDomain.APPLICATION,
         },
         {
             "role": ManifestRole.APP_LOCAL_2,
             "offset": 8192 + 1024 * 6,
             "size": 1024,
+            "domain": ManifestDomain.APPLICATION,
         },
         {
             "role": ManifestRole.APP_LOCAL_3,
             "offset": 8192 + 1024 * 7,
             "size": 1024,
+            "domain": ManifestDomain.APPLICATION,
         },
     ]
 
@@ -434,22 +468,38 @@ class ImageCreator:
         return uci.pack(*struct_values)
 
     @staticmethod
-    def _create_suit_storage_file_for_boot(
+    def _create_single_domain_storage_file_for_boot(
+        storage: EnvelopeStorage,
+        domain: ManifestDomain,
+        dir_name: str,
+        additional_hex,
+    ) -> None:
+        combined_hex = IntelHex()
+        if additional_hex is not None:
+            combined_hex = IntelHex(additional_hex)
+
+        envelopes_hex = storage.as_intelhex(domain)
+
+        if envelopes_hex is not None:
+            combined_hex.merge(envelopes_hex)
+            combined_hex.write_hex_file(dir_name + "/storage_" + domain.name.lower() + ".hex")
+
+    def _create_suit_storage_file_for_boot_legacy(
         envelopes: list[SuitEnvelope],
         update_candidate_info_address: int,
         installed_envelope_address: int,
         envelope_slot_size: int,
         envelope_slot_count: int,
-        file_name: str,
+        dir_name: str,
         dfu_max_caches: int,
     ) -> None:
         # Update candidate info
+        # In the boot path it is used to inform no update candidate is pending.
         uci_hex = IntelHex()
         uci_hex.frombytes(
             ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
         )
 
-        # The suit storage file for boot path combines update candidate info and installed envelope
         combined_hex = IntelHex(uci_hex)
 
         storage = EnvelopeStorage(installed_envelope_address)
@@ -457,7 +507,34 @@ class ImageCreator:
             storage.add_envelope(envelope)
         combined_hex.merge(storage.as_intelhex())
 
-        combined_hex.write_hex_file(file_name)
+        combined_hex.write_hex_file(dir_name + "/storage.hex")
+
+    @staticmethod
+    def _create_suit_storage_files_for_boot(
+        envelopes: list[SuitEnvelope],
+        update_candidate_info_address: int,
+        installed_envelope_address: int,
+        envelope_slot_size: int,
+        envelope_slot_count: int,
+        dir_name: str,
+        dfu_max_caches: int,
+    ) -> None:
+        # Update candidate info
+        # In the boot path it is used to inform no update candidate is pending.
+        uci_hex = IntelHex()
+        uci_hex.frombytes(
+            ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
+        )
+
+        storage = EnvelopeStorage(installed_envelope_address)
+        for envelope in envelopes:
+            storage.add_envelope(envelope)
+
+        for domain in ManifestDomain:
+            additional_hex = None
+            if domain == ManifestDomain.APPLICATION:
+                additional_hex = uci_hex
+            ImageCreator._create_single_domain_storage_file_for_boot(storage, domain, dir_name, additional_hex)
 
     @staticmethod
     def _create_suit_storage_file_for_update(
@@ -485,7 +562,7 @@ class ImageCreator:
     @staticmethod
     def create_files_for_boot(
         input_files: list[str],
-        storage_output_file: str,
+        storage_output_directory: str,
         update_candidate_info_address: int,
         envelope_address: int,
         envelope_slot_size: int,
@@ -495,7 +572,7 @@ class ImageCreator:
         """Create storage and payload hex files allowing boot execution path.
 
         :param input_file: file path to SUIT envelope
-        :param storage_output_file: file path to hex file with SUIT storage contents
+        :param storage_output_directory: directory path to store hex files with SUIT storage contents
         :param update_candidate_info_address: address of SUIT storage update candidate info
         :param envelope_address: address of installed envelope in SUIT storage
         :param envelope_slot_size: number of bytes, reserved to store a single envelope,
@@ -511,13 +588,22 @@ class ImageCreator:
                 envelope.sever()
                 envelopes.append(envelope)
 
-            ImageCreator._create_suit_storage_file_for_boot(
+            ImageCreator._create_suit_storage_file_for_boot_legacy(
                 envelopes,
                 update_candidate_info_address,
                 envelope_address,
                 envelope_slot_size,
                 envelope_slot_count,
-                storage_output_file,
+                storage_output_directory,
+                dfu_max_caches,
+            )
+            ImageCreator._create_suit_storage_files_for_boot(
+                envelopes,
+                update_candidate_info_address,
+                envelope_address,
+                envelope_slot_size,
+                envelope_slot_count,
+                storage_output_directory,
                 dfu_max_caches,
             )
         except FileNotFoundError as error:
@@ -561,7 +647,8 @@ def main(**kwargs) -> None:
     :Keyword Arguments:
         * **image** - subcommand to be executed
         * **input_file** - file path to SUIT envelope
-        * **storage_output_file** - file path to hex file with SUIT storage contents
+        * **storage_output_file** - file path to hex file with SUIT storage contents - for "update" command
+        * **storage_output_directory** - directory path to store hex files with storage contents - for "boot" command
         * **update_candidate_info_address** - address of SUIT storage update candidate info
         * **envelope_address** - address of installed envelope in SUIT storage
         * **dfu_partition_output_file** - file path to hex file with DFU partition contents (the SUIT envelope)
@@ -570,7 +657,7 @@ def main(**kwargs) -> None:
     if kwargs["image"] == ImageCreator.IMAGE_CMD_BOOT:
         ImageCreator.create_files_for_boot(
             kwargs["input_file"],
-            kwargs["storage_output_file"],
+            kwargs["storage_output_directory"],
             kwargs["update_candidate_info_address"],
             kwargs["envelope_address"],
             kwargs["envelope_slot_size"],
