@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
+# DUMMY CHANGE FOR TEST OF CI
 """Use SUIT envelope to generate hex files allowing boot/update execution path."""
-
 from __future__ import annotations
 
 import os
