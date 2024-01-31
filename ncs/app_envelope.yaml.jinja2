@@ -13,6 +13,12 @@ SUIT_Envelope_Tagged:
         - {{ app['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
       - - CAND_IMG
         - 0
+{%- if flash_companion_subimage is defined %}
+      - - MEM
+        - {{ flash_companion_subimage['dt'].label2node['cpu'].unit_addr }}
+        - {{ get_absolute_address(flash_companion_subimage['dt'].chosen_nodes['zephyr,code-partition']) }}
+        - {{ flash_companion_subimage['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
+{%- endif %}
       suit-shared-sequence:
       - suit-directive-set-component-index: 0
       - suit-directive-override-parameters:
@@ -44,6 +50,14 @@ SUIT_Envelope_Tagged:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
               file: {{ app['binary'] }}
+{%- if flash_companion_subimage is defined %}
+      - suit-directive-set-component-index: 2
+      - suit-directive-override-parameters:
+          suit-parameter-image-digest:
+            suit-digest-algorithm-id: cose-alg-sha-256
+            suit-digest-bytes:
+              file: {{ flash_companion_subimage['binary'] }}
+{%- endif %}
     suit-validate:
     - suit-directive-set-component-index: 0
     - suit-condition-image-match:
@@ -56,9 +70,41 @@ SUIT_Envelope_Tagged:
     - suit-directive-invoke:
       - suit-send-record-failure
     suit-install:
+{%- if flash_companion_subimage is defined %}
+    - suit-directive-set-component-index: 1
+    - suit-directive-override-parameters:
+        suit-parameter-uri: '#{{ flash_companion_subimage['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            file: {{ flash_companion_subimage['binary'] }}
+    - suit-directive-fetch:
+      - suit-send-record-failure
+    - suit-condition-image-match:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-directive-set-component-index: 2
+    - suit-directive-override-parameters:
+        suit-parameter-source-component: 1
+    - suit-directive-copy:
+      - suit-send-record-failure
+    - suit-condition-image-match:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    - suit-directive-invoke:
+      - suit-send-record-failure
+{%- endif %}
     - suit-directive-set-component-index: 1
     - suit-directive-override-parameters:
         suit-parameter-uri: '#{{ app['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            file: {{ app['binary'] }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -93,3 +139,6 @@ SUIT_Envelope_Tagged:
       suit-text-component-version: v1.0.0
   suit-integrated-payloads:
     '#{{ app['name'] }}': {{ app['binary'] }}
+{%- if flash_companion_subimage is defined %}
+    '#{{ flash_companion_subimage['name'] }}': {{ flash_companion_subimage['binary'] }}
+{%- endif %}
