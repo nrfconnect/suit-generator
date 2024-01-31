@@ -11,6 +11,7 @@ import uuid
 from os.path import getsize
 
 from suit_generator.suit.types.common import (
+    SuitInt,
     SuitUint,
     SuitKeyValue,
     SuitKeyValueUnnamed,
@@ -268,7 +269,7 @@ class SuitCommand(SuitUnion):
 class SuitComponentIdentifierPart(SuitUnion):
     """Abstract element to define possible sub-elements."""
 
-    _metadata = Metadata(children=[SuitUUID, SuitBchar, cbstr(SuitTstr), cbstr(SuitUint), SuitBstr])
+    _metadata = Metadata(children=[SuitUUID, SuitBchar, cbstr(SuitTstr), cbstr(SuitInt), SuitBstr])
 
 
 class SuitComponentIdentifier(SuitList):

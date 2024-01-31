@@ -161,4 +161,19 @@ config SUIT_SECDOM_VERSION
     Version of Secdom FW to be logged during its startup.
   default "0.0.1"
 
+config SUIT_ENVELOPE_SYSCTRL
+    bool "Create SUIT files required by sysctrl"
+    help
+        Create SUIT envelope for sysctrl in case it has been included in the build
+    default y if INCLUDE_SYSCTRL
+
+config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
+  string "Location of template file for preparing sysctrl yaml envelope"
+  help
+      Path to the sysctrl template, that is used if the application directory does not
+      contain an input sysctrl envelope template file.
+      You can use either absolute or relative path.
+      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
+
 endif # SUIT_ENVELOPE
