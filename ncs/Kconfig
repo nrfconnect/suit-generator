@@ -152,4 +152,17 @@ config SUIT_SECDOM_VERSION
     Version of Secdom FW to be logged during its startup.
   default "0.0.1"
 
+config SUIT_ENVELOPE_SYSCTRL
+    bool "Create SUIT files required by sysctrl"
+    help
+        TODO: describe
+    default y # TODO: Find suitable (sic!) condition
+
+config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
+  string "Location of template file for preparing sysctrl yaml envelope"
+  # depends on !HW_REVISION_SOC1
+  help
+      Jinja2 template file used to generate yaml file for sysctrl domain update.
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
+
 endif # SUIT_ENVELOPE
