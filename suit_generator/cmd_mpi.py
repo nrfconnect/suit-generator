@@ -119,6 +119,16 @@ class MpiGenerator:
         vid = uuid.uuid5(uuid.NAMESPACE_DNS, vendor_name)
         cid = uuid.uuid5(vid, class_name)
 
+        if downgrade_disabled:
+            downgrade_disabled_bytes = b"\02"
+        else:
+            downgrade_disabled_bytes = b"\01"
+
+        if independent_updates:
+            independent_updates_bytes = b"\02"
+        else:
+            independent_updates_bytes = b"\01"
+
         if signature_verification is None:
             signature_verification_bytes = b"\01"
         elif signature_verification == "update":
@@ -130,8 +140,8 @@ class MpiGenerator:
 
         mpi = (
             version.to_bytes(1, MpiGenerator.BYTE_ORDER)
-            + downgrade_disabled.to_bytes(1, MpiGenerator.BYTE_ORDER)
-            + independent_updates.to_bytes(1, MpiGenerator.BYTE_ORDER)
+            + downgrade_disabled_bytes
+            + independent_updates_bytes
             + signature_verification_bytes
             + b"\xFF" * 12  # Reserved for future use
             + vid.bytes
