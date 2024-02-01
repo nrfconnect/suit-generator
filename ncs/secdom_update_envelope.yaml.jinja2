@@ -1,3 +1,7 @@
+{%- if secdom is not defined %}
+  {# secure domain build as main application #}
+  {%- set secdom = app %}
+{%- endif %}
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
