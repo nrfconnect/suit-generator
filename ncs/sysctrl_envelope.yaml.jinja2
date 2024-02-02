@@ -1,0 +1,56 @@
+{%- if sysctrl is not defined %}
+  {# sysctrl domain build as main application #}
+  {%- set sysctrl = app %}
+{%- endif %}
+SUIT_Envelope_Tagged:
+  suit-authentication-wrapper:
+    SuitDigest:
+      suit-digest-algorithm-id: cose-alg-sha-256
+  suit-manifest:
+    suit-manifest-version: 1
+    suit-manifest-sequence-number: 1
+    suit-common:
+      suit-components:
+      # fixme: template copied from secdom for testing purposes - update component using valid values for sysctrl when ready
+      - - SOC_SPEC
+        - 1
+      - - CAND_IMG
+        - 0
+      suit-shared-sequence:
+      - suit-directive-set-component-index: 0
+      - suit-directive-override-parameters:
+          suit-parameter-vendor-identifier:
+            RFC4122_UUID:
+              name: nordicsemi.com
+          suit-parameter-class-identifier:
+            RFC4122_UUID:
+              namespace: nordicsemi.com
+              name: nRF54H20_sys
+      - suit-condition-vendor-identifier:
+        - suit-send-record-success
+        - suit-send-record-failure
+        - suit-send-sysinfo-success
+        - suit-send-sysinfo-failure
+      - suit-condition-class-identifier:
+        - suit-send-record-success
+        - suit-send-record-failure
+        - suit-send-sysinfo-success
+        - suit-send-sysinfo-failure
+    suit-install:
+    - suit-directive-set-component-index: 1
+    - suit-directive-override-parameters:
+        suit-parameter-uri: '#{{ sysctrl['name'] }}'
+    - suit-directive-fetch:
+      - suit-send-record-failure
+    - suit-directive-set-component-index: 0
+    - suit-directive-override-parameters:
+        suit-parameter-source-component: 1
+    - suit-directive-copy:
+      - suit-send-record-failure
+    suit-manifest-component-id:
+    - INSTLD_MFST
+    - RFC4122_UUID:
+        namespace: nordicsemi.com
+        name: nRF54H20_sys
+  suit-integrated-payloads:
+    '#{{ sysctrl['name'] }}': {{ sysctrl['binary'] }}
