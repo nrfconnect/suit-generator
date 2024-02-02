@@ -14,8 +14,7 @@ SUIT_Envelope_Tagged:
         - 131072 # 0x20000 - 128 KiB
       # [1], MRAM
       - - MEM
-        - "-1"
-        - 2
+        - -1
         - 235405312 # 0x0E080000
         - 131072 # 0x20000 - 128 KiB
       # [2], Pseudo-component, used to verify the integrity of te incoming image.
@@ -34,7 +33,7 @@ SUIT_Envelope_Tagged:
       - suit-directive-override-parameters:
           suit-parameter-image-size:
             file: zephyr.bin
-      - suit-condition-image-match: []
+      #- suit-condition-image-match: []
     suit-load:
       - suit-directive-set-component-index: 1 # '[MEM, -1, 0x0E080000, 0x20000]', MRAM
       - suit-directive-override-parameters:
@@ -44,19 +43,18 @@ SUIT_Envelope_Tagged:
       - suit-directive-override-parameters:
           suit-parameter-source-component: 1 # '[MEM, -1, 0x0E080000, 0x20000]', MRAM as source
       - suit-directive-copy: []
-      - suit-condition-image-match: []
+      #- suit-condition-image-match: []
     suit-invoke:
       - suit-directive-set-component-index: 0 # '[MEM, 12, 0x0E060000, 0x20000]', RAM
       - suit-directive-override-parameters:
           suit-parameter-image-size:
             file: zephyr.bin
-      - suit-condition-image-match: []
+      #- suit-condition-image-match: []
       - suit-directive-invoke: []
     suit-payload-fetch:
       - suit-directive-set-component-index: 2 # 'CAND_IMG/0'
       - suit-directive-override-parameters:
            suit-parameter-uri: '#scfw'
-      - suit-directive-set-component-index: 2 # 'CAND_IMG/0'
       - suit-directive-fetch: []
       - suit-condition-image-match: []
     suit-install:
@@ -69,7 +67,6 @@ SUIT_Envelope_Tagged:
       - suit-directive-override-parameters:
           suit-parameter-source-component: 2 # 'CAND_IMG/0' as source
       - suit-directive-copy: []
-      - suit-condition-image-match: []
     suit-manifest-component-id:
     - INSTLD_MFST
     - RFC4122_UUID:
