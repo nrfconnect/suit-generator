@@ -92,6 +92,6 @@ SUIT_Envelope_Tagged:
     - INSTLD_MFST
     - RFC4122_UUID:
         namespace: nordicsemi.com
-        name: nRF54H20_sample_root
+        name: nRF54H20_nordic_top
   suit-integrated-dependencies:
     '#{{ secdom['name'] }}': {{ secdom['binary'] | replace('secdom_update_payload.bin', secdom['name'] ~ '.suit') }}
