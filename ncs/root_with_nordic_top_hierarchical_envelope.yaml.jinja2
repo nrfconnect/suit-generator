@@ -90,21 +90,11 @@ SUIT_Dependent_Manifests:
             - suit-send-record-failure
             - suit-send-sysinfo-success
             - suit-send-sysinfo-failure
-          suit-text:
-            suit-digest-algorithm-id: cose-alg-sha-256
           suit-manifest-component-id:
           - INSTLD_MFST
           - RFC4122_UUID:
               namespace: nordicsemi.com
               name: nRF54H20_nordic_top
-        suit-text:
-          '["CAND_MFST", 0]':
-            suit-text-vendor-name: Nordic Semiconductor ASA
-            suit-text-model-name: nRF54H20
-            suit-text-vendor-domain: nordicsemi.com
-            suit-text-model-info: The nRF54H20 nordic top manifest
-            suit-text-component-description: Sample nordic top manifest
-            suit-text-component-version: v1.0.0
         suit-integrated-dependencies:
           '#{{ secdom['name'] }}': {{ secdom['binary'] | replace('secdom_update_payload.bin', secdom['name'] ~ '.suit') }}
 
