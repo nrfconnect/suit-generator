@@ -113,12 +113,12 @@ class SuitDigestExt:
     @classmethod
     def from_obj(cls, obj: dict) -> SuitDigestRaw:
         """Restore SUIT representation from passed object."""
+        if not isinstance(obj, dict):
+            raise ValueError(f"Expected dict, received: {obj}")
         # fixme: workaround to handle suit-text (SuitTextMap) in the manifest, without this workaround obj has
         #  additional suit-digest-bytes key which is not supported by suit-text (SuitTextMap)
         if suit_digest_algorithm_id.name not in obj.keys():
             cls(SuitDigestRaw.from_obj(obj))
-        if not isinstance(obj, dict):
-            raise ValueError(f"Expected dict, received: {obj}")
         if suit_digest_bytes.name not in obj.keys():
             obj[suit_digest_bytes.name] = ""
 

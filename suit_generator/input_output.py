@@ -82,9 +82,9 @@ class InputOutputMixin:
                 data = {**{"SUIT_Dependent_Manifests": {}}, **data}
             for key in data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name]:
                 # create new entry in the SUIT_Dependent_Manifest
-                data["SUIT_Dependent_Manifests"][f"{key}_envelope"] = SuitEnvelopeTagged.from_cbor(
+                data["SUIT_Dependent_Manifests"][f"{key}_envelope"] = cls.parse_yaml_submanifests(SuitEnvelopeTagged.from_cbor(
                     binascii.a2b_hex(data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name][key])
-                ).to_obj()
+                ).to_obj())
                 # create anchor in the root manifest
                 data["SUIT_Envelope_Tagged"][suit_integrated_dependencies.name][key] = data["SUIT_Dependent_Manifests"][
                     f"{key}_envelope"
