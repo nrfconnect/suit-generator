@@ -15,10 +15,8 @@ from suit_generator import cmd_parse, cmd_keys, cmd_convert, cmd_create, cmd_ima
 from suit_generator.exceptions import GeneratorError, SUITError
 
 import logging
-import sys
 
-FORMAT = "%(asctime)s:%(levelname)s:%(message)s"
-logging.basicConfig(stream=sys.stdout, level=logging.ERROR, format=FORMAT)
+logger = logging.getLogger(__name__)
 
 COMMAND_EXECUTORS = {
     cmd_parse.PARSE_CMD: cmd_parse.main,
@@ -37,10 +35,12 @@ def main() -> None:
     try:
         COMMAND_EXECUTORS[command](**vars(arguments))
     except GeneratorError as error:
-        print(f"Error: {error}")
+        # use error instead of exception to do not fold end user by too much information
+        logger.error(error)
         exit(1)
     except SUITError as error:
-        print(f"SUIT error: {error}")
+        # use error instead of exception to do not fold end user by too much information
+        logger.error(error)
         exit(1)
 
 

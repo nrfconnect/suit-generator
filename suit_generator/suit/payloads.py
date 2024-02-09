@@ -31,6 +31,8 @@ class SuitIntegratedPayloadMap(SuitKeyValueUnnamed):
             elif pathlib.Path.is_file(pathlib.Path(v)):
                 with open(v, "rb") as fh:
                     data = fh.read().hex().upper()
+            else:
+                raise ValueError(f"Unable to parse {obj}")
             for c_k, c_v in cls._metadata.map.items():
                 try:
                     key = c_k.from_obj(k)

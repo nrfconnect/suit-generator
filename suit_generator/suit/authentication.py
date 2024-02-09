@@ -42,9 +42,12 @@ from suit_generator.suit.types.keys import (
     cose_alg_shake256,
     cose_alg_es_256,
     cose_alg_es_384,
+    cose_alg_es_521,
     suit_digest_algorithm_id,
     suit_digest_bytes,
 )
+from suit_generator.suit.types.common import PrettyPrintHelperMixin
+from suit_generator.logger import log_call
 
 
 class SuitHash:
@@ -102,10 +105,11 @@ class SuitDigestRaw(SuitTupleNamed):
     )
 
 
-class SuitDigestExt:
+class SuitDigestExt(PrettyPrintHelperMixin):
     """Representation of SUIT digest ext."""
 
     @classmethod
+    @log_call
     def from_cbor(cls, cbstr: bytes):
         """Restore SUIT representation from passed CBOR string."""
         raise ValueError("The extended digest class can be used only with objects")
@@ -117,6 +121,8 @@ class SuitDigestExt:
             raise ValueError(f"Expected dict, received: {obj}")
         # fixme: workaround to handle suit-text (SuitTextMap) in the manifest, without this workaround obj has
         #  additional suit-digest-bytes key which is not supported by suit-text (SuitTextMap)
+        if not isinstance(obj, dict):
+            raise ValueError(f"Expected dict, received: {type(obj)} for:\n{cls.pretty_format_obj(obj)}")
         if suit_digest_algorithm_id.name not in obj.keys():
             cls(SuitDigestRaw.from_obj(obj))
         if suit_digest_bytes.name not in obj.keys():
@@ -157,7 +163,7 @@ class SuitDigest(SuitUnion):
 class SuitcoseSignAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
-    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384])
+    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384, cose_alg_es_521])
 
 
 class SuitHeaderMap(SuitKeyValue):

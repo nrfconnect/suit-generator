@@ -20,7 +20,7 @@ config SUIT_ENVELOPE_SIGN
 
 config SUIT_ENVELOPE_SEQUENCE_NUM
     int "Sequence number of the generated SUIT manifest"
-    default 0
+    default 1
 
 config SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
     bool "Create hierarchical manifest"
