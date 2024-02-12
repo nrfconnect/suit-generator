@@ -1059,6 +1059,165 @@ TEST_JSON_STRING_UNSIGNED = """{
 }
 """
 
+TEST_YAML_STRING_MULTILEVEL_HIERARCHY = """SUIT_Dependent_Manifests:
+    top_envelope: &nordic_top
+      SUIT_Dependent_Manifests:
+        sysctrl: &sysctrl
+            SUIT_Envelope_Tagged:
+              suit-authentication-wrapper:
+                SuitDigest:
+                  suit-digest-algorithm-id: cose-alg-sha-256
+              suit-manifest:
+                suit-manifest-version: 1
+                suit-manifest-sequence-number: 1
+                suit-common:
+                  suit-components:
+                  - - SOC_SPEC
+                    - 1
+                  - - CAND_IMG
+                    - 0
+                  suit-shared-sequence:
+                  - suit-directive-set-component-index: 0
+                  - suit-directive-override-parameters:
+                      suit-parameter-vendor-identifier:
+                        RFC4122_UUID:
+                          name: nordicsemi.com
+                      suit-parameter-class-identifier:
+                        RFC4122_UUID:
+                          namespace: nordicsemi.com
+                          name: nRF54H20_sys
+                suit-install:
+                - suit-directive-set-component-index: 1
+                - suit-directive-override-parameters:
+                    suit-parameter-uri: '#sysctrl'
+                - suit-directive-fetch:
+                  - suit-send-record-failure
+                - suit-directive-set-component-index: 0
+                - suit-directive-override-parameters:
+                    suit-parameter-source-component: 1
+                - suit-directive-copy:
+                  - suit-send-record-failure
+                suit-manifest-component-id:
+                - INSTLD_MFST
+                - RFC4122_UUID:
+                    namespace: nordicsemi.com
+                    name: nRF54H20_sys
+              suit-integrated-payloads:
+                '#sysctrl': app.bin
+
+      SUIT_Envelope_Tagged:
+        suit-authentication-wrapper:
+          SuitDigest:
+            suit-digest-algorithm-id: cose-alg-sha-256
+        suit-manifest:
+          suit-manifest-version: 1
+          suit-manifest-sequence-number: 1
+          suit-common:
+            suit-components:
+            - - CAND_MFST
+              - 0
+            - - INSTLD_MFST
+              - RFC4122_UUID:
+                  namespace: nordicsemi.com
+                  name: nRF54H20_sys
+            suit-shared-sequence:
+            - suit-directive-set-component-index: 1
+            - suit-directive-override-parameters:
+                suit-parameter-class-identifier:
+                  RFC4122_UUID:
+                    namespace: nordicsemi.com
+                    name: nRF54H20_sys
+            suit-dependencies:
+              # Key is the index of suit-components that describe the dependency manifest
+              "0": {}
+              "1": {}
+              "2": {}
+          suit-validate:
+          - suit-directive-set-component-index: 1
+          - suit-directive-process-dependency:
+            - suit-send-record-success
+            - suit-send-record-failure
+            - suit-send-sysinfo-success
+            - suit-send-sysinfo-failure
+          suit-load:
+          - suit-directive-set-component-index: 1
+          - suit-directive-process-dependency:
+            - suit-send-record-success
+            - suit-send-record-failure
+            - suit-send-sysinfo-success
+            - suit-send-sysinfo-failure
+          suit-invoke:
+          - suit-directive-set-component-index: 1
+          - suit-directive-process-dependency:
+            - suit-send-record-success
+            - suit-send-record-failure
+            - suit-send-sysinfo-success
+            - suit-send-sysinfo-failure
+          suit-install:
+          - suit-directive-set-component-index: 0
+          - suit-directive-override-parameters:
+              suit-parameter-uri: '#sysctrl'
+          - suit-directive-fetch:
+            - suit-send-record-failure
+          - suit-directive-process-dependency:
+            - suit-send-record-success
+            - suit-send-record-failure
+            - suit-send-sysinfo-success
+            - suit-send-sysinfo-failure
+          suit-manifest-component-id:
+          - INSTLD_MFST
+          - RFC4122_UUID:
+              namespace: nordicsemi.com
+              name: nRF54H20_nordic_top
+        suit-integrated-dependencies:
+          '#sysctrl': *sysctrl
+
+SUIT_Envelope_Tagged:
+  suit-authentication-wrapper:
+    SuitDigest:
+      suit-digest-algorithm-id: cose-alg-sha-256
+  suit-manifest:
+    suit-manifest-version: 1
+    suit-manifest-sequence-number: 1
+    suit-common:
+      suit-components:
+      - - CAND_MFST
+        - 0
+      - - INSTLD_MFST
+        - RFC4122_UUID:
+            namespace: nordicsemi.com
+            name: nRF54H20_nordic_top
+      suit-shared-sequence:
+      - suit-directive-set-component-index: 1
+      - suit-directive-override-parameters:
+          suit-parameter-vendor-identifier:
+            RFC4122_UUID: nordicsemi.com
+          suit-parameter-class-identifier:
+            RFC4122_UUID:
+              namespace: nordicsemi.com
+              name: nRF54H20_nordic_top
+      suit-dependencies:
+        # Key is the index of suit-components that describe the dependency manifest
+        "0": {}
+        "1": {}
+
+    suit-install:
+    - suit-directive-set-component-index: 0
+    - suit-directive-override-parameters:
+        suit-parameter-uri: '#top'
+    - suit-directive-process-dependency:
+      - suit-send-record-success
+      - suit-send-record-failure
+      - suit-send-sysinfo-success
+      - suit-send-sysinfo-failure
+    suit-manifest-component-id:
+    - INSTLD_MFST
+    - RFC4122_UUID:
+        namespace: nordicsemi.com
+        name: nRF54H20_sample_root
+  suit-integrated-dependencies:
+    '#top': *nordic_top"""
+
 TEST_YAML_STRING_UNSIGNED_ALIASES = """SUIT_Dependent_Manifests:
     app_envelope: &app
         SUIT_Envelope_Tagged:
@@ -1628,6 +1787,8 @@ def setup_and_teardown(tmp_path_factory):
         fh.write(TEST_YAML_STRING_UNSIGNED_ALIASES)
     with open("envelope_2.yaml", "w") as fh:
         fh.write(TEST_YAML_STRING_UNSIGNED_ALIASES_AND_BINARY)
+    with open("envelope_3.yaml", "w") as fh:
+        fh.write(TEST_YAML_STRING_MULTILEVEL_HIERARCHY)
     with open("envelope_1.json", "w") as fh:
         fh.write(TEST_JSON_STRING_UNSIGNED)
     with open("rad.bin", "wb") as fh:
@@ -1685,6 +1846,7 @@ def calculate_hash(data):
 
 
 def exclude_obj_callback(obj, path):
+    """Exclude filter to use with deepdiff."""
     # filter out SUIT_Dependent_Manifests contains two elements (expected case but with renamed anchors)
     return True if "SUIT_Dependent_Manifests" in path and len(obj) == 2 else False
 
@@ -1734,6 +1896,26 @@ def test_envelope_unsigned_creation_and_parsing(setup_and_teardown, input_data):
         )
         assert diff == {}
     with open(binary_envelope, "rb") as fh_suit_1, open(binary_envelope_copy, "rb") as fh_suit_2:
+        # restored yaml might be a little different due to replacements like RFC4122_UUID calculation -> raw data
+        # but both envelopes should be binary equal
+        assert calculate_hash(fh_suit_1.read()) == calculate_hash(fh_suit_2.read())
+
+
+def test_envelope_unsigned_creation_and_parsing_multilevel_hierarchy(setup_and_teardown):
+    """Test recreation of multilevel hierarchy envelope with hierarchy parsing enabled."""
+    envelope = SuitEnvelope()
+    # create multilevel hierarchy binary envelope
+    envelope.load("envelope_3.yaml", input_type="yaml")
+    envelope.dump("envelope_3.suit", output_type="suit")
+    # load multilevel hierarchy binary envelope
+    envelope.load("envelope_3.suit", input_type="suit")
+    # dump envelope with dependent manifests parsed to yaml file
+    envelope.dump("envelope_3_copy.yaml", output_type="yaml", parse_hierarchy=True)
+    # recreate multilevel hierarchy binary envelope
+    envelope.load("envelope_3_copy.yaml", input_type="yaml")
+    envelope.dump("envelope_3_copy.suit", output_type="suit")
+    # compare both envelopes
+    with open("envelope_3.suit", "rb") as fh_suit_1, open("envelope_3_copy.suit", "rb") as fh_suit_2:
         # restored yaml might be a little different due to replacements like RFC4122_UUID calculation -> raw data
         # but both envelopes should be binary equal
         assert calculate_hash(fh_suit_1.read()) == calculate_hash(fh_suit_2.read())
