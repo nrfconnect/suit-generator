@@ -48,10 +48,10 @@ def add_arguments(parser):
     )
 
     cmd_mpi_generate.add_argument(
-        "--downgrade-disabled",
+        "--downgrade-prevention-enabled",
         required=False,
         action="store_true",
-        help="Disable downgrades (enable downgrade prevention policy).",
+        help="Enable downgrade prevention policy.",
     )
     cmd_mpi_generate.add_argument(
         "--independent-updates", required=False, action="store_true", help="Enable independent updateability."
@@ -101,7 +101,7 @@ class MpiGenerator:
         class_name: str,
         address: int,
         size: int,
-        downgrade_disabled: bool,
+        downgrade_prevention_enabled: bool,
         independent_updates: bool,
         signature_verification: str,
     ) -> None:
@@ -119,10 +119,10 @@ class MpiGenerator:
         vid = uuid.uuid5(uuid.NAMESPACE_DNS, vendor_name)
         cid = uuid.uuid5(vid, class_name)
 
-        if downgrade_disabled:
-            downgrade_disabled_bytes = b"\02"
+        if downgrade_prevention_enabled:
+            downgrade_prevention_enabled_bytes = b"\02"
         else:
-            downgrade_disabled_bytes = b"\01"
+            downgrade_prevention_enabled_bytes = b"\01"
 
         if independent_updates:
             independent_updates_bytes = b"\02"
@@ -140,7 +140,7 @@ class MpiGenerator:
 
         mpi = (
             version.to_bytes(1, MpiGenerator.BYTE_ORDER)
-            + downgrade_disabled_bytes
+            + downgrade_prevention_enabled_bytes
             + independent_updates_bytes
             + signature_verification_bytes
             + b"\xFF" * 12  # Reserved for future use
@@ -195,7 +195,7 @@ def main(**kwargs) -> None:
         * **file** - a single MPI configuration area to merge
         * **vendor_name** - vendor name to use for UUID generation
         * **class_name** - device class name to use for UUID generation
-        * **downgrade_disabled** - disable downgrades (enable downgrade prevention policy)
+        * **downgrade_prevention_enabled** - enable downgrade prevention policy
         * **independent_updates** - enable independent updateability
         * **signature_verification** - enable signature verification of update candidate and/or installed manifests
     """
@@ -206,7 +206,7 @@ def main(**kwargs) -> None:
             kwargs["class_name"],
             kwargs["address"],
             kwargs["size"],
-            kwargs["downgrade_disabled"],
+            kwargs["downgrade_prevention_enabled"],
             kwargs["independent_updates"],
             kwargs["signature_verification"],
         )
