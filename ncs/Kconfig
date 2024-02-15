@@ -22,17 +22,10 @@ config SUIT_ENVELOPE_SEQUENCE_NUM
     int "Sequence number of the generated SUIT manifest"
     default 0
 
-config SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
-    bool "Create hierarchical manifest"
-    select EXPERIMENTAL
-    help
-        Create hierarchical root manifest with it's dependent sub-manifests
-    default y
-
 config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     string "Path to the default envelope template (deprecated)"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/default_app_rad_cores_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_hierarchical_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_hierarchical_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && HW_REVISION_SOC1
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_wip_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !HW_REVISION_SOC1
     help
       Path to the root template, that is used if the application directory does not
       contain an input root envelope template file.
@@ -48,8 +41,6 @@ config SUIT_ENVELOPE_ROOT_TEMPLATE
       contain an input envelope template file.
       You can use either absolute or relative path.
       In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
-
-if SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
 
 config SUIT_ENVELOPE_APP_TEMPLATE
     string "Path to the default application envelope template"
@@ -84,8 +75,6 @@ config SUIT_ENVELOPE_802154_RPMSG_SUBIMAGE_TEMPLATE
       directory does not contain an input radio envelope template file.
       You can use either absolute or relative path.
       In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
-
-endif # SUIT_ENVELOPE_HIERARCHICAL_MANIFEST
 
 config SUIT_ENVELOPE_EDITABLE_TEMPLATES_LOCATION
     string "Path to the folder with envelope templates"
@@ -180,6 +169,6 @@ config SUIT_ENVELOPE_TOP_TEMPLATE
   string "TODO: Describe"
   help
       TODO: Describe
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !HW_REVISION_SOC1
 
 endif # SUIT_ENVELOPE
