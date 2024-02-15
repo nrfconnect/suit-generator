@@ -176,4 +176,10 @@ config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
       In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
 
+config SUIT_ENVELOPE_TOP_TEMPLATE
+  string "TODO: Describe"
+  help
+      TODO: Describe
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+
 endif # SUIT_ENVELOPE
