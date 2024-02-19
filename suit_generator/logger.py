@@ -9,7 +9,7 @@ import inspect
 
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def log_call(func):
@@ -21,9 +21,10 @@ def log_call(func):
             caller_frame_record = inspect.stack()[1]
             frame = caller_frame_record[0]
             info = inspect.getframeinfo(frame)
-            log.info(f"{info.filename}:{info.function}:{info.lineno}:{func.__name__}({args=},{kwargs=})")
+            logger.debug(f"{info.filename}:{info.function}:{info.lineno}:{func.__name__}({args=},{kwargs=})")
             return func(*args, **kwargs)
         except Exception as e:
-            log.exception(f"{e}:{info.filename}:{info.function}:{info.lineno}:{func.__name__}({args=},{kwargs=})")
+            logger.warning(f"{info.filename}:{info.function}:{info.lineno}:{func.__name__}({args=},{kwargs=}):\n{e}")
+            raise
 
     return inner_func

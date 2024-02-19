@@ -15,6 +15,7 @@ import binascii
 import logging
 import struct
 import json
+import yaml
 
 import cbor2
 
@@ -22,7 +23,7 @@ from suit_generator.logger import log_call
 from suit_generator.suit.types.keys import suit_integrated_payloads, suit_integrated_dependencies
 from suit_generator.exceptions import GeneratorError
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -83,7 +84,16 @@ def cbstr(cls):
     return Cbstr
 
 
-class SuitObject:
+class PrettyPrintHelperMixin:
+    """Mixin class providing helper methods for pretty printing objects for debugging purposes."""
+
+    @staticmethod
+    def pretty_format_obj(obj: object) -> None:
+        """Convert the passed object into a human-readable debug string using YAML format."""
+        return f"\n{yaml.dump(obj)}\n"
+
+
+class SuitObject(PrettyPrintHelperMixin):
     """SUIT basic object."""
 
     _metadata = None
@@ -186,10 +196,12 @@ class SuitObject:
             raise ValueError("Not possible to get value!")
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: Any) -> SuitObject:
         """Restore SUIT representation from passed object."""
         return cls(obj)
 
+    @log_call
     def to_obj(self) -> Any:
         """Dump SUIT representation to object."""
         return self.value
@@ -321,6 +333,7 @@ class SuitUnion(SuitObject):
         return self.value.to_cbor()
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: Any) -> SuitUnion:
         """Restore SUIT representation from passed object."""
         value = None
@@ -331,9 +344,10 @@ class SuitUnion(SuitObject):
             except ValueError:
                 pass
         if value is None:
-            raise ValueError(f"Unable to parse input: {obj}")
+            raise ValueError(f"{cls.__name__}: Unable to parse input: {cls.pretty_format_obj(obj)}")
         return cls(value)
 
+    @log_call
     def to_obj(self):
         """Dump SUIT representation to object."""
         return self.value if isinstance(self.value, str) else self.value.to_obj()
@@ -376,11 +390,12 @@ class SuitTupleNamed(SuitObject):
         return self.serialize_cbor(data)
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: dict) -> SuitTupleNamed:
         """Restore SUIT representation from passed object."""
         value = []
         if not isinstance(obj, dict):
-            raise ValueError(f"Expected dict, received: {obj}")
+            raise ValueError(f"{cls.__name__}: Expected dict, received: {type(obj)} for:{cls.pretty_format_obj(obj)}")
         for k, c in cls._metadata.map.items():
             if k in obj.keys():
                 value.append(c.from_obj(obj[k]))
@@ -391,6 +406,7 @@ class SuitTupleNamed(SuitObject):
                 raise ValueError(f"Incomplete list. Missing: {k}")
         return cls(value)
 
+    @log_call
     def to_obj(self) -> dict:
         """Dump SUIT representation to object."""
         value = {}
@@ -455,7 +471,7 @@ class SuitKeyValue(SuitObject):
                         else:
                             value[item] = cls._metadata.map[item].from_cbor(cls.serialize_cbor({k: v}))
                     except ValueError:
-                        log.warning(f"Not possible to deserialize data for {k}")
+                        logger.warning(f"Not possible to deserialize data for {k}")
             else:
                 value[child[0]] = child[1].from_cbor(cls.ensure_cbor(v))
         return cls(value)
@@ -471,11 +487,12 @@ class SuitKeyValue(SuitObject):
         return self.serialize_cbor(data)
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: dict) -> SuitKeyValue:
         """Restore SUIT representation from passed object."""
         value = {}
         if not isinstance(obj, dict):
-            raise ValueError(f"Unable to construct dict from: {obj}")
+            raise ValueError(f"{cls.__name__} Expected dict, received: {type(obj)} for:{cls.pretty_format_obj(obj)}")
         for k, v in obj.items():
             if child := cls._get_method_and_name(k, "name"):
                 value[child[0]] = child[1].from_obj(v)
@@ -483,6 +500,7 @@ class SuitKeyValue(SuitObject):
                 raise ValueError(f"Unknown parameter: {k}")
         return cls(value)
 
+    @log_call
     def to_obj(self) -> dict:
         """Dump SUIT representation to object."""
         obj = {}
@@ -540,6 +558,7 @@ class SuitKeyValueUnnamed(SuitObject):
         return self.serialize_cbor(obj)
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: dict) -> SuitKeyValueUnnamed:
         """Restore SUIT representation from passed object."""
         ret = {}
@@ -555,9 +574,12 @@ class SuitKeyValueUnnamed(SuitObject):
                 except ValueError:
                     pass
             else:
-                raise ValueError(f"Unable to parse key-value pair: {k}: {v}")
+                raise ValueError(
+                    f"{cls.__name__}: Unable to parse key-value pair: {k}: {v} for:{cls.pretty_format_obj(obj)}"
+                )
         return cls(ret)
 
+    @log_call
     def to_obj(self) -> dict:
         """Dump SUIT representation to object."""
         return {k: v[1].to_obj() for k, v in self.value.items()}
@@ -621,12 +643,16 @@ class SuitBstr(SuitObject):
         return self.serialize_cbor(self.value)
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: str) -> SuitBstr:
         """Restore SUIT representation from passed object."""
         if not isinstance(obj, str):
-            raise ValueError(f"Expected hex string, received: {obj}")
+            raise ValueError(
+                f"{cls.__name__}: Expected hex string, received: {type(obj)} for:{cls.pretty_format_obj(obj)}"
+            )
         return cls(binascii.a2b_hex(obj))
 
+    @log_call
     def to_obj(self) -> str:
         """Dump SUIT representation to object."""
         return self.value.hex()
@@ -659,15 +685,17 @@ class SuitTag(SuitObject):
         )
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: dict) -> SuitTag:
         """Restore SUIT representation from passed object."""
         if cls._metadata.tag.name not in obj.keys():
-            raise ValueError(f"CBOR tag not found in: {obj}")
+            raise ValueError(f"{cls.__name__}: CBOR tag not found in: {cls.pretty_format_obj(obj)}")
 
         return cls(
             cbor2.CBORTag(cls._metadata.tag.value, cls._metadata.children[0].from_obj(obj[cls._metadata.tag.name]))
         )
 
+    @log_call
     def to_obj(self) -> dict:
         """Dump SUIT representation to object."""
         return {self._metadata.tag.name: self.value.value.to_obj()}
@@ -711,6 +739,7 @@ class SuitList(SuitObject):
         return self.serialize_cbor(data)
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: list) -> SuitList:
         """Restore SUIT representation from passed object."""
         value = []
@@ -718,6 +747,7 @@ class SuitList(SuitObject):
             value.append(cls._metadata.children[0].from_obj(v))
         return cls(tuple(value))
 
+    @log_call
     def to_obj(self) -> list:
         """Dump SUIT representation to object."""
         return [v.to_obj() for v in self.value]
@@ -759,16 +789,18 @@ class SuitBitfield(SuitObject):
         return self.serialize_cbor(value)
 
     @classmethod
+    @log_call
     def from_obj(cls, obj: list) -> SuitBitfield:
         """Restore SUIT representation from passed object."""
         value = []
         if not isinstance(obj, list):
-            raise ValueError(f"Unable to parse bitlist: {obj}")
+            raise ValueError(f"{cls.__name__}: Unable to parse bitlist: {cls.pretty_format_obj(obj)}")
         for bit in obj:
             bit_obj = cls._bit_class.from_obj(bit)
             value.append(bit_obj)
         return cls(value)
 
+    @log_call
     def to_obj(self) -> list:
         """Dump SUIT representation to object."""
         value = []
