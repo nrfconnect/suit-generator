@@ -85,7 +85,7 @@ class SuitBasicEnvelopeOperationsMixin:
 
     def update_severable_digests(self):
         """Update digest in the envelope for severed elements."""
-        severable_elements = [suit_text, suit_payload_fetch, suit_install]
+        severable_elements = [suit_text, suit_dependency_resolution, suit_payload_fetch, suit_install]
         for severable_element in severable_elements:
             if severable_element in self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest and hasattr(
                 self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest[severable_element].value,

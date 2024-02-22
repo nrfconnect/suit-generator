@@ -392,7 +392,7 @@ class SuitManifest(SuitKeyValue):
             suit_payload_fetch: SuitSeverableCommandSequence,
             suit_install: SuitSeverableCommandSequence,
             suit_text: SuitSeverableText,
-            suit_dependency_resolution: cbstr(SuitCommandSequence),
+            suit_dependency_resolution: SuitSeverableCommandSequence,
             suit_uninstall: cbstr(SuitCommandSequence),
         }
     )
