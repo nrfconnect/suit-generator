@@ -14,10 +14,11 @@ import pathlib
 
 from suit_generator.suit.payloads import SuitIntegratedPayloadMap
 from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, SuitBstr, cbstr
-from suit_generator.suit.authentication import SuitAuthentication, SuitHash
+from suit_generator.suit.authentication import SuitDelegationChain, SuitAuthentication, SuitHash
 from suit_generator.suit.manifest import SuitManifest, SuitCommandSequence, SuitTextMap
 from suit_generator.suit.types.keys import (
     suit_manifest,
+    suit_delegation,
     suit_authentication_wrapper,
     suit_dependency_resolution,
     suit_payload_fetch,
@@ -34,6 +35,7 @@ class SuitEnvelopeSimplified(SuitKeyValue):
     _metadata = Metadata(
         map={
             suit_manifest: SuitBstr,
+            suit_delegation: SuitDelegationChain,
             suit_authentication_wrapper: cbstr(SuitAuthentication),
             suit_dependency_resolution: SuitBstr,
             suit_payload_fetch: SuitBstr,
@@ -52,6 +54,7 @@ class SuitEnvelope(SuitKeyValue):
     _metadata = Metadata(
         map={
             suit_manifest: cbstr(SuitManifest),
+            suit_delegation: SuitDelegationChain,
             suit_authentication_wrapper: cbstr(SuitAuthentication),
             suit_dependency_resolution: cbstr(SuitCommandSequence),
             suit_payload_fetch: cbstr(SuitCommandSequence),

@@ -17,6 +17,7 @@ from suit_generator.suit.types.common import (
     SuitUnion,
     SuitTupleNamed,
     SuitKeyValue,
+    SuitList,
     SuitBstr,
     SuitTag,
     Tag,
@@ -191,15 +192,18 @@ class SuitHeaderData(SuitUnion):
 class SuitCwtPayload(SuitKeyValue):
     """Representation of CBOR Web Token."""
 
-    _parameters = {
-        suit_issuer: SuitTstr,
-        suit_subject: SuitTstr,
-        suit_audience: SuitTstr,
-        suit_expiration_time: SuitInt,
-        suit_not_before: SuitInt,
-        suit_issued_at: SuitInt,
-        suit_cw_id: SuitBstr,
-    }
+    _metadata = Metadata(
+        map={
+            # Fields defined in RFC 8392
+            suit_issuer: SuitTstr,
+            suit_subject: SuitTstr,
+            suit_audience: SuitTstr,
+            suit_expiration_time: SuitInt,
+            suit_not_before: SuitInt,
+            suit_issued_at: SuitInt,
+            suit_cw_id: SuitBstr,
+        }
+    )
 
 
 class CoseSigStructure(SuitTupleNamed):
@@ -255,3 +259,15 @@ class SuitAuthentication(SuitTupleNamed):
     """Abstract element to define possible sub-elements."""
 
     _metadata = Metadata(map={"SuitDigest": cbstr(SuitDigest), "SuitAuthentication*": SuitAuthenticationBlock})
+
+
+class SuitDelegation(SuitList):
+    """Representation of SUIT delegation entry."""
+
+    _metadata = Metadata(children=[SuitAuthenticationBlock])
+
+
+class SuitDelegationChain(SuitList):
+    """Representation of SUIT delegation chain."""
+
+    _metadata = Metadata(children=[SuitDelegation])
