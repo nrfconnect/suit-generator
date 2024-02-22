@@ -26,6 +26,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from collections import defaultdict
 from enum import Enum, unique
 
@@ -44,6 +45,7 @@ class SuitAlgorithms(Enum):
     COSE_ALG_ES_256 = -7
     COSE_ALG_ES_384 = -35
     COSE_ALG_ES_521 = -36
+    COSE_ALG_EdDSA = -8
 
 
 class SuitIds(Enum):
@@ -116,16 +118,21 @@ class Signer:
         """Return sign method based on key type."""
         if isinstance(self._key, EllipticCurvePrivateKey):
             return self._create_cose_es_signature
+        elif isinstance(self._key, Ed25519PrivateKey):
+            return self._create_cose_ed_signature
         else:
             raise SignerError(f"Key {type(self._key)} not supported")
 
     @property
     def _algorithm_name(self) -> str:
         """Get algorithm name."""
+        hash_alg = SuitAlgorithms(self.get_digest()[0])
         if isinstance(self._key, EllipticCurvePrivateKey):
             return f"COSE_ALG_ES_{self._key.key_size}"
+        elif isinstance(self._key, Ed25519PrivateKey):
+            return "COSE_ALG_EdDSA"
         else:
-            raise SignerError(f"Key {type(self._key)} not supported")
+            raise SignerError(f"Key {type(self._key)} with {hash_alg} is not supported")
 
     def _create_cose_es_signature(self, input_data: bytes) -> bytes:
         """Create ECDSA signature and return signature bytes."""
@@ -135,6 +142,10 @@ class Signer:
         return r.to_bytes(math.ceil(self._key.key_size / 8), byteorder="big") + s.to_bytes(
             math.ceil(self._key.key_size / 8), byteorder="big"
         )
+
+    def _create_cose_ed_signature(self, input_data: bytes) -> bytes:
+        """Create ECDSA signature and return signature bytes."""
+        return self._key.sign(input_data)
 
     def _get_manifest_class_id(self):
         manifest = cbor2.loads(self.envelope.value[SuitIds.SUIT_MANIFEST.value])

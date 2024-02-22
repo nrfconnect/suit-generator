@@ -62,6 +62,35 @@ FllgzoE3Rc2ZeGLOuD2SGi9H6iVhwynzSIl7RWnfhW8PtC2bT0smQ7D4YP9aO/k0
 MC4CAQAwBQYDK2VwBCIEIBiOzhb2OjnrKpySHYKDeeFbKHZdQzitUKd/plugHOJ6
 -----END PRIVATE KEY-----
 """,
+    "RS2048": b"""-----BEGIN PRIVATE KEY-----
+MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCm+9OpJSZuKvOk
+NUoRtnJp3npoorOi5gkbug0g9c8c8D+iOcvRdkz02mj9Nb5UGZFznQjXWcVvbDN5
+IRiEbvK9TgepP4o8rTD8fhtMcdHUn273XKgXuFhHzeKTvLLVl9Faz5ABVMWenEC4
+a/6sgmqo7acJAqYF0N9Nj4z68aVbtrC0eQhtmRfYf/gZnJ+iOa8pt9ss47PUEmL9
+xxuAQpVkXjHbsvPs7++UhTxwBjZS0A03P7MdbQVe2dNzD25vAr/NgUs0UX8HMFwP
+4BB1ialW8JbZ7btdxdjvJFIaAIa7HMxit+fr1JZXVmvOQ0dXZimW0mJobrcQzD8u
+0xJZClRVAgMBAAECggEADkpByFliCw6I8DYRQyfKbc34ysiVt+yYvfMzmWz/zvmu
+cGsiyqelmVSxpG27foX7oRnAvnEzyL/JPeX7q6W1B0dMt4q1AVFO/mSqYGXjL59/
+RxL6XaFMiMSRTdRZt5a4910I9Vw0V0kG7uFrF4dHqnJAF7DO1XOVEJWm2njgjlMW
+LOuqZMaST3VdNkzodbYkomO+is2cEraKCnJA1kUS4aoFaJTuw0fKEEKs9wRNDoJ6
+5GIjYgnOI3H66OwfGRPgdaut1kg5hEGVGV8hUmkzo+5gPqlm6Vecx0cdWyqGw4QZ
+Fy16Mu9uFME2TRWFl7JjoC0ni+gjJYfrg4Wimm+1lwKBgQDXC1DLSUTLbDThue7R
+ZSR9w8sgjXRc4AtuetfQD9g02PKasgUb42FskpIUuFzDhMLdtaPHTr/ZEf3egxSF
+QcFEkLIt7uuDPEQ6OqP79fISAUBI+x2f7/0zvuCcc+B2SzmA0n3zN++FRoVt/cGr
+afQAiLlPOWd0aqHuNZECVtCUOwKBgQDGyUaUE1P/dtRPskSgre9zms9cC09ZISRi
+crej93AB44ranxXUjv9acyN1yM/yWH26UahY5A1z/0HdqbVNIVf1uUbRaS5lqsim
+V61563NBYQ21ahGyF4N80g7ejo4SZdovIwSC3jmCWSCjsp3seyD9JD7tYwhOyHEQ
+Y31w4w8ArwKBgFHfxQshAkhREnE+0WZ4E8SuXxAtyzfxNWkC7FgTMEYus2+ih79u
+exFTXLr21pq6WVcAaTLhELoc14N4dL+noWXxkWVbqd91eqSQ3w53PYsNXuRqd4UF
+YmnpKqtmkvd2/JXHjpyjl1Yu225dRvd0h6oMZEF9oZ35W13Olz9EvnUxAoGAUz1n
+W4w4aUomH3VDvZD4Kw2RdTabNHRnWv40nel4MqJIu8FQD+ENVp/OIn1DbnTVuRaG
+iyp7463os9xjufeTcKbz267Sqen4+YbPcrVAXwk4B1ZyMIQeID+J0HIbVeLmmURt
+mCtcI5QU0ddyv9rTdo0d+KO2j97pUXaHyaSa3KsCgYBJLasw5iYT4tgmtDs8jCs2
+E7TSEscV8R+zLpRQv2ioC7bSXtGknmqlYJoTqzYsc1TxohhASbo2jxvIL79z+jtw
+iOaKLTZVbAW/yjd5RbXO42PdpzRMu2vEvLvYhIWyQkHjO/kUHZa/01Syh0km6mb/
+CrpU0XDa8s80x8DY4PqV4A==
+-----END PRIVATE KEY-----
+""",
 }
 
 
@@ -117,6 +146,8 @@ def setup_and_teardown(tmp_path_factory):
         fh.write(PRIVATE_KEYS["ES_521"])
     with open("key_private_ed25519.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["Ed25519"])
+    with open("key_private_rs2048.pem", "wb") as fh:
+        fh.write(PRIVATE_KEYS["RS2048"])
     with open("test_envelope.suit", "wb") as fh:
         fh.write(binascii.a2b_hex(TEST_DATA["ENVELOPE_1_UNSIGNED"]))
     with open("test_envelope_manifest_component_id.suit", "wb") as fh:
@@ -156,7 +187,7 @@ def test_ncs_get_digest_object(setup_and_teardown):
 
 @pytest.mark.parametrize(
     "private_key",
-    ["es_256", "es_384", "es_521"],
+    ["es_256", "es_384", "es_521", "ed25519"],
 )
 def test_ncs_signing(setup_and_teardown, private_key):
     """Test if is possible to sign manifest."""
@@ -248,7 +279,7 @@ def test_ncs_signing_unsupported(setup_and_teardown):
     signer = Signer()
     signer.load_envelope("test_envelope.suit")
     with pytest.raises(SignerError):
-        signer.sign("key_private_ed25519.pem")
+        signer.sign("key_private_rs2048.pem")
 
 
 @patch("ncs.sign_script.DEFAULT_KEY_ID", 0x0C0FFE)

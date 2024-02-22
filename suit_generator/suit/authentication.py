@@ -43,6 +43,7 @@ from suit_generator.suit.types.keys import (
     cose_alg_es_256,
     cose_alg_es_384,
     cose_alg_es_521,
+    cose_alg_eddsa,
     suit_digest_algorithm_id,
     suit_digest_bytes,
 )
@@ -163,7 +164,7 @@ class SuitDigest(SuitUnion):
 class SuitcoseSignAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
-    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384, cose_alg_es_521])
+    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384, cose_alg_es_521, cose_alg_eddsa])
 
 
 class SuitHeaderMap(SuitKeyValue):
