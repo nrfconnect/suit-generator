@@ -127,6 +127,27 @@ class suit_directive_unlink(suit_key):
     name = "suit-directive-unlink"
 
 
+class suit_parameter_version(suit_key):
+    """suit-parameter-version metadata."""
+
+    id = 28
+    name = "suit-parameter-version"
+
+
+class suit_parameter_version_comparison_type(suit_key):
+    """suit-parameter-version-comparison-type metadata."""
+
+    id = 1
+    name = "suit-parameter-version-comparison-type"
+
+
+class suit_parameter_version_comparison_value(suit_key):
+    """suit-parameter-version-comparison-value metadata."""
+
+    id = 2
+    name = "suit-parameter-version-comparison-value"
+
+
 class suit_parameter_vendor_identifier(suit_key):
     """suit-parameter-vendor-identifier metadata."""
 
@@ -412,6 +433,48 @@ class suit_dependency_resolution(suit_key):
 
     id = 15
     name = "suit-dependency-resolution"
+
+
+class suit_condition_version(suit_key):
+    """suit-condition-version metadata."""
+
+    id = 28
+    name = "suit-condition-version"
+
+
+class suit_condition_version_comparison_greater(suit_key):
+    """suit-condition-version-comparison-greater metadata."""
+
+    id = 1
+    name = "suit-condition-version-comparison-greater"
+
+
+class suit_condition_version_comparison_greater_equal(suit_key):
+    """suit-condition-version-comparison-greater-equal metadata."""
+
+    id = 2
+    name = "suit-condition-version-comparison-greater-equal"
+
+
+class suit_condition_version_comparison_equal(suit_key):
+    """suit-condition-version-comparison-equal metadata."""
+
+    id = 3
+    name = "suit-condition-version-comparison-equal"
+
+
+class suit_condition_version_comparison_lesser_equal(suit_key):
+    """suit-condition-version-comparison-lesser-equal metadata."""
+
+    id = 4
+    name = "suit-condition-version-comparison-lesser-equal"
+
+
+class suit_condition_version_comparison_lesser(suit_key):
+    """suit-condition-version-comparison-lesser metadata."""
+
+    id = 5
+    name = "suit-condition-version-comparison-lesser"
 
 
 class suit_condition_vendor_identifier(suit_key):
