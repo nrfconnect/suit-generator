@@ -21,7 +21,7 @@ import cbor2
 
 from suit_generator.logger import log_call
 from suit_generator.suit.types.keys import suit_integrated_payloads, suit_integrated_dependencies
-from suit_generator.exceptions import GeneratorError
+from suit_generator.exceptions import GeneratorError, SUITError
 
 logger = logging.getLogger(__name__)
 
@@ -674,8 +674,8 @@ class SuitTag(SuitObject):
     def from_cbor(cls, cbstr: bytes) -> SuitTag:
         """Restore SUIT representation from passed CBOR."""
         cbor = cls.deserialize_cbor(cbstr)
-        if cls._metadata.tag.value != cbor.tag:
-            raise ValueError(f"CBOR tag not found in: {cbor}")
+        if not hasattr(cbor, "tag") or cls._metadata.tag.value != cbor.tag:
+            raise SUITError(f"CBOR tag not found in: {cbor}")
         return cls(cbor2.CBORTag(cbor.tag, cls._metadata.children[0].from_cbor(cls.serialize_cbor(cbor.value))))
 
     def to_cbor(self) -> bytes:

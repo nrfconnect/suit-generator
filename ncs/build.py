@@ -27,12 +27,44 @@ UPDATE_CMD = "update"
 dir_path = pathlib.Path(__file__).parent.absolute()
 
 
-def convert(edt_object):
-    """Convert devicetree representation into simplified object."""
-    # TODO: returned data shall contain basic and the most important settings to simplify templates
-    data = edt_object.label2node
-    data["compat2vendor"] = edt_object.compat2vendor
-    return data
+class BuildConfiguration(dict):
+    """Represents a build system configuration, providing access to KConfig values.
+
+    This class reads configuration data from a specified file and parses it.
+    Configuration data is accessible as a dictionary.
+    """
+
+    config_value_pattern = re.compile(r"(?P<kconfig_name>[A-Za-z0-9_]+)=(?P<kconfig_value>.*)")
+
+    def __init__(self, input_file: str = ".config") -> None:
+        """Initialize a BuildConfiguration object."""
+        super().__init__()
+        try:
+            with open(input_file, "r") as fh:
+                self._config_data = fh.readlines()
+        except FileNotFoundError as e:
+            raise SystemExit(e)
+        self._parse()
+
+    def _parse(self) -> None:
+        """Parse input .config file and populate the configuration dictionary."""
+        for config_line in self._config_data:
+            if re_result := self.config_value_pattern.match(config_line):
+                kconfig_name = re_result.group("kconfig_name")
+                kconfig_value = re_result.group("kconfig_value")
+                if kconfig_value == "y":
+                    # boolean value
+                    kconfig_value = True
+                elif kconfig_value.startswith("0x"):
+                    # hexadecimal value
+                    kconfig_value = int(kconfig_value, base=16)
+                elif kconfig_value.startswith('"') and kconfig_value.endswith('"'):
+                    # string value
+                    kconfig_value = kconfig_value[1:-1]
+                elif kconfig_value.isdecimal():
+                    # int value
+                    kconfig_value = int(kconfig_value, base=10)
+                super().__setitem__(kconfig_name, kconfig_value)
 
 
 def read_configurations(configurations):
@@ -40,13 +72,14 @@ def read_configurations(configurations):
     data = {}
     for config in configurations:
         name, binary, edt = config.split(",")
+        kconfig = pathlib.Path(edt).parent / ".config"
         with open(edt, "rb") as edt_handler:
             edt = pickle.load(edt_handler)
             # add prefix _ to the names starting with digits, for example:
             #   802154_rpmsg_subimage will be available in the templates as _802154_rpmsg_subimage
             data[f"_{name}" if re.match("^[0-9].*]", name) else name] = {
                 "name": name,
-                "config": convert(edt),
+                "config": BuildConfiguration(kconfig),
                 "dt": edt,
                 "binary": binary,
             }
@@ -98,7 +131,6 @@ if __name__ == "__main__":
         STORAGE_CMD, help="Generate SUIT storage required by secure domain.", parents=[parent_parser]
     )
 
-    cmd_template_arg_parser.add_argument("--version", required=True, default=1, help="Update version.")
     cmd_template_arg_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
     cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
 
@@ -133,7 +165,6 @@ if __name__ == "__main__":
     configuration = read_configurations(arguments.core)
 
     if arguments.command == TEMPLATE_CMD:
-        configuration["version"] = arguments.version
         configuration["output_envelope"] = arguments.output_suit
         output_suit_content = render_template(arguments.template_suit, configuration)
         with open(arguments.output_suit, "w") as output_file:
