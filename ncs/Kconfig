@@ -127,7 +127,7 @@ config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
 
 config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_SICR_BIN
   string "Name of Imprimatur's build artifact containing SICR section needed for SDFW update"
-  default "sicr.bin"
+  default "urot_update_sm.bin"
 
 config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_PUBLIC_KEY_BIN
   string "Name of Imprimatur's build artifact containing public key used for signing the SDFW update candidate"
