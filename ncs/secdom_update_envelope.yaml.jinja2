@@ -2,13 +2,14 @@
   {# secure domain build as main application #}
   {%- set secdom = app %}
 {%- endif %}
+{%- set sequence_number = app['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
       suit-digest-algorithm-id: cose-alg-sha-256
   suit-manifest:
     suit-manifest-version: 1
-    suit-manifest-sequence-number: {{ version }}
+    suit-manifest-sequence-number: {{ sequence_number }}
     suit-common:
       suit-components:
       - - SOC_SPEC

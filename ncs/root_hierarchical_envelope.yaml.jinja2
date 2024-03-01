@@ -1,12 +1,19 @@
 {%- set component_index = 0 %}
 {%- set component_list = [] %}
+{%- set mpi_root_vendor_name = app['config']['CONFIG_SUIT_MPI_ROOT_VENDOR_NAME']|default('nordicsemi.com') %}
+{%- set mpi_root_class_name = app['config']['CONFIG_SUIT_MPI_ROOT_CLASS_NAME']|default('nRF54H20_sample_root') %}
+{%- set mpi_app_vendor_name = app['config']['CONFIG_SUIT_MPI_APP_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
+{%- set mpi_app_class_name = app['config']['CONFIG_SUIT_MPI_APP_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_app') %}
+{%- set mpi_rad_vendor_name = app['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
+{%- set mpi_rad_class_name = app['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_rad') %}
+{%- set sequence_number = app['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
       suit-digest-algorithm-id: cose-alg-sha-256
   suit-manifest:
     suit-manifest-version: 1
-    suit-manifest-sequence-number: {{ version }}
+    suit-manifest-sequence-number: {{ sequence_number }}
     suit-common:
       suit-components:
       - - CAND_MFST
@@ -17,8 +24,8 @@ SUIT_Envelope_Tagged:
     {{- component_list.append( hci_rpmsg_subimage_component_index ) or ""}}
       - - INSTLD_MFST
         - RFC4122_UUID:
-            namespace: nordicsemi.com
-            name: nRF54H20_sample_rad
+            namespace: {{ mpi_rad_vendor_name }}
+            name: {{ mpi_rad_class_name }}
 {%- endif %}
 {%- if multiprotocol_rpmsg_subimage is defined %}
     {%- set component_index = component_index + 1 %}
@@ -26,8 +33,8 @@ SUIT_Envelope_Tagged:
     {{- component_list.append( multiprotocol_rpmsg_subimage_component_index ) or ""}}
       - - INSTLD_MFST
         - RFC4122_UUID:
-            namespace: nordicsemi.com
-            name: nRF54H20_sample_rad
+            namespace: {{ mpi_rad_vendor_name }}
+            name: {{ mpi_rad_class_name }}
 {%- endif %}
 {%- if _802154_rpmsg_subimage is defined %}
     {%- set component_index = component_index + 1 %}
@@ -35,8 +42,8 @@ SUIT_Envelope_Tagged:
     {{- component_list.append( _802154_rpmsg_subimage_component_index ) or ""}}
       - - INSTLD_MFST
         - RFC4122_UUID:
-            namespace: nordicsemi.com
-            name: nRF54H20_sample_rad
+            namespace: {{ mpi_rad_vendor_name }}
+            name: {{ mpi_rad_class_name }}
 {%- endif %}
 {%- if app is defined %}
     {%- set component_index = component_index + 1 %}
@@ -44,49 +51,49 @@ SUIT_Envelope_Tagged:
     {{- component_list.append( app_component_index ) or ""}}
       - - INSTLD_MFST
         - RFC4122_UUID:
-            namespace: nordicsemi.com
-            name: nRF54H20_sample_app
+            namespace: {{ mpi_app_vendor_name }}
+            name: {{ mpi_app_class_name }}
 {%- endif %}
       suit-shared-sequence:
 {%- if hci_rpmsg_subimage is defined %}
       - suit-directive-set-component-index: {{ hci_rpmsg_subimage_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
-            RFC4122_UUID: nordicsemi.com
+            RFC4122_UUID: {{ mpi_rad_vendor_name }}
           suit-parameter-class-identifier:
             RFC4122_UUID:
-              namespace: nordicsemi.com
-              name: nRF54H20_sample_rad
+              namespace: {{ mpi_rad_vendor_name }}
+              name: {{ mpi_rad_class_name }}
 {%- endif %}
 {%- if multiprotocol_rpmsg_subimage is defined %}
       - suit-directive-set-component-index: {{ multiprotocol_rpmsg_subimage_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
-            RFC4122_UUID: nordicsemi.com
+            RFC4122_UUID: {{ mpi_rad_vendor_name }}
           suit-parameter-class-identifier:
             RFC4122_UUID:
-              namespace: nordicsemi.com
-              name: nRF54H20_sample_rad
+              namespace: {{ mpi_rad_vendor_name }}
+              name: {{ mpi_rad_class_name }}
 {%- endif %}
 {%- if _802154_rpmsg_subimage is defined %}
       - suit-directive-set-component-index: {{ _802154_rpmsg_subimage_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
-            RFC4122_UUID: nordicsemi.com
+            RFC4122_UUID: {{ mpi_rad_vendor_name }}
           suit-parameter-class-identifier:
             RFC4122_UUID:
-              namespace: nordicsemi.com
-              name: nRF54H20_sample_rad
+              namespace: {{ mpi_rad_vendor_name }}
+              name: {{ mpi_rad_class_name }}
 {%- endif %}
 {%- if app is defined %}
       - suit-directive-set-component-index: {{ app_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
-            RFC4122_UUID: nordicsemi.com
+            RFC4122_UUID: {{ mpi_app_vendor_name }}
           suit-parameter-class-identifier:
             RFC4122_UUID:
-              namespace: nordicsemi.com
-              name: nRF54H20_sample_app
+              namespace: {{ mpi_app_vendor_name }}
+              name: {{ mpi_app_class_name }}
 {%- endif %}
       - suit-directive-set-component-index: [{{ component_list|join(',') }}]
       - suit-condition-vendor-identifier:
@@ -236,8 +243,8 @@ SUIT_Envelope_Tagged:
     suit-manifest-component-id:
     - INSTLD_MFST
     - RFC4122_UUID:
-        namespace: nordicsemi.com
-        name: nRF54H20_sample_root
+        namespace: {{ mpi_root_vendor_name }}
+        name: {{ mpi_root_class_name }}
   suit-integrated-dependencies:
 {%- if hci_rpmsg_subimage is defined %}
     '#{{ hci_rpmsg_subimage['name'] }}': {{ hci_rpmsg_subimage['binary'] | replace('zephyr.bin', hci_rpmsg_subimage['name'] ~ '.suit') }}
