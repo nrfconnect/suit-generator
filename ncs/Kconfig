@@ -44,7 +44,7 @@ config SUIT_ENVELOPE_ROOT_TEMPLATE
 
 config SUIT_ENVELOPE_APP_TEMPLATE
     string "Path to the default application envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2"
     help
       Path to the default application envelope template, that is used if the application directory does not
       contain an input application envelope template file.
