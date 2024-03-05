@@ -23,7 +23,7 @@ SUIT_Envelope_Tagged:
         - -1
         - {{ get_absolute_address(sysctrl['dt'].label2node['sysctrl_mram0'], use_offset=False) }}
         - {{ sysctrl['dt'].label2node['sysctrl_mram0'].regs[0].size }}
-      # [2], Pseudo-component, used to verify the integrity of te incoming image.
+      # [2], Pseudo-component, used to verify the integrity of the incoming image.
       # It is used as a target component for all fetch operations that download firmware.
       - - CAND_IMG
         - 0
