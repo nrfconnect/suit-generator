@@ -20,6 +20,7 @@ config SUIT_ENVELOPE_SIGN
 
 config SUIT_ENVELOPE_SEQUENCE_NUM
     int "Sequence number of the generated SUIT manifest"
+    range 0 2147483647
     default 1
 
 config SUIT_ENVELOPE_DEFAULT_TEMPLATE
