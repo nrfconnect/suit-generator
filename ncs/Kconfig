@@ -26,6 +26,8 @@ config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     string "Path to the default envelope template (deprecated)"
     default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_hierarchical_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && HW_REVISION_SOC1
     default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !HW_REVISION_SOC1
+    default SUIT_ENVELOPE_SYSCTRL_TEMPLATE if SOC_NRF54H20_CPUSYS
+    default SUIT_ENVELOPE_SECDOM_TEMPLATE if SOC_NRF54H20_CPUSEC
     help
       Path to the root template, that is used if the application directory does not
       contain an input root envelope template file.
@@ -173,5 +175,10 @@ config SUIT_ENVELOPE_TOP_TEMPLATE
       You can use either absolute or relative path.
       In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !HW_REVISION_SOC1
+
+config SUIT_ENVELOPE_ROOT_TARGET
+    string "Map root target to custom target to overwite output aftifacts names."
+    default "secdom" if SOC_NRF54H20_CPUSEC && !HW_REVISION_SOC1
+    default "sysctrl" if SOC_NRF54H20_CPUSYS && !HW_REVISION_SOC1
 
 endif # SUIT_ENVELOPE
