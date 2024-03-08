@@ -688,7 +688,7 @@ class SuitTag(SuitObject):
     @log_call
     def from_obj(cls, obj: dict) -> SuitTag:
         """Restore SUIT representation from passed object."""
-        if cls._metadata.tag.name not in obj.keys():
+        if not isinstance(obj, dict) or cls._metadata.tag.name not in obj.keys():
             raise ValueError(f"{cls.__name__}: CBOR tag not found in: {cls.pretty_format_obj(obj)}")
 
         return cls(

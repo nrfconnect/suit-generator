@@ -131,6 +131,7 @@ if __name__ == "__main__":
         STORAGE_CMD, help="Generate SUIT storage required by secure domain.", parents=[parent_parser]
     )
 
+    cmd_template_arg_parser.add_argument("--artifacts-folder", required=True, help="Output artifact folder.")
     cmd_template_arg_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
     cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
 
@@ -166,6 +167,7 @@ if __name__ == "__main__":
 
     if arguments.command == TEMPLATE_CMD:
         configuration["output_envelope"] = arguments.output_suit
+        configuration["artifacts_folder"] = arguments.artifacts_folder
         output_suit_content = render_template(arguments.template_suit, configuration)
         with open(arguments.output_suit, "w") as output_file:
             output_file.write(output_suit_content)

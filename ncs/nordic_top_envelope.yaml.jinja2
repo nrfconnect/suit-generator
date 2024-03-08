@@ -56,7 +56,7 @@ SUIT_Envelope_Tagged:
         suit-parameter-image-digest:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
-            envelope: {{ sysctrl['binary'] | replace('zephyr.bin', sysctrl['name'] ~ '.suit') }}
+            envelope: {{ artifacts_folder ~ sysctrl['name'] }}.suit
     - suit-condition-image-match:
       - suit-send-record-success
       - suit-send-record-failure
@@ -103,7 +103,7 @@ SUIT_Envelope_Tagged:
         suit-parameter-image-digest:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
-            envelope: {{ secdom['binary'] | replace('secdom_update_payload.bin', secdom['name'] ~ '.suit') }}
+            envelope: {{ artifacts_folder ~ secdom['name'] }}.suit
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -126,7 +126,7 @@ SUIT_Envelope_Tagged:
         suit-parameter-image-digest:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
-            envelope: {{ sysctrl['binary'] | replace('zephyr.bin', sysctrl['name'] ~ '.suit') }}
+            envelope: {{ artifacts_folder ~ sysctrl['name'] }}.suit
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -150,6 +150,6 @@ SUIT_Envelope_Tagged:
         namespace: nordicsemi.com
         name: nRF54H20_nordic_top
   suit-integrated-dependencies:
-    '#{{ secdom['name'] }}': {{ secdom['binary'] | replace('secdom_update_payload.bin', secdom['name'] ~ '.suit') }}
-    '#{{ sysctrl['name'] }}': {{ sysctrl['binary'] | replace('zephyr.bin', sysctrl['name'] ~ '.suit') }}
+    '#{{ secdom['name'] }}': {{ artifacts_folder ~ secdom['name'] }}.suit
+    '#{{ sysctrl['name'] }}': {{ artifacts_folder ~ sysctrl['name'] }}.suit
 
