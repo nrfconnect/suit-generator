@@ -21,6 +21,7 @@ from suit_generator.suit.types.keys import (
     suit_delegation,
     suit_authentication_wrapper,
     suit_dependency_resolution,
+    suit_candidate_verification,
     suit_payload_fetch,
     suit_install,
     suit_text,
@@ -39,6 +40,7 @@ class SuitEnvelopeSimplified(SuitKeyValue):
             suit_authentication_wrapper: cbstr(SuitAuthentication),
             suit_dependency_resolution: SuitBstr,
             suit_payload_fetch: SuitBstr,
+            suit_candidate_verification: SuitBstr,
             suit_install: SuitBstr,
             suit_text: SuitBstr,
             suit_integrated_payloads: SuitIntegratedPayloadMap,
@@ -58,6 +60,7 @@ class SuitEnvelope(SuitKeyValue):
             suit_authentication_wrapper: cbstr(SuitAuthentication),
             suit_dependency_resolution: cbstr(SuitCommandSequence),
             suit_payload_fetch: cbstr(SuitCommandSequence),
+            suit_candidate_verification: cbstr(SuitCommandSequence),
             suit_install: cbstr(SuitCommandSequence),
             suit_text: cbstr(SuitTextMap),
             suit_integrated_payloads: SuitIntegratedPayloadMap,
@@ -88,7 +91,13 @@ class SuitBasicEnvelopeOperationsMixin:
 
     def update_severable_digests(self):
         """Update digest in the envelope for severed elements."""
-        severable_elements = [suit_text, suit_dependency_resolution, suit_payload_fetch, suit_install]
+        severable_elements = [
+            suit_text,
+            suit_dependency_resolution,
+            suit_payload_fetch,
+            suit_candidate_verification,
+            suit_install,
+        ]
         for severable_element in severable_elements:
             if severable_element in self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest and hasattr(
                 self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest[severable_element].value,
