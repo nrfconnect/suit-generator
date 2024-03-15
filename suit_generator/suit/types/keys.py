@@ -274,6 +274,13 @@ class suit_manifest_component_id(suit_key):
     name = "suit-manifest-component-id"
 
 
+class suit_current_version(suit_key):
+    """suit-current-version metadata."""
+
+    id = 6
+    name = "suit-current-version"
+
+
 class suit_validate(suit_key):
     """suit-validate metadata."""
 
