@@ -64,13 +64,14 @@ SUIT_Dependent_Manifests:
                 namespace: nordicsemi.com
                 name: nRF54H20_sample_app
           suit-text:
-            '["M", 2, 235577344, 522240]':
-              suit-text-vendor-name: Nordic Semiconductor ASA
-              suit-text-model-name: nRF54H20_cpuapp
-              suit-text-vendor-domain: nordicsemi.com
-              suit-text-model-info: The nRF54H20 application core
-              suit-text-component-description: Sample application core FW
-              suit-text-component-version: v1.0.0
+            en:
+              '["M", 2, 235577344, 522240]':
+                suit-text-vendor-name: Nordic Semiconductor ASA
+                suit-text-model-name: nRF54H20_cpuapp
+                suit-text-vendor-domain: nordicsemi.com
+                suit-text-model-info: The nRF54H20 application core
+                suit-text-component-description: Sample application core FW
+                suit-text-component-version: v1.0.0
           suit-integrated-payloads:
             '#app.bin': app.bin
     radio_envelope: &rad
@@ -138,13 +139,14 @@ SUIT_Dependent_Manifests:
                 namespace: nordicsemi.com
                 name: nRF54H20_sample_rad
           suit-text:
-            '["M", 3, 235225088, 350208]':
-              suit-text-vendor-name: Nordic Semiconductor ASA
-              suit-text-model-name: nRF54H20_cpurad
-              suit-text-vendor-domain: nordicsemi.com
-              suit-text-model-info: The nRF54H20 radio core
-              suit-text-component-description: Sample radio core FW
-              suit-text-component-version: v1.0.0
+            en:
+              '["M", 3, 235225088, 350208]':
+                suit-text-vendor-name: Nordic Semiconductor ASA
+                suit-text-model-name: nRF54H20_cpurad
+                suit-text-vendor-domain: nordicsemi.com
+                suit-text-model-info: The nRF54H20 radio core
+                suit-text-component-description: Sample radio core FW
+                suit-text-component-version: v1.0.0
           suit-integrated-payloads:
             '#rad.bin': rad.bin
 SUIT_Envelope_Tagged:
@@ -282,13 +284,14 @@ SUIT_Envelope_Tagged:
         namespace: nordicsemi.com
         name: nRF54H20_sample_root
   suit-text:
-    '["C", 0]':
-      suit-text-vendor-name: Nordic Semiconductor ASA
-      suit-text-model-name: nRF54H20
-      suit-text-vendor-domain: nordicsemi.com
-      suit-text-model-info: The nRF54H20 root manifest
-      suit-text-component-description: Sample root manifest
-      suit-text-component-version: v1.0.0
+    en:
+      '["C", 0]':
+        suit-text-vendor-name: Nordic Semiconductor ASA
+        suit-text-model-name: nRF54H20
+        suit-text-vendor-domain: nordicsemi.com
+        suit-text-model-info: The nRF54H20 root manifest
+        suit-text-component-description: Sample root manifest
+        suit-text-component-version: v1.0.0
   suit-integrated-dependencies:
     '#rad.suit': *rad
     '#app.suit': *app

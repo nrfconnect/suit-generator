@@ -354,10 +354,16 @@ class SuitTextKeys(SuitEnum):
     )
 
 
+class SuitTextLMap(SuitKeyValueUnnamed):
+    """Representation of language-specific SUIT text map."""
+
+    _metadata = Metadata(map={SuitComponentIdentifier: SuitTextComponentKeys, SuitTextKeys: SuitTstr})
+
+
 class SuitTextMap(SuitKeyValueUnnamed):
     """Representation of SUIT text map."""
 
-    _metadata = Metadata(map={SuitComponentIdentifier: SuitTextComponentKeys, SuitTextKeys: SuitTstr})
+    _metadata = Metadata(map={SuitTstr: SuitTextLMap})
 
 
 class SuitSeverableText(SuitUnion):

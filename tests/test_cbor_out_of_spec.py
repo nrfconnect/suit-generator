@@ -51,13 +51,14 @@ INPUT_YAML_JINJA = """SUIT_Envelope_Tagged:
     - INSTLD_MFST
     - raw: {{suit_manifest_component_id}}
   suit-text:
-    '["MEM", 0, 524288, 0]':
-      suit-text-vendor-name: test vendor
-      suit-text-model-name: test model name
-      suit-text-vendor-domain: vendor.domain.example
-      suit-text-model-info: test model
-      suit-text-component-description: test component description
-      suit-text-component-version: test component version
+    en:
+      '["MEM", 0, 524288, 0]':
+        suit-text-vendor-name: test vendor
+        suit-text-model-name: test model name
+        suit-text-vendor-domain: vendor.domain.example
+        suit-text-model-info: test model
+        suit-text-component-description: test component description
+        suit-text-component-version: test component version
 """
 
 CBOR_TEST_DATA = {
