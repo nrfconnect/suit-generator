@@ -37,7 +37,7 @@ SuitEnvelopeSimplifiedTagged is a representation of first-level elements require
           |-> suit_authentication_wrapper: cbstr(SuitAuthentication),
           |-> suit_dependency_resolution: SuitBstr,
           |-> suit_payload_fetch: SuitBstr,
-          |-> suit_candidate_verification: cbstr(SuitCommandSequence),
+          |-> suit_candidate_verification: SuitBstr,
           |-> suit_install: SuitBstr,
           |-> suit_text: SuitBstr,
           |-> suit_integrated_payloads: SuitIntegratedPayloadMap,

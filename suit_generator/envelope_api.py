@@ -11,6 +11,7 @@ from suit_generator.suit.types.keys import (
     suit_manifest_version,
     suit_manifest_sequence_number,
     suit_manifest_component_id,
+    suit_current_version,
     suit_authentication_wrapper,
     suit_digest_algorithm_id,
     suit_digest_bytes,
@@ -49,5 +50,13 @@ class EnvelopeApiMixin:
         """Return suit-manifest-component-id value."""
         if suit_manifest_component_id.name in self._envelope["SUIT_Envelope_Tagged"][suit_manifest.name]:
             return self._envelope["SUIT_Envelope_Tagged"][suit_manifest.name][suit_manifest_component_id.name]
+        else:
+            return None
+
+    @property
+    def current_version(self) -> list | None:
+        """Return suit-current-version value."""
+        if suit_current_version.name in self._envelope["SUIT_Envelope_Tagged"][suit_manifest.name]:
+            return self._envelope["SUIT_Envelope_Tagged"][suit_manifest.name][suit_current_version.name]
         else:
             return None
