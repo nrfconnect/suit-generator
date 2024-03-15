@@ -101,6 +101,7 @@ from suit_generator.suit.types.keys import (
     suit_text_component_description,
     suit_text_component_version,
     suit_dependency_resolution,
+    suit_candidate_verification,
     suit_uninstall,
     suit_text,
 )
@@ -435,6 +436,7 @@ class SuitManifest(SuitKeyValue):
             suit_install: SuitSeverableCommandSequence,
             suit_text: SuitSeverableText,
             suit_dependency_resolution: SuitSeverableCommandSequence,
+            suit_candidate_verification: SuitSeverableCommandSequence,
             suit_uninstall: cbstr(SuitCommandSequence),
         }
     )

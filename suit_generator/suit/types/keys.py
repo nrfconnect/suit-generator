@@ -435,6 +435,13 @@ class suit_dependency_resolution(suit_key):
     name = "suit-dependency-resolution"
 
 
+class suit_candidate_verification(suit_key):
+    """suit-candidate-verification metadata."""
+
+    id = 18
+    name = "suit-candidate-verification"
+
+
 class suit_condition_version(suit_key):
     """suit-condition-version metadata."""
 
