@@ -59,12 +59,13 @@ SUIT_Envelope_Tagged:
       suit-digest-algorithm-id: cose-alg-sha-256
       suit-digest-bytes: ''
   suit-text:
-    '["M", 2, 235577344, 352256]':
-      suit-text-vendor-name: Nordic Semiconductor ASA
-      suit-text-model-name: nRF5420_cpuapp
-      suit-text-vendor-domain: nordicsemi.com
-      suit-text-model-info: The nRF5420 application core
-      suit-text-component-description: Sample application core FW
-      suit-text-component-version: v1.0.0
+    en:
+      '["M", 2, 235577344, 352256]':
+        suit-text-vendor-name: Nordic Semiconductor ASA
+        suit-text-model-name: nRF5420_cpuapp
+        suit-text-vendor-domain: nordicsemi.com
+        suit-text-model-info: The nRF5420 application core
+        suit-text-component-description: Sample application core FW
+        suit-text-component-version: v1.0.0
   suit-integrated-payloads:
     '#file.bin': file.bin

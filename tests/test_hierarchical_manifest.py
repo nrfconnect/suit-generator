@@ -19,7 +19,7 @@ from suit_generator.suit.types.keys import suit_integrated_dependencies
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
 TEST_BINARY_ENVELOPE = (
-    "d86ba5025827815824822f5820ef6346b6fa3dbbc6b1bac072319eeeab1acbc70a6d5e0e1c4b14f1a145688e3703590172a8010"
+    "d86ba4025827815824822f5820ef6346b6fa3dbbc6b1bac072319eeeab1acbc70a6d5e0e1c4b14f1a145688e3703590172a8010"
     "10201035894a30283824143410082414950816aa0a0af115ef2858afeb668b2e9c98241495008c1b59955e85fbc9e767bc29ce1"
     "b04d0458598e0c0114a201507617daa571fd5a858f94e28d735ce9f40250816aa0a0af115ef2858afeb668b2e9c90c0214a2015"
     "07617daa571fd5a858f94e28d735ce9f4025008c1b59955e85fbc9e767bc29ce1b04d0c820102010f020f01a300a001a002a007"
@@ -27,25 +27,17 @@ TEST_BINARY_ENVELOPE = (
     "0e3e9b65a4e52851592e15c05c4b10a0dfd0c407c7f6b2f3bda8cd30e1901911502030f070f0b0f14a31569236170702e737569"
     "74035824822f58202fa1276150be7c8ff9fd7e69da5478afe2254ea41d3d0447962a1e436e49a3570e19019f1502030f070f0b0"
     "f17822f582013715bae35ede2aeca791d1fcd87c96379c2fe8396d90e1c09566477f2dc442e05824149503f6a3a4dcdfa58c5ac"
-    "cef9f584c41124175877a18241434100a60178184e6f726469632053656d69636f6e647563746f722041534102686e524635344"
-    "83230036e6e6f7264696373656d692e636f6d04781a546865206e5246353448323020726f6f74206d616e696665737405745361"
-    "6d706c6520726f6f74206d616e6966657374066676312e302e3069237261642e73756974590191d86ba4025827815824822f582"
-    "02c245b791cba9274bf8dabebda417c124bee196f495719bdb0ccdcea5017a7c10358caa80101020103586ba2028184414d4103"
-    "451a0e054000451a000558000458548614a401507617daa571fd5a858f94e28d735ce9f40250816aa0a0af115ef2858afeb668b"
-    "2e9c9035824822f58205f78c33274e43fa9de5659265c1d917e25c03722dcb0b8d27db8d5feaa8139530e04010f020f07438203"
-    "0f094382170211518614a11568237261642e62696e1502030f17822f5820cd54d1bbb4d891e79f3562d1e4e231afef4fa47f5f3"
-    "85546ddc87d9c83d23c440582414950816aa0a0af115ef2858afeb668b2e9c9175886a184414d4103451a0e054000451a000558"
-    "00a60178184e6f726469632053656d69636f6e647563746f7220415341026f6e524635344832305f637075726164036e6e6f726"
-    "4696373656d692e636f6d0477546865206e5246353448323020726164696f20636f7265057453616d706c6520726164696f2063"
-    "6f7265204657066676312e302e3068237261642e62696e44deadbeef69236170702e7375697459019fd86ba4025827815824822"
-    "f5820d700dcc82c273faa2ec6956154a6730d4ff77c73579a7ae33b4288248fa06c7f0358caa80101020103586ba2028184414d"
-    "4102451a0e0aa000451a0007f8000458548614a401507617daa571fd5a858f94e28d735ce9f4025008c1b59955e85fbc9e767bc"
-    "29ce1b04d035824822f58200d5bc580d89a8f2b24b4cefacc724dbb969f8b13833a4fcc507b93d1bfe66c510e04010f020f0743"
-    "82030f094382170211518614a11568236170702e62696e1502030f17822f58201d714f2dacd1880bcee0b7000d1c2485ae95e72"
-    "d22f9e083e13b569e8f95e15c058241495008c1b59955e85fbc9e767bc29ce1b04d175894a184414d4102451a0e0aa000451a00"
-    "07f800a60178184e6f726469632053656d69636f6e647563746f7220415341026f6e524635344832305f637075617070036e6e6"
-    "f7264696373656d692e636f6d04781d546865206e52463534483230206170706c69636174696f6e20636f726505781a53616d70"
-    "6c65206170706c69636174696f6e20636f7265204657066676312e302e3068236170702e62696e44c0ffee00"
+    "cef9f584c4112469237261642e73756974590108d86ba3025827815824822f58202c245b791cba9274bf8dabebda417c124bee1"
+    "96f495719bdb0ccdcea5017a7c10358caa80101020103586ba2028184414d4103451a0e054000451a000558000458548614a401"
+    "507617daa571fd5a858f94e28d735ce9f40250816aa0a0af115ef2858afeb668b2e9c9035824822f58205f78c33274e43fa9de5"
+    "659265c1d917e25c03722dcb0b8d27db8d5feaa8139530e04010f020f074382030f094382170211518614a11568237261642e62"
+    "696e1502030f17822f5820cd54d1bbb4d891e79f3562d1e4e231afef4fa47f5f385546ddc87d9c83d23c440582414950816aa0a"
+    "0af115ef2858afeb668b2e9c968237261642e62696e44deadbeef69236170702e73756974590108d86ba3025827815824822f58"
+    "20d700dcc82c273faa2ec6956154a6730d4ff77c73579a7ae33b4288248fa06c7f0358caa80101020103586ba2028184414d410"
+    "2451a0e0aa000451a0007f8000458548614a401507617daa571fd5a858f94e28d735ce9f4025008c1b59955e85fbc9e767bc29c"
+    "e1b04d035824822f58200d5bc580d89a8f2b24b4cefacc724dbb969f8b13833a4fcc507b93d1bfe66c510e04010f020f0743820"
+    "30f094382170211518614a11568236170702e62696e1502030f17822f58201d714f2dacd1880bcee0b7000d1c2485ae95e72d22"
+    "f9e083e13b569e8f95e15c058241495008c1b59955e85fbc9e767bc29ce1b04d68236170702e62696e44c0ffee00"
 )
 
 TEST_JSON_STRING_UNSIGNED = """{
@@ -314,13 +306,15 @@ TEST_JSON_STRING_UNSIGNED = """{
                       ]
                     },
                     "suit-text": {
-                      "[\\"M\\", 3, 235225088, 350208]": {
-                        "suit-text-vendor-name": "Nordic Semiconductor ASA",
-                        "suit-text-model-name": "nRF54H20_cpurad",
-                        "suit-text-vendor-domain": "nordicsemi.com",
-                        "suit-text-model-info": "The nRF54H20 radio core",
-                        "suit-text-component-description": "Sample radio core FW",
-                        "suit-text-component-version": "v1.0.0"
+                      "en": {
+                        "[\\"M\\", 3, 235225088, 350208]": {
+                          "suit-text-vendor-name": "Nordic Semiconductor ASA",
+                          "suit-text-model-name": "nRF54H20_cpurad",
+                          "suit-text-vendor-domain": "nordicsemi.com",
+                          "suit-text-model-info": "The nRF54H20 radio core",
+                          "suit-text-component-description": "Sample radio core FW",
+                          "suit-text-component-version": "v1.0.0"
+                        }
                       }
                     },
                     "suit-integrated-payloads": {
@@ -442,13 +436,15 @@ TEST_JSON_STRING_UNSIGNED = """{
                     ]
                   },
                   "suit-text": {
-                    "[\\"M\\", 3, 235225088, 350208]": {
-                      "suit-text-vendor-name": "Nordic Semiconductor ASA",
-                      "suit-text-model-name": "nRF54H20_cpurad",
-                      "suit-text-vendor-domain": "nordicsemi.com",
-                      "suit-text-model-info": "The nRF54H20 radio core",
-                      "suit-text-component-description": "Sample radio core FW",
-                      "suit-text-component-version": "v1.0.0"
+                    "en": {
+                      "[\\"M\\", 3, 235225088, 350208]": {
+                        "suit-text-vendor-name": "Nordic Semiconductor ASA",
+                        "suit-text-model-name": "nRF54H20_cpurad",
+                        "suit-text-vendor-domain": "nordicsemi.com",
+                        "suit-text-model-info": "The nRF54H20 radio core",
+                        "suit-text-component-description": "Sample radio core FW",
+                        "suit-text-component-version": "v1.0.0"
+                      }
                     }
                   },
                   "suit-integrated-payloads": {
@@ -605,13 +601,15 @@ TEST_JSON_STRING_UNSIGNED = """{
                       ]
                     },
                     "suit-text": {
-                      "[\\"M\\", 2, 235577344, 522240]": {
-                        "suit-text-vendor-name": "Nordic Semiconductor ASA",
-                        "suit-text-model-name": "nRF54H20_cpuapp",
-                        "suit-text-vendor-domain": "nordicsemi.com",
-                        "suit-text-model-info": "The nRF54H20 application core",
-                        "suit-text-component-description": "Sample application core FW",
-                        "suit-text-component-version": "v1.0.0"
+                      "en": {
+                        "[\\"M\\", 2, 235577344, 522240]": {
+                          "suit-text-vendor-name": "Nordic Semiconductor ASA",
+                          "suit-text-model-name": "nRF54H20_cpuapp",
+                          "suit-text-vendor-domain": "nordicsemi.com",
+                          "suit-text-model-info": "The nRF54H20 application core",
+                          "suit-text-component-description": "Sample application core FW",
+                          "suit-text-component-version": "v1.0.0"
+                        }
                       }
                     },
                     "suit-integrated-payloads": {
@@ -733,13 +731,15 @@ TEST_JSON_STRING_UNSIGNED = """{
                     ]
                   },
                   "suit-text": {
-                    "[\\"M\\", 2, 235577344, 522240]": {
-                      "suit-text-vendor-name": "Nordic Semiconductor ASA",
-                      "suit-text-model-name": "nRF54H20_cpuapp",
-                      "suit-text-vendor-domain": "nordicsemi.com",
-                      "suit-text-model-info": "The nRF54H20 application core",
-                      "suit-text-component-description": "Sample application core FW",
-                      "suit-text-component-version": "v1.0.0"
+                    "en": {
+                      "[\\"M\\", 2, 235577344, 522240]": {
+                        "suit-text-vendor-name": "Nordic Semiconductor ASA",
+                        "suit-text-model-name": "nRF54H20_cpuapp",
+                        "suit-text-vendor-domain": "nordicsemi.com",
+                        "suit-text-model-info": "The nRF54H20 application core",
+                        "suit-text-component-description": "Sample application core FW",
+                        "suit-text-component-version": "v1.0.0"
+                      }
                     }
                   },
                   "suit-integrated-payloads": {
@@ -794,13 +794,15 @@ TEST_JSON_STRING_UNSIGNED = """{
       ]
     },
     "suit-text": {
-      "[\\"C\\", 0]": {
-        "suit-text-vendor-name": "Nordic Semiconductor ASA",
-        "suit-text-model-name": "nRF54H20",
-        "suit-text-vendor-domain": "nordicsemi.com",
-        "suit-text-model-info": "The nRF54H20 root manifest",
-        "suit-text-component-description": "Sample root manifest",
-        "suit-text-component-version": "v1.0.0"
+      "en": {
+        "[\\"C\\", 0]": {
+          "suit-text-vendor-name": "Nordic Semiconductor ASA",
+          "suit-text-model-name": "nRF54H20",
+          "suit-text-vendor-domain": "nordicsemi.com",
+          "suit-text-model-info": "The nRF54H20 root manifest",
+          "suit-text-component-description": "Sample root manifest",
+          "suit-text-component-version": "v1.0.0"
+        }
       }
     },
     "suit-integrated-dependencies": {
@@ -915,13 +917,15 @@ TEST_JSON_STRING_UNSIGNED = """{
             ]
           },
           "suit-text": {
-            "[\\"M\\", 3, 235225088, 350208]": {
-              "suit-text-vendor-name": "Nordic Semiconductor ASA",
-              "suit-text-model-name": "nRF54H20_cpurad",
-              "suit-text-vendor-domain": "nordicsemi.com",
-              "suit-text-model-info": "The nRF54H20 radio core",
-              "suit-text-component-description": "Sample radio core FW",
-              "suit-text-component-version": "v1.0.0"
+            "en": {
+              "[\\"M\\", 3, 235225088, 350208]": {
+                "suit-text-vendor-name": "Nordic Semiconductor ASA",
+                "suit-text-model-name": "nRF54H20_cpurad",
+                "suit-text-vendor-domain": "nordicsemi.com",
+                "suit-text-model-info": "The nRF54H20 radio core",
+                "suit-text-component-description": "Sample radio core FW",
+                "suit-text-component-version": "v1.0.0"
+              }
             }
           },
           "suit-integrated-payloads": {
@@ -1040,13 +1044,15 @@ TEST_JSON_STRING_UNSIGNED = """{
             ]
           },
           "suit-text": {
-            "[\\"M\\", 2, 235577344, 522240]": {
-              "suit-text-vendor-name": "Nordic Semiconductor ASA",
-              "suit-text-model-name": "nRF54H20_cpuapp",
-              "suit-text-vendor-domain": "nordicsemi.com",
-              "suit-text-model-info": "The nRF54H20 application core",
-              "suit-text-component-description": "Sample application core FW",
-              "suit-text-component-version": "v1.0.0"
+            "en": {
+              "[\\"M\\", 2, 235577344, 522240]": {
+                "suit-text-vendor-name": "Nordic Semiconductor ASA",
+                "suit-text-model-name": "nRF54H20_cpuapp",
+                "suit-text-vendor-domain": "nordicsemi.com",
+                "suit-text-model-info": "The nRF54H20 application core",
+                "suit-text-component-description": "Sample application core FW",
+                "suit-text-component-version": "v1.0.0"
+              }
             }
           },
           "suit-integrated-payloads": {
@@ -1284,13 +1290,14 @@ TEST_YAML_STRING_UNSIGNED_ALIASES = """SUIT_Dependent_Manifests:
                 namespace: nordicsemi.com
                 name: nRF54H20_sample_app
           suit-text:
-            '["M", 2, 235577344, 522240]':
-              suit-text-vendor-name: Nordic Semiconductor ASA
-              suit-text-model-name: nRF54H20_cpuapp
-              suit-text-vendor-domain: nordicsemi.com
-              suit-text-model-info: The nRF54H20 application core
-              suit-text-component-description: Sample application core FW
-              suit-text-component-version: v1.0.0
+            en:
+              '["M", 2, 235577344, 522240]':
+                suit-text-vendor-name: Nordic Semiconductor ASA
+                suit-text-model-name: nRF54H20_cpuapp
+                suit-text-vendor-domain: nordicsemi.com
+                suit-text-model-info: The nRF54H20 application core
+                suit-text-component-description: Sample application core FW
+                suit-text-component-version: v1.0.0
           suit-integrated-payloads:
             '#app.bin': app.bin
     radio_envelope: &rad
@@ -1358,13 +1365,14 @@ TEST_YAML_STRING_UNSIGNED_ALIASES = """SUIT_Dependent_Manifests:
                 namespace: nordicsemi.com
                 name: nRF54H20_sample_rad
           suit-text:
-            '["M", 3, 235225088, 350208]':
-              suit-text-vendor-name: Nordic Semiconductor ASA
-              suit-text-model-name: nRF54H20_cpurad
-              suit-text-vendor-domain: nordicsemi.com
-              suit-text-model-info: The nRF54H20 radio core
-              suit-text-component-description: Sample radio core FW
-              suit-text-component-version: v1.0.0
+            en:
+              '["M", 3, 235225088, 350208]':
+                suit-text-vendor-name: Nordic Semiconductor ASA
+                suit-text-model-name: nRF54H20_cpurad
+                suit-text-vendor-domain: nordicsemi.com
+                suit-text-model-info: The nRF54H20 radio core
+                suit-text-component-description: Sample radio core FW
+                suit-text-component-version: v1.0.0
           suit-integrated-payloads:
             '#rad.bin': rad.bin
 SUIT_Envelope_Tagged:
@@ -1513,13 +1521,14 @@ SUIT_Envelope_Tagged:
         namespace: nordicsemi.com
         name: nRF54H20_sample_root
   suit-text:
-    '["C", 0]':
-      suit-text-vendor-name: Nordic Semiconductor ASA
-      suit-text-model-name: nRF54H20
-      suit-text-vendor-domain: nordicsemi.com
-      suit-text-model-info: The nRF54H20 root manifest
-      suit-text-component-description: Sample root manifest
-      suit-text-component-version: v1.0.0
+    en:
+      '["C", 0]':
+        suit-text-vendor-name: Nordic Semiconductor ASA
+        suit-text-model-name: nRF54H20
+        suit-text-vendor-domain: nordicsemi.com
+        suit-text-model-info: The nRF54H20 root manifest
+        suit-text-component-description: Sample root manifest
+        suit-text-component-version: v1.0.0
   suit-integrated-dependencies:
     '#rad.suit': *rad
     '#app.suit': *app
@@ -1592,13 +1601,14 @@ TEST_YAML_STRING_UNSIGNED_ALIASES_AND_BINARY = """SUIT_Dependent_Manifests:
                 namespace: nordicsemi.com
                 name: nRF54H20_sample_rad
           suit-text:
-            '["M", 3, 235225088, 350208]':
-              suit-text-vendor-name: Nordic Semiconductor ASA
-              suit-text-model-name: nRF54H20_cpurad
-              suit-text-vendor-domain: nordicsemi.com
-              suit-text-model-info: The nRF54H20 radio core
-              suit-text-component-description: Sample radio core FW
-              suit-text-component-version: v1.0.0
+            en:
+              '["M", 3, 235225088, 350208]':
+                suit-text-vendor-name: Nordic Semiconductor ASA
+                suit-text-model-name: nRF54H20_cpurad
+                suit-text-vendor-domain: nordicsemi.com
+                suit-text-model-info: The nRF54H20 radio core
+                suit-text-component-description: Sample radio core FW
+                suit-text-component-version: v1.0.0
           suit-integrated-payloads:
             '#rad.bin': rad.bin
 SUIT_Envelope_Tagged:
@@ -1747,28 +1757,26 @@ SUIT_Envelope_Tagged:
         namespace: nordicsemi.com
         name: nRF54H20_sample_root
   suit-text:
-    '["C", 0]':
-      suit-text-vendor-name: Nordic Semiconductor ASA
-      suit-text-model-name: nRF54H20
-      suit-text-vendor-domain: nordicsemi.com
-      suit-text-model-info: The nRF54H20 root manifest
-      suit-text-component-description: Sample root manifest
-      suit-text-component-version: v1.0.0
+    en:
+      '["C", 0]':
+        suit-text-vendor-name: Nordic Semiconductor ASA
+        suit-text-model-name: nRF54H20
+        suit-text-vendor-domain: nordicsemi.com
+        suit-text-model-info: The nRF54H20 root manifest
+        suit-text-component-description: Sample root manifest
+        suit-text-component-version: v1.0.0
   suit-integrated-dependencies:
     '#rad.suit': *rad
     '#app.suit': *app
 """
 
 TEST_BINARY_SUB_ENVELOPE_APP = (
-    "D86BA4025827815824822F58201D15A6F8E2026C28E1E165D203523F80D9AC2DC5E92486FA88BEB02D595494AC0358CAA801010"
+    "D86BA3025827815824822F58201D15A6F8E2026C28E1E165D203523F80D9AC2DC5E92486FA88BEB02D595494AC0358CAA801010"
     "20103586BA2028184414D4102451A0E0AA000451A0007F8000458548614A401507617DAA571FD5A858F94E28D735CE9F4025008"
     "C1B59955E85FBC9E767BC29CE1B04D035824822F58200D5BC580D89A8F2B24B4CEFACC724DBB969F8B13833A4FCC507B93D1BFE"
     "66C510E04010F020F074382030F094382170211518614A11568236170702E62696E1502030F17822F5820749FCAD1CEAF733132"
-    "8A046DBDF8C76B9F515931154C54087CF057F43E0EF59F058241495008C1B59955E85FBC9E767BC29CE1B04D175894A184414D4"
-    "102451A0E0AA000451A0007F800A60178184E6F726469632053656D69636F6E647563746F7220415341026F6E52463534483230"
-    "5F637075617070036E6E6F7264696373656D692E636F6D04781D546865206E52463534483230206170706C69636174696F6E206"
-    "36F726505781A53616D706C65206170706C69636174696F6E20636F7265204657066676312E302E3068236170702E62696E44C0"
-    "FFEE00"
+    "8A046DBDF8C76B9F515931154C54087CF057F43E0EF59F058241495008C1B59955E85FBC9E767BC29CE1B04D68236170702E626"
+    "96E44C0FFEE00"
 )
 
 

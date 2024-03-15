@@ -246,13 +246,15 @@ unsigned_envelope_json = """
         }},
         "suit-text":
         {{
-            "[\\"M\\", 2, 235577344, 352256]": {{
-                "suit-text-vendor-name": "{suit_text_vendor_name}",
-                "suit-text-model-name": "{suit_text_model_name}",
-                "suit-text-vendor-domain": "{suit_text_vendor_domain}",
-                "suit-text-model-info": "{suit_text_model_info}",
-                "suit-text-component-description": "{suit_text_component_description}",
-                "suit-text-component-version": "{suit_text_component_version}"
+            "en": {{
+                "[\\"M\\", 2, 235577344, 352256]": {{
+                    "suit-text-vendor-name": "{suit_text_vendor_name}",
+                    "suit-text-model-name": "{suit_text_model_name}",
+                    "suit-text-vendor-domain": "{suit_text_vendor_domain}",
+                    "suit-text-model-info": "{suit_text_model_info}",
+                    "suit-text-component-description": "{suit_text_component_description}",
+                    "suit-text-component-version": "{suit_text_component_version}"
+                }}
             }}
         }},
         "suit-integrated-payloads":

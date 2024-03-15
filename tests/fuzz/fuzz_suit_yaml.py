@@ -73,13 +73,14 @@ input_yaml = """SUIT_Envelope_Tagged:
     - INSTLD_MFST
     - raw: {suit_manifest_component_id}
   suit-text:
-    '["MEM", 0, 524288, 0]':
-      suit-text-vendor-name: Nordic Semiconductor ASA
-      suit-text-model-name: test
-      suit-text-vendor-domain: nordicsemi.com
-      suit-text-model-info: The test application
-      suit-text-component-description: Sample application for test
-      suit-text-component-version: v1.0.0
+    en:
+      '["MEM", 0, 524288, 0]':
+        suit-text-vendor-name: Nordic Semiconductor ASA
+        suit-text-model-name: test
+        suit-text-vendor-domain: nordicsemi.com
+        suit-text-model-info: The test application
+        suit-text-component-description: Sample application for test
+        suit-text-component-version: v1.0.0
   suit-integrated-payloads:
     '#file.bin': file.bin
 """

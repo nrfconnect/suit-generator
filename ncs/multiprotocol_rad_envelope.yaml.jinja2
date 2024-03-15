@@ -87,12 +87,13 @@ SUIT_Envelope_Tagged:
         namespace: {{ mpi_rad_vendor_name }}
         name: {{ mpi_rad_class_name }}
   suit-text:
-    '["MEM", {{ multiprotocol_rpmsg_subimage['dt'].label2node['cpu'].unit_addr }}, {{ get_absolute_address(multiprotocol_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition']) }}, {{ multiprotocol_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}]':
-      suit-text-vendor-name: Nordic Semiconductor ASA
-      suit-text-model-name: nRF54H20_cpurad
-      suit-text-vendor-domain: nordicsemi.com
-      suit-text-model-info: The nRF54H20 radio core
-      suit-text-component-description: Sample radio core FW
-      suit-text-component-version: v1.0.0
+    en:
+      '["MEM", {{ multiprotocol_rpmsg_subimage['dt'].label2node['cpu'].unit_addr }}, {{ get_absolute_address(multiprotocol_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition']) }}, {{ multiprotocol_rpmsg_subimage['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}]':
+        suit-text-vendor-name: Nordic Semiconductor ASA
+        suit-text-model-name: nRF54H20_cpurad
+        suit-text-vendor-domain: nordicsemi.com
+        suit-text-model-info: The nRF54H20 radio core
+        suit-text-component-description: Sample radio core FW
+        suit-text-component-version: v1.0.0
   suit-integrated-payloads:
     '#{{ multiprotocol_rpmsg_subimage['name'] }}': {{ multiprotocol_rpmsg_subimage['binary'] }}
