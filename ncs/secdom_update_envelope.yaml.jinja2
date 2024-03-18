@@ -36,6 +36,9 @@ SUIT_Envelope_Tagged:
         - suit-send-record-failure
         - suit-send-sysinfo-success
         - suit-send-sysinfo-failure
+{%- if 'CONFIG_HW_REVISION_SOC1' in app['config'] %}
+    suit-install: []
+{%- else %}
     suit-install:
     - suit-directive-set-component-index: 1
     - suit-directive-override-parameters:
@@ -47,6 +50,7 @@ SUIT_Envelope_Tagged:
         suit-parameter-source-component: 1
     - suit-directive-copy:
       - suit-send-record-failure
+{%- endif %}
     suit-manifest-component-id:
     - INSTLD_MFST
     - RFC4122_UUID:

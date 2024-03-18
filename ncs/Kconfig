@@ -25,8 +25,7 @@ config SUIT_ENVELOPE_SEQUENCE_NUM
 
 config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     string "Path to the default envelope template (deprecated)"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_hierarchical_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && HW_REVISION_SOC1
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !HW_REVISION_SOC1
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
     default SUIT_ENVELOPE_SYSCTRL_TEMPLATE if SOC_NRF54H20_CPUSYS
     default SUIT_ENVELOPE_SECDOM_TEMPLATE if SOC_NRF54H20_CPUSEC
     help
@@ -114,7 +113,6 @@ config SUIT_PREPARE_SECDOM_UPDATE
 
 config SUIT_ENVELOPE_SECDOM_TEMPLATE
   string "Location of template file for preparing secdom yaml envelope"
-  depends on !HW_REVISION_SOC1
   help
       Jinja2 template file used to generate yaml file for secure domain update.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/secdom_update_envelope.yaml.jinja2"
@@ -175,7 +173,7 @@ config SUIT_ENVELOPE_TOP_TEMPLATE
       contain an input nordic-top envelope template file.
       You can use either absolute or relative path.
       In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !HW_REVISION_SOC1
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
 
 config SUIT_ENVELOPE_ROOT_TARGET
     string "Map root target to custom target to overwite output aftifacts names."
