@@ -32,7 +32,7 @@ config SUIT_ENVELOPE_DEFAULT_TEMPLATE
       Path to the root template, that is used if the application directory does not
       contain an input root envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
       This KConfig is available for backward compatibility and will be removed soon.
 
 config SUIT_ENVELOPE_ROOT_TEMPLATE
@@ -42,7 +42,7 @@ config SUIT_ENVELOPE_ROOT_TEMPLATE
       Path to the default root envelope template, that is used if the application directory does not
       contain an input envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
 config SUIT_ENVELOPE_APP_TEMPLATE
     string "Path to the default application envelope template"
@@ -51,7 +51,7 @@ config SUIT_ENVELOPE_APP_TEMPLATE
       Path to the default application envelope template, that is used if the application directory does not
       contain an input application envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
 config SUIT_ENVELOPE_HCI_RPMSG_SUBIMAGE_TEMPLATE
     string "Path to the default radio envelope template"
@@ -67,7 +67,7 @@ config SUIT_ENVELOPE_MULTIPROTOCOL_RPMSG_SUBIMAGE_TEMPLATE
       Path to the default multiprotocol radio envelope template, that is used if the application
       directory does not contain an input radio envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
 config SUIT_ENVELOPE_802154_RPMSG_SUBIMAGE_TEMPLATE
     string "Path to the default 802154 radio envelope template"
@@ -76,7 +76,7 @@ config SUIT_ENVELOPE_802154_RPMSG_SUBIMAGE_TEMPLATE
       Path to the default 802154 radio envelope template, that is used if the application
       directory does not contain an input radio envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
 config SUIT_ENVELOPE_EDITABLE_TEMPLATES_LOCATION
     string "Path to the folder with envelope templates"
@@ -85,7 +85,7 @@ config SUIT_ENVELOPE_EDITABLE_TEMPLATES_LOCATION
       Path to the folder containing editable templates used to create binary envelopes.
       Input templates are created by the build system during first build from the SUIT_ENVELOPE_DEFAULT_TEMPLATE.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
 # TODO: Consider renaming to not cause a confusion with SUIT_PREPARE_SECDOM_UPDATE
 config SUIT_ENVELOPE_SECDOM
@@ -124,7 +124,7 @@ config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
       Path to the default system controller envelope template, that is used if the system controller directory does not
       contain an input system controller envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
 config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_SICR_BIN
   string "Name of Imprimatur's build artifact containing SICR section needed for SDFW update"
@@ -163,7 +163,7 @@ config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
       Path to the sysctrl template, that is used if the application directory does not
       contain an input sysctrl envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
 
 config SUIT_ENVELOPE_TOP_TEMPLATE
@@ -172,7 +172,7 @@ config SUIT_ENVELOPE_TOP_TEMPLATE
       Path to the nordic-top template, that is used if the application directory does not
       contain an input nordic-top envelope template file.
       You can use either absolute or relative path.
-      In case relative path is used, the build system uses PROJECT_BINARY_DIR directory.
+      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
 
 config SUIT_ENVELOPE_ROOT_TARGET
