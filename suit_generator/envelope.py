@@ -65,6 +65,8 @@ class SuitEnvelope(InputOutputMixin, EnvelopeApiMixin):
         severable = [
             "suit-payload-fetch",
             "suit-install",
+            "suit-dependency-resolution",
+            "suit-candidate-verification",
             "suit-text",
             "suit-integrated-payloads",
             "suit-integrated-dependencies",
