@@ -10,3 +10,4 @@
 __pycache__
 /doc/build/*
 /build/*
+suit-generator.log*

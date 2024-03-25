@@ -4,6 +4,35 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
+# The following nine KConfigs are maintained for backward compatibility with the sdk-nrf-next repository.
+# They are slated for removal once sdk-nrf-next is no longer in use.
+config SOC_NRF54H20_ENGA_CPUAPP
+    bool
+config SOC_NRF54H20_CPUAPP
+    bool
+config SOC_NRF54H20_CPUSEC
+    bool
+config SOC_NRF54H20_CPUSYS
+    bool
+config SSF_SUIT_SERVICE_ENABLED
+    bool
+config INCLUDE_SECDOM
+    bool
+config IS_SECURE_DOMAIN_FW
+    bool
+config HW_REVISION_SOC1
+    bool
+config INCLUDE_SYSCTRL
+    bool
+
+config SUIT_ENVELOPE_TEMPLATE
+  string "Path to the envelope template"
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2" if SOC_NRF54H20_ENGA_CPUAPP
+
+config SUIT_ENVELOPE_TARGET
+  string "Target name inside the envelope templates"
+  default "app" if SOC_NRF54H20_ENGA_CPUAPP
+
 menuconfig SUIT_ENVELOPE
     bool "Create SUIT envelope"
     help
@@ -26,6 +55,7 @@ config SUIT_ENVELOPE_SEQUENCE_NUM
 config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     string "Path to the default envelope template (deprecated)"
     default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_binary_nordic_top.yaml.jinja2" if SOC_NRF54H20_ENGA_CPUAPP
     default SUIT_ENVELOPE_SYSCTRL_TEMPLATE if SOC_NRF54H20_CPUSYS
     default SUIT_ENVELOPE_SECDOM_TEMPLATE if SOC_NRF54H20_CPUSEC
     help
@@ -80,7 +110,7 @@ config SUIT_ENVELOPE_802154_RPMSG_SUBIMAGE_TEMPLATE
 
 config SUIT_ENVELOPE_EDITABLE_TEMPLATES_LOCATION
     string "Path to the folder with envelope templates"
-    default "../../"
+    default "../"
     help
       Path to the folder containing editable templates used to create binary envelopes.
       Input templates are created by the build system during first build from the SUIT_ENVELOPE_DEFAULT_TEMPLATE.
@@ -116,15 +146,6 @@ config SUIT_ENVELOPE_SECDOM_TEMPLATE
   help
       Jinja2 template file used to generate yaml file for secure domain update.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/secdom_update_envelope.yaml.jinja2"
-
-config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
-    string "Path to the default system controller envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
-    help
-      Path to the default system controller envelope template, that is used if the system controller directory does not
-      contain an input system controller envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
 config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_SICR_BIN
   string "Name of Imprimatur's build artifact containing SICR section needed for SDFW update"
@@ -176,8 +197,14 @@ config SUIT_ENVELOPE_TOP_TEMPLATE
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
 
 config SUIT_ENVELOPE_ROOT_TARGET
-    string "Map root target to custom target to overwite output aftifacts names."
+    string "Map root target to custom target to overwite output artifacts names."
     default "secdom" if SOC_NRF54H20_CPUSEC && !HW_REVISION_SOC1
     default "sysctrl" if SOC_NRF54H20_CPUSYS && !HW_REVISION_SOC1
+
+config SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY
+    string "Path to the folder with nordic top artifacts"
+    default "./" if SOC_NRF54H20_ENGA_CPUAPP
+    help
+      Path to the folder containing nordic-top.suit envelope.
 
 endif # SUIT_ENVELOPE
