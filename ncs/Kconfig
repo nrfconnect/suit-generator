@@ -6,10 +6,6 @@
 
 # The following nine KConfigs are maintained for backward compatibility with the sdk-nrf-next repository.
 # They are slated for removal once sdk-nrf-next is no longer in use.
-config SOC_NRF54H20_ENGA_CPUAPP
-    bool
-config SOC_NRF54H20_CPUAPP
-    bool
 config SOC_NRF54H20_CPUSEC
     bool
 config SOC_NRF54H20_CPUSYS
@@ -27,11 +23,11 @@ config INCLUDE_SYSCTRL
 
 config SUIT_ENVELOPE_TEMPLATE
   string "Path to the envelope template"
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2" if SOC_NRF54H20_ENGA_CPUAPP
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
 
 config SUIT_ENVELOPE_TARGET
   string "Target name inside the envelope templates"
-  default "app" if SOC_NRF54H20_ENGA_CPUAPP
+  default "app" if SOC_NRF54H20_CPUAPP
 
 menuconfig SUIT_ENVELOPE
     bool "Create SUIT envelope"
@@ -54,8 +50,7 @@ config SUIT_ENVELOPE_SEQUENCE_NUM
 
 config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     string "Path to the default envelope template (deprecated)"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_binary_nordic_top.yaml.jinja2" if SOC_NRF54H20_ENGA_CPUAPP
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_binary_nordic_top.yaml.jinja2" if SOC_NRF54H20_CPUAPP
     default SUIT_ENVELOPE_SYSCTRL_TEMPLATE if SOC_NRF54H20_CPUSYS
     default SUIT_ENVELOPE_SECDOM_TEMPLATE if SOC_NRF54H20_CPUSEC
     help
@@ -203,7 +198,7 @@ config SUIT_ENVELOPE_ROOT_TARGET
 
 config SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY
     string "Path to the folder with nordic top artifacts"
-    default "./" if SOC_NRF54H20_ENGA_CPUAPP
+    default "./"
     help
       Path to the folder containing nordic-top.suit envelope.
 
