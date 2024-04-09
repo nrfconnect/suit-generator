@@ -10,8 +10,6 @@ config SOC_NRF54H20_CPUSEC
     bool
 config SOC_NRF54H20_CPUSYS
     bool
-config SSF_SUIT_SERVICE_ENABLED
-    bool
 config INCLUDE_SECDOM
     bool
 config IS_SECURE_DOMAIN_FW
@@ -19,6 +17,8 @@ config IS_SECURE_DOMAIN_FW
 config HW_REVISION_SOC1
     bool
 config INCLUDE_SYSCTRL
+    bool
+config SDFW_BUILTIN_KEYS
     bool
 
 config SUIT_ENVELOPE_TEMPLATE
