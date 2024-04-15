@@ -137,51 +137,12 @@ class ManifestDomain(Enum):
 
 
 class EnvelopeStorage:
-    """Class generating SUIT storage binary in legacy format."""
+    """Base class for generating SUIT storage binary."""
 
     ENVELOPE_SLOT_VERSION = 1
     ENVELOPE_SLOT_VERSION_KEY = 0
     ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY = 1
     ENVELOPE_SLOT_ENVELOPE_BSTR_KEY = 2
-
-    _LAYOUT = [
-        {
-            "role": ManifestRole.APP_ROOT,
-            "offset": 2048 * 0,
-            "size": 2048,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.APP_LOCAL_1,
-            "offset": 2048 * 1,
-            "size": 2048,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.RAD_LOCAL_1,
-            "offset": 2048 * 2,
-            "size": 2048,
-            "domain": ManifestDomain.RADIO,
-        },
-        {
-            "role": ManifestRole.SEC_TOP,
-            "offset": 2048 * 3,
-            "size": 2048,
-            "domain": ManifestDomain.SECURE,
-        },
-        {
-            "role": ManifestRole.SEC_SDFW,
-            "offset": 2048 * 4,
-            "size": 2048,
-            "domain": ManifestDomain.SECURE,
-        },
-        {
-            "role": ManifestRole.SEC_SYSCTRL,
-            "offset": 2048 * 5,
-            "size": 2048,
-            "domain": ManifestDomain.SECURE,
-        },
-    ]
 
     # Default manifest role assignments
     _CLASS_ROLE_ASSIGNMENTS = [
@@ -484,31 +445,6 @@ class ImageCreator:
             combined_hex.merge(envelopes_hex)
             combined_hex.write_hex_file(dir_name + "/storage_" + domain.name.lower() + ".hex")
 
-    def _create_suit_storage_file_for_boot_legacy(
-        envelopes: list[SuitEnvelope],
-        update_candidate_info_address: int,
-        installed_envelope_address: int,
-        envelope_slot_size: int,
-        envelope_slot_count: int,
-        dir_name: str,
-        dfu_max_caches: int,
-    ) -> None:
-        # Update candidate info
-        # In the boot path it is used to inform no update candidate is pending.
-        uci_hex = IntelHex()
-        uci_hex.frombytes(
-            ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
-        )
-
-        combined_hex = IntelHex(uci_hex)
-
-        storage = EnvelopeStorageNrf54h20(installed_envelope_address)
-        for envelope in envelopes:
-            storage.add_envelope(envelope)
-        combined_hex.merge(storage.as_intelhex())
-
-        combined_hex.write_hex_file(dir_name + "/storage.hex")
-
     @staticmethod
     def _create_suit_storage_files_for_boot(
         envelopes: list[SuitEnvelope],
@@ -588,15 +524,6 @@ class ImageCreator:
                 envelope.sever()
                 envelopes.append(envelope)
 
-            ImageCreator._create_suit_storage_file_for_boot_legacy(
-                envelopes,
-                update_candidate_info_address,
-                envelope_address,
-                envelope_slot_size,
-                envelope_slot_count,
-                storage_output_directory,
-                dfu_max_caches,
-            )
             ImageCreator._create_suit_storage_files_for_boot(
                 envelopes,
                 update_candidate_info_address,
