@@ -56,39 +56,14 @@ SUIT_Envelope_Tagged:
 {%- endif %}
 
       suit-shared-sequence:
-{%- if radio is defined %}
-      - suit-directive-set-component-index: {{ rad_component_index }}
-      - suit-directive-override-parameters:
-          suit-parameter-vendor-identifier:
-            RFC4122_UUID: {{ mpi_rad_vendor_name }}
-          suit-parameter-class-identifier:
-            RFC4122_UUID:
-              namespace: {{ mpi_rad_vendor_name }}
-              name: {{ mpi_rad_class_name }}
-{%- endif %}
-{%- if application is defined %}
-      - suit-directive-set-component-index: {{ app_component_index }}
-      - suit-directive-override-parameters:
-          suit-parameter-vendor-identifier:
-            RFC4122_UUID: {{ mpi_app_vendor_name }}
-          suit-parameter-class-identifier:
-            RFC4122_UUID:
-              namespace: {{ mpi_app_vendor_name }}
-              name: {{ mpi_app_class_name }}
-{%- endif %}
-
-{%- if top is defined %}
-      - suit-directive-set-component-index: {{ top_component_index }}
-      - suit-directive-override-parameters:
-          suit-parameter-vendor-identifier:
-            RFC4122_UUID: nordicsemi.com
-          suit-parameter-class-identifier:
-            RFC4122_UUID:
-              namespace: nordicsemi.com
-              name: nRF54H20_nordic_top
-{%- endif %}
-
       - suit-directive-set-component-index: [{{ component_list|join(',') }}]
+      - suit-directive-override-parameters:
+          suit-parameter-vendor-identifier:
+            RFC4122_UUID: {{ mpi_root_vendor_name }}
+          suit-parameter-class-identifier:
+            RFC4122_UUID:
+              namespace: {{ mpi_root_vendor_name }}
+              name: {{ mpi_root_class_name }}
       - suit-condition-vendor-identifier:
         - suit-send-record-success
         - suit-send-record-failure
