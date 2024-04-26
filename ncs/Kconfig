@@ -26,7 +26,6 @@ config SUIT_ENVELOPE_SEQUENCE_NUM
 config SUIT_ENVELOPE_DEFAULT_TEMPLATE
     string "Path to the default envelope template (deprecated)"
     default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
-    default SUIT_ENVELOPE_SYSCTRL_TEMPLATE if SOC_NRF54H20_CPUSYS
     default SUIT_ENVELOPE_SECDOM_TEMPLATE if SOC_NRF54H20_CPUSEC
     help
       Path to the root template, that is used if the application directory does not
@@ -117,15 +116,6 @@ config SUIT_ENVELOPE_SECDOM_TEMPLATE
       Jinja2 template file used to generate yaml file for secure domain update.
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/secdom_update_envelope.yaml.jinja2"
 
-config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
-    string "Path to the default system controller envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
-    help
-      Path to the default system controller envelope template, that is used if the system controller directory does not
-      contain an input system controller envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-
 config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_SICR_BIN
   string "Name of Imprimatur's build artifact containing SICR section needed for SDFW update"
   default "urot_update_sm.bin"
@@ -150,21 +140,6 @@ config SUIT_SECDOM_VERSION
     For testing Secdom FW updates.
     Version of Secdom FW to be logged during its startup.
   default "0.0.1"
-
-config SUIT_ENVELOPE_SYSCTRL
-    bool "Create SUIT files required by sysctrl"
-    help
-        Create SUIT envelope for sysctrl in case it has been included in the build
-    default y if INCLUDE_SYSCTRL
-
-config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
-  string "Location of template file for preparing sysctrl yaml envelope"
-  help
-      Path to the sysctrl template, that is used if the application directory does not
-      contain an input sysctrl envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
 
 config SUIT_ENVELOPE_TOP_TEMPLATE
   string "Location of template file for preparing nordic-top yaml envelope"
