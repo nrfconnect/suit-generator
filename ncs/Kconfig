@@ -88,10 +88,4 @@ config SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY
       Path to the folder containing nordic-top.suit envelope.
       nordic_top.suit won't be included in the root manifest if value is empty.
 
-config SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY
-    string "Path to the folder with nordic top artifacts"
-    default "./"
-    help
-      Path to the folder containing nordic-top.suit envelope.
-
 endif # SUIT_ENVELOPE
