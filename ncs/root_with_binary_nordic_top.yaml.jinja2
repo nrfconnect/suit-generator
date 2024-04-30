@@ -187,7 +187,7 @@ SUIT_Envelope_Tagged:
         suit-parameter-image-digest:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
-            envelope: {{ application['config']['CONFIG_SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY'] }}/nordic-top.suit
+            envelope: {{ application['config']['CONFIG_SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY'] }}/nordic_top.suit
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -219,5 +219,5 @@ SUIT_Envelope_Tagged:
     '#{{ application['name'] }}': {{ artifacts_folder ~ application['name'] }}.suit
 {%- endif %}
 {%- if nordic_top %}
-    '#top': {{ application['config']['CONFIG_SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY'] }}/nordic-top.suit
+    '#top': {{ application['config']['CONFIG_SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY'] }}/nordic_top.suit
 {%- endif %}
