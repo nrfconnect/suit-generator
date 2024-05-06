@@ -1,12 +1,12 @@
 {%- set component_index = 0 %}
 {%- set component_list = [] %}
-{%- set mpi_root_vendor_name = app['config']['CONFIG_SUIT_MPI_ROOT_VENDOR_NAME']|default('nordicsemi.com') %}
-{%- set mpi_root_class_name = app['config']['CONFIG_SUIT_MPI_ROOT_CLASS_NAME']|default('nRF54H20_sample_root') %}
-{%- set mpi_app_vendor_name = app['config']['CONFIG_SUIT_MPI_APP_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
-{%- set mpi_app_class_name = app['config']['CONFIG_SUIT_MPI_APP_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_app') %}
-{%- set mpi_rad_vendor_name = app['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
-{%- set mpi_rad_class_name = app['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_rad') %}
-{%- set sequence_number = app['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
+{%- set mpi_root_vendor_name = application['config']['CONFIG_SUIT_MPI_ROOT_VENDOR_NAME']|default('nordicsemi.com') %}
+{%- set mpi_root_class_name = application['config']['CONFIG_SUIT_MPI_ROOT_CLASS_NAME']|default('nRF54H20_sample_root') %}
+{%- set mpi_app_vendor_name = application['config']['CONFIG_SUIT_MPI_APP_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
+{%- set mpi_app_class_name = application['config']['CONFIG_SUIT_MPI_APP_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_app') %}
+{%- set mpi_rad_vendor_name = application['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
+{%- set mpi_rad_class_name = application['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_rad') %}
+{%- set sequence_number = application['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
 {%- if hci_rpmsg_subimage is defined %}
   {% set rad = hci_rpmsg_subimage %}
 {%- elif _802154_rpmsg_subimage is defined %}
@@ -25,7 +25,7 @@ SUIT_Envelope_Tagged:
       suit-components:
       - - CAND_MFST
         - 0
-{%- if rad is defined %}
+{%- if radio is defined %}
     {%- set component_index = component_index + 1 %}
     {%- set rad_component_index = component_index %}
     {{- component_list.append( rad_component_index ) or ""}}
@@ -34,7 +34,7 @@ SUIT_Envelope_Tagged:
             namespace: {{ mpi_rad_vendor_name }}
             name: {{ mpi_rad_class_name }}
 {%- endif %}
-{%- if app is defined %}
+{%- if application is defined %}
     {%- set component_index = component_index + 1 %}
     {%- set app_component_index = component_index %}
     {{- component_list.append( app_component_index ) or ""}}
@@ -56,7 +56,7 @@ SUIT_Envelope_Tagged:
 {%- endif %}
 
       suit-shared-sequence:
-{%- if rad is defined %}
+{%- if radio is defined %}
       - suit-directive-set-component-index: {{ rad_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
@@ -66,7 +66,7 @@ SUIT_Envelope_Tagged:
               namespace: {{ mpi_rad_vendor_name }}
               name: {{ mpi_rad_class_name }}
 {%- endif %}
-{%- if app is defined %}
+{%- if application is defined %}
       - suit-directive-set-component-index: {{ app_component_index }}
       - suit-directive-override-parameters:
           suit-parameter-vendor-identifier:
@@ -133,13 +133,13 @@ SUIT_Envelope_Tagged:
 
     suit-install:
     - suit-directive-set-component-index: 0
-{%- if rad is defined %}
+{%- if radio is defined %}
     - suit-directive-override-parameters:
-        suit-parameter-uri: '#{{ rad['name'] }}'
+        suit-parameter-uri: '#{{ radio['name'] }}'
         suit-parameter-image-digest:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
-            envelope: {{ artifacts_folder ~ rad['name'] }}.suit
+            envelope: {{ artifacts_folder ~ radio['name'] }}.suit
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -158,13 +158,13 @@ SUIT_Envelope_Tagged:
       - suit-send-sysinfo-success
       - suit-send-sysinfo-failure
 {%- endif %}
-{%- if app is defined %}
+{%- if application is defined %}
     - suit-directive-override-parameters:
-        suit-parameter-uri: '#{{ app['name'] }}'
+        suit-parameter-uri: '#{{ application['name'] }}'
         suit-parameter-image-digest:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
-            envelope: {{ artifacts_folder ~ app['name'] }}.suit
+            envelope: {{ artifacts_folder ~ application['name'] }}.suit
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -214,11 +214,11 @@ SUIT_Envelope_Tagged:
         namespace: {{ mpi_root_vendor_name }}
         name: {{ mpi_root_class_name }}
   suit-integrated-dependencies:
-{%- if rad is defined %}
-    '#{{ rad['name'] }}': {{ artifacts_folder ~ rad['name'] }}.suit
+{%- if radio is defined %}
+    '#{{ radio['name'] }}': {{ artifacts_folder ~ radio['name'] }}.suit
 {%- endif %}
-{%- if app is defined %}
-    '#{{ app['name'] }}': {{ artifacts_folder ~ app['name'] }}.suit
+{%- if application is defined %}
+    '#{{ application['name'] }}': {{ artifacts_folder ~ application['name'] }}.suit
 {%- endif %}
 {%- if top is defined %}
     '#{{ top['name'] }}': {{ artifacts_folder ~ top['name'] }}.suit

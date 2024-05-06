@@ -2,7 +2,7 @@
   {# secure domain build as main application #}
   {%- set secdom = app %}
 {%- endif %}
-{%- set sequence_number = app['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
+{%- set sequence_number = application['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
@@ -36,7 +36,7 @@ SUIT_Envelope_Tagged:
         - suit-send-record-failure
         - suit-send-sysinfo-success
         - suit-send-sysinfo-failure
-{%- if 'CONFIG_HW_REVISION_SOC1' in app['config'] %}
+{%- if 'CONFIG_HW_REVISION_SOC1' in application['config'] %}
     suit-install: []
 {%- else %}
     suit-install:
