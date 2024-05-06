@@ -4,30 +4,27 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 
-# The following nine KConfigs are maintained for backward compatibility with the sdk-nrf-next repository.
-# They are slated for removal once sdk-nrf-next is no longer in use.
-config SOC_NRF54H20_CPUSEC
-    bool
-config SOC_NRF54H20_CPUSYS
-    bool
+# Kconfig below is slated for removal once SUIT service is available in the NCS.
 config SSF_SUIT_SERVICE_ENABLED
-    bool
-config INCLUDE_SECDOM
-    bool
-config IS_SECURE_DOMAIN_FW
-    bool
-config HW_REVISION_SOC1
-    bool
-config INCLUDE_SYSCTRL
     bool
 
 config SUIT_ENVELOPE_TEMPLATE
   string "Path to the envelope template"
   default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD
 
 config SUIT_ENVELOPE_TARGET
   string "Target name inside the envelope templates"
-  default "app" if SOC_NRF54H20_CPUAPP
+  default "application" if SOC_NRF54H20_CPUAPP
+  default "radio" if SOC_NRF54H20_CPURAD
+
+config SUIT_ENVELOPE_OUTPUT_ARTIFACT
+  string "Name of the output merged artifact"
+  default "merged.hex"
+
+config SUIT_ENVELOPE_OUTPUT_MPI_MERGE
+  bool "Merge MPI files into final SUIT_ENVELOPE_OUTPUT_ARTIFACT"
+  default y
 
 menuconfig SUIT_ENVELOPE
     bool "Create SUIT envelope"
@@ -48,58 +45,12 @@ config SUIT_ENVELOPE_SEQUENCE_NUM
     range 0 2147483647
     default 1
 
-config SUIT_ENVELOPE_DEFAULT_TEMPLATE
-    string "Path to the default envelope template (deprecated)"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_binary_nordic_top.yaml.jinja2" if SOC_NRF54H20_CPUAPP
-    default SUIT_ENVELOPE_SYSCTRL_TEMPLATE if SOC_NRF54H20_CPUSYS
-    default SUIT_ENVELOPE_SECDOM_TEMPLATE if SOC_NRF54H20_CPUSEC
-    help
-      Path to the root template, that is used if the application directory does not
-      contain an input root envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-      This KConfig is available for backward compatibility and will be removed soon.
-
 config SUIT_ENVELOPE_ROOT_TEMPLATE
     string "Path to the default root envelope template"
-    default SUIT_ENVELOPE_DEFAULT_TEMPLATE
+    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/root_with_binary_nordic_top.yaml.jinja2" if SOC_NRF54H20_CPUAPP
     help
       Path to the default root envelope template, that is used if the application directory does not
       contain an input envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-
-config SUIT_ENVELOPE_APP_TEMPLATE
-    string "Path to the default application envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2"
-    help
-      Path to the default application envelope template, that is used if the application directory does not
-      contain an input application envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-
-config SUIT_ENVELOPE_HCI_RPMSG_SUBIMAGE_TEMPLATE
-    string "Path to the default radio envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/rad_envelope.yaml.jinja2"
-    help
-      Path to the default radio envelope template, that is used if the application directory does not
-      contain an input radio envelope template file.
-
-config SUIT_ENVELOPE_MULTIPROTOCOL_RPMSG_SUBIMAGE_TEMPLATE
-    string "Path to the default multiprotocol radio envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/multiprotocol_rad_envelope.yaml.jinja2"
-    help
-      Path to the default multiprotocol radio envelope template, that is used if the application
-      directory does not contain an input radio envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-
-config SUIT_ENVELOPE_802154_RPMSG_SUBIMAGE_TEMPLATE
-    string "Path to the default 802154 radio envelope template"
-    default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/802154_rad_envelope.yaml.jinja2"
-    help
-      Path to the default 802154 radio envelope template, that is used if the application
-      directory does not contain an input radio envelope template file.
       You can use either absolute or relative path.
       In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
 
@@ -111,13 +62,6 @@ config SUIT_ENVELOPE_EDITABLE_TEMPLATES_LOCATION
       Input templates are created by the build system during first build from the SUIT_ENVELOPE_DEFAULT_TEMPLATE.
       You can use either absolute or relative path.
       In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-
-# TODO: Consider renaming to not cause a confusion with SUIT_PREPARE_SECDOM_UPDATE
-config SUIT_ENVELOPE_SECDOM
-    bool "Create SUIT files required by secure domain"
-    help
-        Create SUIT storage file required by secure domain in case secure domain has been included in the build
-    default y if INCLUDE_SECDOM
 
 config SUIT_ENVELOPE_SIGN_SCRIPT
     string "Location of SUIT sign script"
@@ -131,75 +75,17 @@ config SUIT_ENVELOPE_SIGN_SCRIPT
         - --output-file <STRING> - location of signed envelope to create by script
     default "modules/lib/suit-generator/ncs/sign_script.py"
 
-config SUIT_PREPARE_SECDOM_UPDATE
-  bool "Create SUIT envelope for SDFW update"
-  depends on IS_SECURE_DOMAIN_FW
-  default y if !HW_REVISION_SOC1
-
-config SUIT_ENVELOPE_SECDOM_TEMPLATE
-  string "Location of template file for preparing secdom yaml envelope"
-  help
-      Jinja2 template file used to generate yaml file for secure domain update.
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/secdom_update_envelope.yaml.jinja2"
-
-config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_SICR_BIN
-  string "Name of Imprimatur's build artifact containing SICR section needed for SDFW update"
-  default "urot_update_sm.bin"
-
-config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_PUBLIC_KEY_BIN
-  string "Name of Imprimatur's build artifact containing public key used for signing the SDFW update candidate"
-  default "public_key.bin"
-
-config SUIT_ENVELOPE_SECDOM_IMPRIMATUR_SIGNATURE_BIN
-  string "Name of Imprimatur's build artifact containing signature of the SDFW update candidate"
-  default "signature.bin"
-
-config SUIT_LOG_SECDOM_VERSION
-  bool "Log version of Secdom FW during its startup"
-  help
-    For testing purposes.
-  default n
-
-config SUIT_SECDOM_VERSION
-  string "Version of Secdom FW"
-  help
-    For testing Secdom FW updates.
-    Version of Secdom FW to be logged during its startup.
-  default "0.0.1"
-
-config SUIT_ENVELOPE_SYSCTRL
-    bool "Create SUIT files required by sysctrl"
+config SUIT_ENVELOPE_ROOT_ARTIFACT_NAME
+    string "Name of the root SUIT artifact."
+    default ""
     help
-        Create SUIT envelope for sysctrl in case it has been included in the build
-    default y if INCLUDE_SYSCTRL
-
-config SUIT_ENVELOPE_SYSCTRL_TEMPLATE
-  string "Location of template file for preparing sysctrl yaml envelope"
-  help
-      Path to the sysctrl template, that is used if the application directory does not
-      contain an input sysctrl envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/sysctrl_envelope.yaml.jinja2"
-
-config SUIT_ENVELOPE_TOP_TEMPLATE
-  string "Location of template file for preparing nordic-top yaml envelope"
-  help
-      Path to the nordic-top template, that is used if the application directory does not
-      contain an input nordic-top envelope template file.
-      You can use either absolute or relative path.
-      In case relative path is used, the build system uses CMAKE_SOURCE_DIR directory.
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/nordic_top_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
-
-config SUIT_ENVELOPE_ROOT_TARGET
-    string "Map root target to custom target to overwite output artifacts names."
-    default "secdom" if SOC_NRF54H20_CPUSEC && !HW_REVISION_SOC1
-    default "sysctrl" if SOC_NRF54H20_CPUSYS && !HW_REVISION_SOC1
+        Name of the root SUIT artifact. If empty, 'root' name is used if this setting is empty.
 
 config SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY
     string "Path to the folder with nordic top artifacts"
-    default "./"
+    default ""
     help
       Path to the folder containing nordic-top.suit envelope.
+      nordic_top.suit won't be included in the root manifest if value is empty.
 
 endif # SUIT_ENVELOPE
