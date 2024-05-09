@@ -5,12 +5,19 @@
 """Unit tests for cmd_image.py implementation."""
 
 import pytest
+import pathlib
+import os
 
-from suit_generator.cmd_image import ImageCreator, EnvelopeStorage
+import yaml
+
+from suit_generator.cmd_image import ImageCreator, EnvelopeStorage, EnvelopeStorageNrf54h20
 from suit_generator.cmd_image import main as cmd_image_main
 from suit_generator.exceptions import GeneratorError, SUITError
+from suit_generator.suit.envelope import SuitEnvelopeTagged
 
 from unittest.mock import _Call
+
+TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
 MAX_CACHE_COUNT = 16
 
@@ -583,6 +590,79 @@ expected_update_dfu_partition = (
     ":00000001FF\n"
 )
 
+MPI_KCONFIG_TEMPLATE = """
+CONFIG_SUIT_MPI_ROOT_VENDOR_NAME="{root_vendor_name}"
+CONFIG_SUIT_MPI_ROOT_CLASS_NAME="{root_class_name}"
+CONFIG_SUIT_MPI_APP_LOCAL_1=y
+CONFIG_SUIT_MPI_APP_LOCAL_1_VENDOR_NAME="{app_local_1_vendor_name}"
+CONFIG_SUIT_MPI_APP_LOCAL_1_CLASS_NAME="{app_local_1_class_name}"
+CONFIG_SUIT_MPI_APP_LOCAL_2 is not set
+CONFIG_SUIT_MPI_APP_LOCAL_3 is not set
+CONFIG_SUIT_MPI_RAD_RECOVERY is not set
+CONFIG_SUIT_MPI_RAD_LOCAL_1=y
+CONFIG_SUIT_MPI_RAD_LOCAL_1_VENDOR_NAME="{rad_local_1_vendor_name}"
+CONFIG_SUIT_MPI_RAD_LOCAL_1_CLASS_NAME="{rad_local_1_class_name}"
+CONFIG_SUIT_MPI_RAD_LOCAL_2 is not set
+"""
+
+INPUT_ENVELOPE_YAML = """SUIT_Envelope_Tagged:
+  suit-authentication-wrapper:
+    SuitDigest:
+      suit-digest-algorithm-id: cose-alg-sha-256
+      suit-digest-bytes: abe742c95d30b5d0dcc33e03cc939e563b41673cd9c6d0c6d06a5300c9af182e
+  suit-manifest:
+    suit-manifest-version: 1
+    suit-manifest-sequence-number: 1
+    suit-common:
+      suit-components:
+      - - TEST
+        - 1
+        - 2
+        - 3
+    suit-manifest-component-id:
+    - INSTLD_MFST
+    - RFC4122_UUID:
+        namespace: {component_id_namespace}
+        name: {component_id_name}
+"""
+
+
+@pytest.fixture
+def setup_and_teardown(tmp_path_factory):
+    """Create and cleanup environment."""
+    # Setup environment
+    #   - create temp directory
+    #   - input files
+    start_directory = os.getcwd()
+    path = tmp_path_factory.mktemp(TEMP_DIRECTORY)
+    os.chdir(path)
+    with open(".config", "w") as fh:
+        fh.write(
+            MPI_KCONFIG_TEMPLATE.format(
+                root_vendor_name="root_custom_vendor",
+                root_class_name="root_custom_class",
+                app_local_1_vendor_name="app_local_1_custom_vendor",
+                app_local_1_class_name="app_local_1_custom_class",
+                rad_local_1_vendor_name="rad_local_1_custom_vendor",
+                rad_local_1_class_name="rad_local_1_custom_class",
+            )
+        )
+    for item_name in ["root", "app_local_1", "rad_local_1"]:
+        with open(f"custom_{item_name}_component_id.suit", "wb") as fh:
+            envelope_data = SuitEnvelopeTagged.from_obj(
+                yaml.load(
+                    INPUT_ENVELOPE_YAML.format(
+                        component_id_namespace=f"{item_name}_custom_vendor",
+                        component_id_name=f"{item_name}_custom_class",
+                    )
+                )
+            ).to_cbor()
+            fh.write(envelope_data)
+    yield
+    # Cleanup environment
+    #   - remove temp directory
+    os.chdir(start_directory)
+
 
 def prepare_calls(data):
     """Split data by lines and wrap each line using _Call object for easy assertions; get rid of last newline"""
@@ -677,6 +757,7 @@ def test_boot_subcommand_nonexisting_input_file():
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=0,
+            config_file=None,
         )
 
 
@@ -696,6 +777,7 @@ def test_boot_subcommand_manifest_without_component_id(mocker):
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=4,
+            config_file=None,
         )
 
 
@@ -714,6 +796,7 @@ def test_boot_subcommand_success(mocker):
         dfu_partition_output_file="",
         dfu_partition_address=0,
         dfu_max_caches=6,
+        config_file=None,
     )
 
     io_mock().read.assert_called_once()
@@ -776,6 +859,7 @@ def test_malformed_envelope(mocker):
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=0,
+            config_file=None,
         )
 
 
@@ -807,4 +891,90 @@ def test_bin2hex_conversion_error(mocker, monkeypatch):
             dfu_partition_output_file="some_dfu_partition_output",
             dfu_partition_address=0x0E100000,
             dfu_max_caches=4,
+        )
+
+
+def test_nrf54_storage_no_defaults():
+    storage = EnvelopeStorage(base_address=0xFF, load_defaults=False, kconfig=None)
+    assert storage._assignments == []
+
+
+def test_nrf54_storage_defaults():
+    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=None)
+    assert len(storage._assignments) == 6
+
+
+def test_nrf54_storage_custom_config_defaults(setup_and_teardown):
+    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=".config")
+    assert len(storage._assignments) == 9
+
+
+def test_nrf54_storage_custom_config_no_defaults(setup_and_teardown):
+    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=False, kconfig=".config")
+    assert len(storage._assignments) == 3
+
+
+def test_generate_boot_images_for_default_vid_cid():
+    pass
+
+
+@pytest.mark.parametrize(
+    "input_envelope, expected_storage",
+    [
+        ("custom_app_local_1_component_id.suit", "storage_application.hex"),
+        ("custom_rad_local_1_component_id.suit", "storage_radio.hex"),
+        ("custom_root_component_id.suit", "storage_application.hex"),
+    ],
+)
+def test_generate_boot_images_for_custom_vid_cid_separately(setup_and_teardown, input_envelope, expected_storage):
+    """Test generating boot images for custom VID/CID separately."""
+    ImageCreator.create_files_for_boot(
+        input_files=[input_envelope],
+        storage_output_directory="./",
+        update_candidate_info_address=0,
+        envelope_address=0,
+        envelope_slot_size=2048,
+        envelope_slot_count=8,
+        dfu_max_caches=0,
+        config_file=".config",
+    )
+    assert pathlib.Path(expected_storage).is_file()
+
+
+def test_generate_boot_images_for_custom_vid_cid_all_envelopes_in_one_request(setup_and_teardown):
+    """Test generating boot images for custom VID/CID in one request."""
+    ImageCreator.create_files_for_boot(
+        input_files=[
+            "custom_app_local_1_component_id.suit",
+            "custom_rad_local_1_component_id.suit",
+            "custom_root_component_id.suit",
+        ],
+        storage_output_directory="./",
+        update_candidate_info_address=0,
+        envelope_address=0,
+        envelope_slot_size=2048,
+        envelope_slot_count=8,
+        dfu_max_caches=0,
+        config_file=".config",
+    )
+    assert pathlib.Path("storage_application.hex").is_file()
+    assert pathlib.Path("storage_radio.hex").is_file()
+
+
+def test_generate_update_images_for_custom_non_defined_vid_cid(setup_and_teardown):
+    """Test generating update images for custom VID/CID when VID/CID is not known."""
+    with pytest.raises(GeneratorError):
+        ImageCreator.create_files_for_boot(
+            input_files=[
+                "custom_app_local_1_component_id.suit",
+                "custom_rad_local_1_component_id.suit",
+                "custom_root_component_id.suit",
+            ],
+            storage_output_directory="./",
+            update_candidate_info_address=0,
+            envelope_address=0,
+            envelope_slot_size=2048,
+            envelope_slot_count=8,
+            dfu_max_caches=0,
+            config_file=None,
         )
