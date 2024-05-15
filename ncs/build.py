@@ -117,7 +117,7 @@ if __name__ == "__main__":
         "--config-file",
         required=False,
         default=None,
-        help=f"Path to KConfig file",
+        help="Path to KConfig file",
     )
 
     cmd_update_arg_parser = subparsers.add_parser(
@@ -169,7 +169,7 @@ if __name__ == "__main__":
             input_files=arguments.input_envelope,
             storage_output_directory=arguments.storage_output_directory,
             storage_address=arguments.storage_address,
-            config_file=arguments.config_file
+            config_file=arguments.config_file,
         )
     elif arguments.command == UPDATE_CMD:
         ImageCreator.create_files_for_update(

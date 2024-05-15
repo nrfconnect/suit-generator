@@ -10,7 +10,7 @@ import os
 
 import yaml
 
-from suit_generator.cmd_image import ImageCreator, EnvelopeStorage, EnvelopeStorageNrf54h20
+from suit_generator.cmd_image import ImageCreator, EnvelopeStorageNrf54h20
 from suit_generator.cmd_image import main as cmd_image_main
 from suit_generator.exceptions import GeneratorError, SUITError
 from suit_generator.suit.envelope import SuitEnvelopeTagged
@@ -68,14 +68,10 @@ signed_envelope_input = (
 malformed_envelope_input = b"\x00"
 
 expected_boot_storage = (
-    # Empty update candidate info (0x0E1E9340)
-    ":020000040E1ECE\n"
-    ":10934000AA55AA550000000000000000000000001F\n"
-    ":10935000000000000000000000000000000000000D\n"
-    ":1093600000000000000000000000000000000000FD\n"
-    ":1093700000000000000000000000000000000000ED\n"
+    # Empty update candidate info (0x0E1E9340 - 0x0E1E9380)
     # Uninitialized NVV area (0x0E1E9380 - 0x0E1E9400)
     # Empty root manifest slot (0x0E1E9400)
+    ":020000040E1ECE\n"
     ":10940000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF6C\n"
     ":10941000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5C\n"
     ":10942000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF4C\n"
@@ -655,7 +651,7 @@ def setup_and_teardown(tmp_path_factory):
                         component_id_namespace=f"{item_name}_custom_vendor",
                         component_id_name=f"{item_name}_custom_class",
                     ),
-                    Loader=yaml.FullLoader
+                    Loader=yaml.FullLoader,
                 )
             ).to_cbor()
             fh.write(envelope_data)
@@ -677,17 +673,6 @@ def test_struct_format(nb_of_caches):
     assert ImageCreator._prepare_suit_storage_struct_format(nb_of_caches) == format
 
 
-@pytest.mark.parametrize("nb_of_caches", range(MAX_CACHE_COUNT + 1))
-def test_update_candidate_info_for_boot(nb_of_caches):
-    suit_storage_bytes = b"\xAA\x55\xAA\x55\x00\x00\x00\x00"
-    envelope_address_size_bytes = b"\x00\x00\x00\x00\x00\x00\x00\x00"
-    caches_bytes = b"\x00\x00\x00\x00\x00\x00\x00\x00" * nb_of_caches
-
-    expected_bytes = suit_storage_bytes + envelope_address_size_bytes + caches_bytes
-
-    assert ImageCreator._prepare_update_candidate_info_for_boot(nb_of_caches) == expected_bytes
-
-
 def test_update_candidate_info_verify_class_id_offset():
     from suit_generator.envelope import SuitEnvelope
     from suit_generator.suit.envelope import SuitEnvelopeTagged
@@ -698,14 +683,14 @@ def test_update_candidate_info_verify_class_id_offset():
     envelope._envelope = SuitEnvelopeTagged.from_cbor(signed_envelope_input).to_obj()
 
     # Generate storage envelope slot for the envelope
-    storage = EnvelopeStorage(0)
+    storage = EnvelopeStorageNrf54h20(0)
     storage.add_envelope(envelope)
     (envelope_role, envelope_cbor) = storage._envelopes.popitem()
 
     # Extract the class ID, based on the offset and minified envelope
     storage_dict = cbor_loads(envelope_cbor)
-    offset = storage_dict[EnvelopeStorage.ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY]
-    envelope_bstr = storage_dict[EnvelopeStorage.ENVELOPE_SLOT_ENVELOPE_BSTR_KEY]
+    offset = storage_dict[EnvelopeStorageNrf54h20.ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY]
+    envelope_bstr = storage_dict[EnvelopeStorageNrf54h20.ENVELOPE_SLOT_ENVELOPE_BSTR_KEY]
 
     # RFC4122 uuid5(nordic_vid, 'nRF54H20_sample_app')
     exp_class_id = b"\x08\xc1\xb5\x99\x55\xe8\x5f\xbc\x9e\x76\x7b\xc2\x9c\xe1\xb0\x4d"
@@ -738,7 +723,7 @@ def test_unsupported_image_subcommand():
             input_file="",
             storage_output_file="",
             update_candidate_info_address=0,
-            envelope_address=0,
+            storage_address=0,
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=0,
@@ -752,7 +737,7 @@ def test_boot_subcommand_nonexisting_input_file():
             input_file=["nonexisting"],
             storage_output_directory="",
             update_candidate_info_address=0,
-            envelope_address=0,
+            storage_address=0,
             envelope_slot_size=2048,
             envelope_slot_count=8,
             dfu_partition_output_file="",
@@ -772,7 +757,7 @@ def test_boot_subcommand_manifest_without_component_id(mocker):
             input_file=["some_input"],
             storage_output_directory="some_output",
             update_candidate_info_address=0x0E1EEC00,
-            envelope_address=0x0E1EED80,
+            storage_address=0x0E1EED80,
             envelope_slot_size=2048,
             envelope_slot_count=8,
             dfu_partition_output_file="",
@@ -791,7 +776,7 @@ def test_boot_subcommand_success(mocker):
         input_file=["some_input"],
         storage_output_directory="some_output",
         update_candidate_info_address=0x0E1E9340,
-        envelope_address=0x0E1E7000,
+        storage_address=0x0E1E7000,
         envelope_slot_size=2048,
         envelope_slot_count=1,
         dfu_partition_output_file="",
@@ -811,7 +796,7 @@ def test_update_subcommand_nonexisting_input_file():
             input_file="nonexisting",
             storage_output_file="",
             update_candidate_info_address=0,
-            envelope_address=0,
+            storage_address=0,
             dfu_partition_output_file="",
             dfu_partition_address=0,
             dfu_max_caches=0,
@@ -832,7 +817,7 @@ def test_update_subcommand_success(mocker):
         input_file="some_input",
         storage_output_file="some_storage_output",
         update_candidate_info_address=0x0E1EEC00,
-        envelope_address=0x0E1EED80,
+        storage_address=0x0E1EED80,
         dfu_partition_output_file="some_dfu_partition_output",
         dfu_partition_address=0x0E100000,
         dfu_max_caches=4,
@@ -854,7 +839,7 @@ def test_malformed_envelope(mocker):
             input_file=["some_input"],
             storage_output_directory="some_output",
             update_candidate_info_address=0x0E1FE000,
-            envelope_address=0x0E1FF000,
+            storage_address=0x0E1FF000,
             envelope_slot_size=2048,
             envelope_slot_count=8,
             dfu_partition_output_file="",
@@ -888,7 +873,7 @@ def test_bin2hex_conversion_error(mocker, monkeypatch):
             input_file="some_input",
             storage_output_file="some_storage_output",
             update_candidate_info_address=0x0E1EEC00,
-            envelope_address=0x0E1EED80,
+            storage_address=0x0E1EED80,
             dfu_partition_output_file="some_dfu_partition_output",
             dfu_partition_address=0x0E100000,
             dfu_max_caches=4,
@@ -896,7 +881,7 @@ def test_bin2hex_conversion_error(mocker, monkeypatch):
 
 
 def test_nrf54_storage_no_defaults():
-    storage = EnvelopeStorage(base_address=0xFF, load_defaults=False, kconfig=None)
+    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=False, kconfig=None)
     assert storage._assignments == []
 
 
@@ -922,9 +907,9 @@ def test_generate_boot_images_for_default_vid_cid():
 @pytest.mark.parametrize(
     "input_envelope, expected_storage",
     [
-        ("custom_app_local_1_component_id.suit", "storage_application.hex"),
-        ("custom_rad_local_1_component_id.suit", "storage_radio.hex"),
-        ("custom_root_component_id.suit", "storage_application.hex"),
+        ("custom_app_local_1_component_id.suit", "suit_installed_envelopes_application_merged.hex"),
+        ("custom_rad_local_1_component_id.suit", "suit_installed_envelopes_radio_merged.hex"),
+        ("custom_root_component_id.suit", "suit_installed_envelopes_application_merged.hex"),
     ],
 )
 def test_generate_boot_images_for_custom_vid_cid_separately(setup_and_teardown, input_envelope, expected_storage):
@@ -932,11 +917,7 @@ def test_generate_boot_images_for_custom_vid_cid_separately(setup_and_teardown, 
     ImageCreator.create_files_for_boot(
         input_files=[input_envelope],
         storage_output_directory="./",
-        update_candidate_info_address=0,
-        envelope_address=0,
-        envelope_slot_size=2048,
-        envelope_slot_count=8,
-        dfu_max_caches=0,
+        storage_address=0,
         config_file=".config",
     )
     assert pathlib.Path(expected_storage).is_file()
@@ -951,15 +932,11 @@ def test_generate_boot_images_for_custom_vid_cid_all_envelopes_in_one_request(se
             "custom_root_component_id.suit",
         ],
         storage_output_directory="./",
-        update_candidate_info_address=0,
-        envelope_address=0,
-        envelope_slot_size=2048,
-        envelope_slot_count=8,
-        dfu_max_caches=0,
+        storage_address=0,
         config_file=".config",
     )
-    assert pathlib.Path("storage_application.hex").is_file()
-    assert pathlib.Path("storage_radio.hex").is_file()
+    assert pathlib.Path("suit_installed_envelopes_application_merged.hex").is_file()
+    assert pathlib.Path("suit_installed_envelopes_radio_merged.hex").is_file()
 
 
 def test_generate_update_images_for_custom_non_defined_vid_cid(setup_and_teardown):
@@ -972,10 +949,6 @@ def test_generate_update_images_for_custom_non_defined_vid_cid(setup_and_teardow
                 "custom_root_component_id.suit",
             ],
             storage_output_directory="./",
-            update_candidate_info_address=0,
-            envelope_address=0,
-            envelope_slot_size=2048,
-            envelope_slot_count=8,
-            dfu_max_caches=0,
+            storage_address=0,
             config_file=None,
         )

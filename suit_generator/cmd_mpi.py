@@ -90,7 +90,7 @@ def add_arguments(parser):
 
 
 class MpiGenerator:
-    """Class geenrating SUIT Manifest Provisioning Information."""
+    """Class generating SUIT Manifest Provisioning Information."""
 
     BYTE_ORDER = "little"
 
