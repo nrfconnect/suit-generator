@@ -45,46 +45,17 @@ def add_arguments(parser):
         "--storage-output-directory", required=True, help="Output hex file with SUIT storage contents"
     )
     cmd_image_boot.add_argument(
-        "--update-candidate-info-address",
+        "--storage-address",
         required=False,
         type=lambda x: int(x, 0),
-        default=ImageCreator.default_update_candidate_info_address,
-        help=f"Address of SUIT storage update candidate info. "
-        f"Default: 0x{ImageCreator.default_update_candidate_info_address:08X}",
-    )
-    cmd_image_boot.add_argument(
-        "--envelope-address",
-        required=False,
-        type=lambda x: int(x, 0),
-        default=ImageCreator.default_envelope_address,
-        help=f"Address of installed envelope in SUIT storage. Default: 0x{ImageCreator.default_envelope_address:08X}",
-    )
-    cmd_image_boot.add_argument(
-        "--envelope-slot-size",
-        required=False,
-        type=lambda x: int(x, 0),
-        default=ImageCreator.default_envelope_slot_size,
-        help=f"Envelope slot size in SUIT storage. Default: 0x{ImageCreator.default_envelope_slot_size:08X}",
-    )
-    cmd_image_boot.add_argument(
-        "--envelope-slot-count",
-        required=False,
-        type=lambda x: int(x, 0),
-        default=ImageCreator.default_envelope_slot_count,
-        help=f"Max number of envelope slots in SUIT storage. Default: {ImageCreator.default_envelope_slot_count}",
-    )
-    cmd_image_boot.add_argument(
-        "--dfu-max-caches",
-        required=False,
-        type=int,
-        default=ImageCreator.default_dfu_max_caches,
-        help=f"Max number of DFU caches. Default: {ImageCreator.default_dfu_max_caches}",
+        default=ImageCreator.default_storage_address,
+        help=f"Address of SUIT storage. Default: 0x{ImageCreator.default_storage_address:08X}",
     )
     cmd_image_boot.add_argument(
         "--config-file",
         required=False,
         default=None,
-        help=f"Path to KConfig file",
+        help="Path to KConfig file",
     )
 
     cmd_image_update.add_argument("--input-file", required=True, help="Input SUIT file; an envelope")
@@ -145,51 +116,14 @@ class ManifestDomain(Enum):
 
 
 class EnvelopeStorage:
-    """Class generating SUIT storage binary in legacy format."""
+    """Base class for generating SUIT storage binary."""
 
     ENVELOPE_SLOT_VERSION = 1
     ENVELOPE_SLOT_VERSION_KEY = 0
     ENVELOPE_SLOT_CLASS_ID_OFFSET_KEY = 1
     ENVELOPE_SLOT_ENVELOPE_BSTR_KEY = 2
 
-    _LAYOUT = [
-        {
-            "role": ManifestRole.APP_ROOT,
-            "offset": 2048 * 0,
-            "size": 2048,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.APP_LOCAL_1,
-            "offset": 2048 * 1,
-            "size": 2048,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.RAD_LOCAL_1,
-            "offset": 2048 * 2,
-            "size": 2048,
-            "domain": ManifestDomain.RADIO,
-        },
-        {
-            "role": ManifestRole.SEC_TOP,
-            "offset": 2048 * 3,
-            "size": 2048,
-            "domain": ManifestDomain.SECURE,
-        },
-        {
-            "role": ManifestRole.SEC_SDFW,
-            "offset": 2048 * 4,
-            "size": 2048,
-            "domain": ManifestDomain.SECURE,
-        },
-        {
-            "role": ManifestRole.SEC_SYSCTRL,
-            "offset": 2048 * 5,
-            "size": 2048,
-            "domain": ManifestDomain.SECURE,
-        },
-    ]
+    _LAYOUT = []
 
     # Default manifest role assignments
     _CLASS_ROLE_ASSIGNMENTS = [
@@ -244,12 +178,12 @@ class EnvelopeStorage:
         config = BuildConfiguration(input_file=kconfig)
         kconfig_assignments = []
         for key, value in config.items():
-            if re_value := re.match(r'^CONFIG_SUIT_MPI_(?P<manifest>[A-Z1-9_]+)_VENDOR_NAME$', key):
-                manifest = re_value.group('manifest')
+            if re_value := re.match(r"^CONFIG_SUIT_MPI_(?P<manifest>[A-Z1-9_]+)_VENDOR_NAME$", key):
+                manifest = re_value.group("manifest")
                 data = {
                     "vendor_name": config[f"CONFIG_SUIT_MPI_{manifest}_VENDOR_NAME"],
                     "class_name": config[f"CONFIG_SUIT_MPI_{manifest}_CLASS_NAME"],
-                    "role": ManifestRole[f"APP_{manifest}" if manifest == 'ROOT' else manifest],
+                    "role": ManifestRole[f"APP_{manifest}" if manifest == "ROOT" else manifest],
                 }
                 kconfig_assignments.append(data)
         return kconfig_assignments
@@ -441,10 +375,8 @@ class EnvelopeStorageNrf54h20(EnvelopeStorage):
 class ImageCreator:
     """Helper class for extracting data from SUIT envelope and creating hex files."""
 
-    default_update_candidate_info_address = 0x0E1E9340
-    default_envelope_address = 0x0E1E7000
-    default_envelope_slot_size = 2048
-    default_envelope_slot_count = 8
+    default_update_candidate_info_address = 0x0E1ED340
+    default_storage_address = 0x0E1EB000
     default_dfu_partition_address = 0x0E155000
     default_dfu_max_caches = 6
 
@@ -461,21 +393,6 @@ class ImageCreator:
         # (void*, size_t) for envelope address and size,
         # (void*, size_t) for each cache
         return "<" + "IIII" + dfu_max_caches * "II"
-
-    @staticmethod
-    def _prepare_update_candidate_info_for_boot(dfu_max_caches: int) -> bytes:
-        uci = struct.Struct(ImageCreator._prepare_suit_storage_struct_format(dfu_max_caches))
-
-        all_cache_values = dfu_max_caches * [0, 0]  # address, size
-        struct_values = [
-            ImageCreator.UPDATE_MAGIC_VALUE_AVAILABLE,  # Update candidate info magic
-            0,  # Nb of memory regions
-            0,  # SUIT envelope address
-            0,  # SUIT envelope size
-            *all_cache_values,  # Values for all the caches
-        ]
-
-        return uci.pack(*struct_values)
 
     @staticmethod
     def _prepare_update_candidate_info_for_update(
@@ -499,71 +416,32 @@ class ImageCreator:
         storage: EnvelopeStorage,
         domain: ManifestDomain,
         dir_name: str,
-        additional_hex,
     ) -> None:
         combined_hex = IntelHex()
-        if additional_hex is not None:
-            combined_hex = IntelHex(additional_hex)
 
         envelopes_hex = storage.as_intelhex(domain)
 
         if envelopes_hex is not None:
             combined_hex.merge(envelopes_hex)
-            combined_hex.write_hex_file(dir_name + "/storage_" + domain.name.lower() + ".hex")
-
-    def _create_suit_storage_file_for_boot_legacy(
-        envelopes: list[SuitEnvelope],
-        update_candidate_info_address: int,
-        installed_envelope_address: int,
-        envelope_slot_size: int,
-        envelope_slot_count: int,
-        dir_name: str,
-        dfu_max_caches: int,
-        config_file: str
-    ) -> None:
-        # Update candidate info
-        # In the boot path it is used to inform no update candidate is pending.
-        uci_hex = IntelHex()
-        uci_hex.frombytes(
-            ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
-        )
-
-        combined_hex = IntelHex(uci_hex)
-
-        storage = EnvelopeStorageNrf54h20(installed_envelope_address, kconfig=config_file)
-        for envelope in envelopes:
-            storage.add_envelope(envelope)
-        combined_hex.merge(storage.as_intelhex())
-
-        combined_hex.write_hex_file(dir_name + "/storage.hex")
+            combined_hex.write_hex_file(dir_name + "/suit_installed_envelopes_" + domain.name.lower() + "_merged.hex")
 
     @staticmethod
     def _create_suit_storage_files_for_boot(
         envelopes: list[SuitEnvelope],
-        update_candidate_info_address: int,
-        installed_envelope_address: int,
-        envelope_slot_size: int,
-        envelope_slot_count: int,
+        storage_address: int,
         dir_name: str,
-        dfu_max_caches: int,
         config_file: str,
     ) -> None:
-        # Update candidate info
-        # In the boot path it is used to inform no update candidate is pending.
-        uci_hex = IntelHex()
-        uci_hex.frombytes(
-            ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
-        )
-
-        storage = EnvelopeStorageNrf54h20(installed_envelope_address, kconfig=config_file)
+        storage = EnvelopeStorageNrf54h20(storage_address, kconfig=config_file)
         for envelope in envelopes:
             storage.add_envelope(envelope)
 
         for domain in ManifestDomain:
-            additional_hex = None
-            if domain == ManifestDomain.APPLICATION:
-                additional_hex = uci_hex
-            ImageCreator._create_single_domain_storage_file_for_boot(storage, domain, dir_name, additional_hex)
+            ImageCreator._create_single_domain_storage_file_for_boot(
+                storage,
+                domain,
+                dir_name,
+            )
 
     @staticmethod
     def _create_suit_storage_file_for_update(
@@ -592,22 +470,14 @@ class ImageCreator:
     def create_files_for_boot(
         input_files: list[str],
         storage_output_directory: str,
-        update_candidate_info_address: int,
-        envelope_address: int,
-        envelope_slot_size: int,
-        envelope_slot_count: int,
-        dfu_max_caches: int,
+        storage_address: int,
         config_file: str | None,
     ) -> None:
         """Create storage and payload hex files allowing boot execution path.
 
         :param input_files: file paths to SUIT envelope
         :param storage_output_directory: directory path to store hex files with SUIT storage contents
-        :param update_candidate_info_address: address of SUIT storage update candidate info
-        :param envelope_address: address of installed envelope in SUIT storage
-        :param envelope_slot_size: number of bytes, reserved to store a single envelope,
-        :param envelope_slot_count: number of envelope slots in SUIT storage,
-        :param dfu_max_caches: maximum number of caches, allowed to be passed inside update candidate info,
+        :param storage_address: address of SUIT storage
         :param config_file: path to KConfig file containing MPI settings
         """
         try:
@@ -619,24 +489,10 @@ class ImageCreator:
                 envelope.sever()
                 envelopes.append(envelope)
 
-            ImageCreator._create_suit_storage_file_for_boot_legacy(
-                envelopes,
-                update_candidate_info_address,
-                envelope_address,
-                envelope_slot_size,
-                envelope_slot_count,
-                storage_output_directory,
-                dfu_max_caches,
-                config_file,
-            )
             ImageCreator._create_suit_storage_files_for_boot(
                 envelopes,
-                update_candidate_info_address,
-                envelope_address,
-                envelope_slot_size,
-                envelope_slot_count,
+                storage_address,
                 storage_output_directory,
-                dfu_max_caches,
                 config_file,
             )
         except FileNotFoundError as error:
@@ -681,22 +537,21 @@ def main(**kwargs) -> None:
     :Keyword Arguments:
         * **image** - subcommand to be executed
         * **input_file** - file path to SUIT envelope
-        * **storage_output_file** - file path to hex file with SUIT storage contents - for "update" command
         * **storage_output_directory** - directory path to store hex files with storage contents - for "boot" command
-        * **update_candidate_info_address** - address of SUIT storage update candidate info
-        * **envelope_address** - address of installed envelope in SUIT storage
-        * **dfu_partition_output_file** - file path to hex file with DFU partition contents (the SUIT envelope)
-        * **dfu_partition_address** - address of partition where DFU update candidate is stored
+        * **storage_address** - address of SUIT storage - for "boot" command
+        * **storage_output_file** - file path to hex file with SUIT storage contents - for "update" command
+        * **update_candidate_info_address** - address of SUIT storage update candidate info - for "update" command
+        * **dfu_partition_output_file** - file path to hex file with DFU partition contents (the SUIT envelope),
+                                          for "update" command
+        * **dfu_partition_address** - address of partition where DFU update candidate is stored - for "update" command
+        * **dfu_max_caches** - maximum number of caches, allowed to be passed inside update candidate info,
+                               for "update" command
     """
     if kwargs["image"] == ImageCreator.IMAGE_CMD_BOOT:
         ImageCreator.create_files_for_boot(
             kwargs["input_file"],
             kwargs["storage_output_directory"],
-            kwargs["update_candidate_info_address"],
-            kwargs["envelope_address"],
-            kwargs["envelope_slot_size"],
-            kwargs["envelope_slot_count"],
-            kwargs["dfu_max_caches"],
+            kwargs["storage_address"],
             kwargs["config_file"],
         )
     elif kwargs["image"] == ImageCreator.IMAGE_CMD_UPDATE:
