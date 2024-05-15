@@ -107,6 +107,13 @@ if __name__ == "__main__":
         "--storage-output-directory", required=True, help="Directory path to store hex files with SUIT storage contents"
     )
     cmd_storage_arg_parser.add_argument(
+        "--storage-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_storage_address,
+        help="Absolute address of the SUIT storage area",
+    )
+    cmd_storage_arg_parser.add_argument(
         "--config-file",
         required=False,
         default=None,
@@ -117,6 +124,20 @@ if __name__ == "__main__":
         UPDATE_CMD, help="Generate files needed for Secure Domain update", parents=[parent_parser]
     )
 
+    cmd_update_arg_parser.add_argument(
+        "--update-candidate-info-address",
+        required=False,
+        type=lambda x: int(x, 0),
+        default=ImageCreator.default_update_candidate_info_address,
+        help="Address of SUIT storage update candidate info.",
+    )
+    cmd_update_arg_parser.add_argument(
+        "--dfu-max-caches",
+        required=False,
+        type=int,
+        default=ImageCreator.default_dfu_max_caches,
+        help="Maximum number of caches, allowed to be passed inside update candidate info.",
+    )
     cmd_update_arg_parser.add_argument("--input-file", required=True, help="SUIT envelope in binary format")
     cmd_update_arg_parser.add_argument(
         "--storage-output-file", required=True, help="SUIT storage output file in HEX format"
@@ -144,15 +165,10 @@ if __name__ == "__main__":
             output_file.write(output_suit_content)
 
     elif arguments.command == STORAGE_CMD:
-        # fixme: envelope_address, update_candidate_info_address and dfu_max_caches shall be extracted from DTS
         ImageCreator.create_files_for_boot(
             input_files=arguments.input_envelope,
             storage_output_directory=arguments.storage_output_directory,
-            envelope_address=ImageCreator.default_envelope_address,
-            envelope_slot_size=ImageCreator.default_envelope_slot_size,
-            envelope_slot_count=ImageCreator.default_envelope_slot_count,
-            update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
-            dfu_max_caches=ImageCreator.default_dfu_max_caches,
+            storage_address=arguments.storage_address,
             config_file=arguments.config_file
         )
     elif arguments.command == UPDATE_CMD:
@@ -160,7 +176,7 @@ if __name__ == "__main__":
             input_file=arguments.input_file,
             storage_output_file=arguments.storage_output_file,
             dfu_partition_output_file=arguments.dfu_partition_output_file,
-            update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
+            update_candidate_info_address=arguments.update_candidate_info_address,
             dfu_partition_address=arguments.dfu_partition_address,
-            dfu_max_caches=ImageCreator.default_dfu_max_caches,
+            dfu_max_caches=arguments.dfu_max_caches,
         )
