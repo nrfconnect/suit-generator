@@ -6,7 +6,7 @@
 {%- set mpi_app_class_name = application['config']['CONFIG_SUIT_MPI_APP_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_app') %}
 {%- set mpi_rad_vendor_name = application['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
 {%- set mpi_rad_class_name = application['config']['CONFIG_SUIT_MPI_RAD_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_rad') %}
-{%- set sequence_number = application['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
+{%- set sequence_number = sysbuild['config']['SB_CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
 {%- if hci_rpmsg_subimage is defined %}
   {% set rad = hci_rpmsg_subimage %}
 {%- elif _802154_rpmsg_subimage is defined %}

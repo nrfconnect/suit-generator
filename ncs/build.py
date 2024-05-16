@@ -71,18 +71,22 @@ def read_configurations(configurations):
     """Read configuration stored in the pickled devicetree."""
     data = {}
     for config in configurations:
-        name, binary, edt = config.split(",")
-        kconfig = pathlib.Path(edt).parent / ".config"
-        with open(edt, "rb") as edt_handler:
-            edt = pickle.load(edt_handler)
-            # add prefix _ to the names starting with digits, for example:
-            #   802154_rpmsg_subimage will be available in the templates as _802154_rpmsg_subimage
-            data[f"_{name}" if re.match("^[0-9].*]", name) else name] = {
-                "name": name,
-                "config": BuildConfiguration(kconfig),
-                "dt": edt,
-                "binary": binary,
-            }
+        name, binary, edt, kconfig = config.split(",")
+        edt_data = None
+        if edt:
+            with open(edt, "rb") as edt_handler:
+                edt_data = pickle.load(edt_handler)
+        # add prefix _ to the names starting with digits, for example:
+        #   802154_rpmsg_subimage will be available in the templates as _802154_rpmsg_subimage
+        image_name = f"_{name}" if re.match("^[0-9].*]", name) else name
+        data[image_name] = {
+            "name": name,
+            "config": BuildConfiguration(kconfig),
+        }
+        if edt_data:
+            data[image_name]["dt"] = edt_data
+        if binary:
+            data[image_name]["binary"] = binary
     data["get_absolute_address"] = get_absolute_address
     return data
 

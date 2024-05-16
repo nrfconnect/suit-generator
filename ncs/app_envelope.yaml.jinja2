@@ -1,6 +1,6 @@
 {%- set mpi_application_vendor_name = application['config']['CONFIG_SUIT_MPI_APPlication_LOCAL_1_VENDOR_NAME']|default('nordicsemi.com') %}
 {%- set mpi_application_class_name = application['config']['CONFIG_SUIT_MPI_APPlication_LOCAL_1_CLASS_NAME']|default('nRF54H20_sample_app') %}
-{%- set sequence_number = application['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
+{%- set sequence_number = sysbuild['config']['SB_CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
@@ -16,11 +16,11 @@ SUIT_Envelope_Tagged:
         - {{ application['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
       - - CAND_IMG
         - 0
-{%- if flash_companion_subimage is defined %}
+{%- if flash_companion is defined %}
       - - MEM
-        - {{ flash_companion_subimage['dt'].label2node['cpu'].unit_addr }}
-        - {{ get_absolute_address(flash_companion_subimage['dt'].chosen_nodes['zephyr,code-partition']) }}
-        - {{ flash_companion_subimage['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
+        - {{ flash_companion['dt'].label2node['cpu'].unit_addr }}
+        - {{ get_absolute_address(flash_companion['dt'].chosen_nodes['zephyr,code-partition']) }}
+        - {{ flash_companion['dt'].chosen_nodes['zephyr,code-partition'].regs[0].size }}
 {%- endif %}
       suit-shared-sequence:
       - suit-directive-set-component-index: 0
@@ -53,13 +53,13 @@ SUIT_Envelope_Tagged:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
               file: {{ application['binary'] }}
-{%- if flash_companion_subimage is defined %}
+{%- if flash_companion is defined %}
       - suit-directive-set-component-index: 2
       - suit-directive-override-parameters:
           suit-parameter-image-digest:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
-              file: {{ flash_companion_subimage['binary'] }}
+              file: {{ flash_companion['binary'] }}
 {%- endif %}
     suit-validate:
     - suit-directive-set-component-index: 0
@@ -73,14 +73,14 @@ SUIT_Envelope_Tagged:
     - suit-directive-invoke:
       - suit-send-record-failure
     suit-install:
-{%- if flash_companion_subimage is defined %}
+{%- if flash_companion is defined %}
     - suit-directive-set-component-index: 1
     - suit-directive-override-parameters:
-        suit-parameter-uri: '#{{ flash_companion_subimage['name'] }}'
+        suit-parameter-uri: '#{{ flash_companion['name'] }}'
         suit-parameter-image-digest:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
-            file: {{ flash_companion_subimage['binary'] }}
+            file: {{ flash_companion['binary'] }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-condition-image-match:
@@ -143,6 +143,6 @@ SUIT_Envelope_Tagged:
         suit-text-component-version: v1.0.0
   suit-integrated-payloads:
     '#{{ application['name'] }}': {{ application['binary'] }}
-{%- if flash_companion_subimage is defined %}
-    '#{{ flash_companion_subimage['name'] }}': {{ flash_companion_subimage['binary'] }}
+{%- if flash_companion is defined %}
+    '#{{ flash_companion['name'] }}': {{ flash_companion['binary'] }}
 {%- endif %}
