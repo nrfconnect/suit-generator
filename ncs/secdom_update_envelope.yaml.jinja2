@@ -2,7 +2,7 @@
   {# secure domain build as main application #}
   {%- set secdom = app %}
 {%- endif %}
-{%- set sequence_number = application['config']['CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
+{%- set sequence_number = sysbuild['config']['SB_CONFIG_SUIT_ENVELOPE_SEQUENCE_NUM'] %}
 SUIT_Envelope_Tagged:
   suit-authentication-wrapper:
     SuitDigest:
