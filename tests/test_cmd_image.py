@@ -654,7 +654,8 @@ def setup_and_teardown(tmp_path_factory):
                     INPUT_ENVELOPE_YAML.format(
                         component_id_namespace=f"{item_name}_custom_vendor",
                         component_id_name=f"{item_name}_custom_class",
-                    )
+                    ),
+                    Loader=yaml.FullLoader
                 )
             ).to_cbor()
             fh.write(envelope_data)
