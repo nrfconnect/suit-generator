@@ -28,4 +28,4 @@ config SUIT_ENVELOPE_OUTPUT_MPI_MERGE
 
 config SUIT_LOCAL_ENVELOPE_GENERATE
   bool "Generate local envelope"
-  default y
+  default y if SOC_NRF54H20_CPUAPP || SOC_NRF54H20_CPURAD
