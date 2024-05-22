@@ -19,52 +19,13 @@ from argparse import ArgumentParser
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1].absolute()))
 
 from suit_generator.cmd_image import ImageCreator  # noqa: E402
+from build_configuration.configuration import BuildConfiguration
 
 TEMPLATE_CMD = "template"
 STORAGE_CMD = "storage"
 UPDATE_CMD = "update"
 
 dir_path = pathlib.Path(__file__).parent.absolute()
-
-
-class BuildConfiguration(dict):
-    """Represents a build system configuration, providing access to KConfig values.
-
-    This class reads configuration data from a specified file and parses it.
-    Configuration data is accessible as a dictionary.
-    """
-
-    config_value_pattern = re.compile(r"(?P<kconfig_name>[A-Za-z0-9_]+)=(?P<kconfig_value>.*)")
-
-    def __init__(self, input_file: str = ".config") -> None:
-        """Initialize a BuildConfiguration object."""
-        super().__init__()
-        try:
-            with open(input_file, "r") as fh:
-                self._config_data = fh.readlines()
-        except FileNotFoundError as e:
-            raise SystemExit(e)
-        self._parse()
-
-    def _parse(self) -> None:
-        """Parse input .config file and populate the configuration dictionary."""
-        for config_line in self._config_data:
-            if re_result := self.config_value_pattern.match(config_line):
-                kconfig_name = re_result.group("kconfig_name")
-                kconfig_value = re_result.group("kconfig_value")
-                if kconfig_value == "y":
-                    # boolean value
-                    kconfig_value = True
-                elif kconfig_value.startswith("0x"):
-                    # hexadecimal value
-                    kconfig_value = int(kconfig_value, base=16)
-                elif kconfig_value.startswith('"') and kconfig_value.endswith('"'):
-                    # string value
-                    kconfig_value = kconfig_value[1:-1]
-                elif kconfig_value.isdecimal():
-                    # int value
-                    kconfig_value = int(kconfig_value, base=10)
-                super().__setitem__(kconfig_name, kconfig_value)
 
 
 def read_configurations(configurations):
@@ -145,6 +106,12 @@ if __name__ == "__main__":
     cmd_storage_arg_parser.add_argument(
         "--storage-output-directory", required=True, help="Directory path to store hex files with SUIT storage contents"
     )
+    cmd_storage_arg_parser.add_argument(
+        "--config-file",
+        required=False,
+        default=None,
+        help=f"Path to KConfig file",
+    )
 
     cmd_update_arg_parser = subparsers.add_parser(
         UPDATE_CMD, help="Generate files needed for Secure Domain update", parents=[parent_parser]
@@ -186,6 +153,7 @@ if __name__ == "__main__":
             envelope_slot_count=ImageCreator.default_envelope_slot_count,
             update_candidate_info_address=ImageCreator.default_update_candidate_info_address,
             dfu_max_caches=ImageCreator.default_dfu_max_caches,
+            config_file=arguments.config_file
         )
     elif arguments.command == UPDATE_CMD:
         ImageCreator.create_files_for_update(

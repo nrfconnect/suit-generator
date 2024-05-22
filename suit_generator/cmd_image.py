@@ -10,6 +10,7 @@ from __future__ import annotations
 import os
 import struct
 import uuid
+import re
 from enum import Enum
 
 from cbor2 import dumps as cbor_dumps
@@ -19,6 +20,7 @@ from suit_generator.envelope import SuitEnvelope
 from suit_generator.exceptions import GeneratorError
 from suit_generator.exceptions import SUITError
 from suit_generator.suit.manifest import SuitManifest
+from build_configuration.configuration import BuildConfiguration
 
 
 def add_arguments(parser):
@@ -77,6 +79,12 @@ def add_arguments(parser):
         type=int,
         default=ImageCreator.default_dfu_max_caches,
         help=f"Max number of DFU caches. Default: {ImageCreator.default_dfu_max_caches}",
+    )
+    cmd_image_boot.add_argument(
+        "--config-file",
+        required=False,
+        default=None,
+        help=f"Path to KConfig file",
     )
 
     cmd_image_update.add_argument("--input-file", required=True, help="Input SUIT file; an envelope")
@@ -217,7 +225,7 @@ class EnvelopeStorage:
         },
     ]
 
-    def __init__(self, base_address: int, load_defaults=True):
+    def __init__(self, base_address: int, load_defaults=True, kconfig=None):
         """Create object generating binary SUIT storage."""
         self._assignments = []
         self._base_address = base_address
@@ -226,6 +234,25 @@ class EnvelopeStorage:
         if load_defaults:
             for entry in self._CLASS_ROLE_ASSIGNMENTS:
                 self.assign_role(entry["vendor_name"], entry["class_name"], entry["role"])
+
+        if kconfig:
+            for entry in self._get_role_assignments_from_kconfig(kconfig):
+                self.assign_role(entry["vendor_name"], entry["class_name"], entry["role"])
+
+    @staticmethod
+    def _get_role_assignments_from_kconfig(kconfig: str) -> list:
+        config = BuildConfiguration(input_file=kconfig)
+        kconfig_assignments = []
+        for key, value in config.items():
+            if re_value := re.match(r'^CONFIG_SUIT_MPI_(?P<manifest>[A-Z1-9_]+)_VENDOR_NAME$', key):
+                manifest = re_value.group('manifest')
+                data = {
+                    "vendor_name": config[f"CONFIG_SUIT_MPI_{manifest}_VENDOR_NAME"],
+                    "class_name": config[f"CONFIG_SUIT_MPI_{manifest}_CLASS_NAME"],
+                    "role": ManifestRole[f"APP_{manifest}" if manifest == 'ROOT' else manifest],
+                }
+                kconfig_assignments.append(data)
+        return kconfig_assignments
 
     def assign_role(self, vendor_name: str, class_name: str, role: ManifestRole):
         """Assign role to envelope, identified by vendor and class name."""
@@ -238,13 +265,13 @@ class EnvelopeStorage:
             }
         )
 
-    def _find_class(self, role: ManifestRole) -> bytes:
+    def _find_class(self, role: ManifestRole) -> bytes | None:
         for entry in self._assignments:
             if entry["role"] == role:
                 return entry["class_id"]
         return None
 
-    def _find_role(self, class_id: bytes) -> ManifestRole:
+    def _find_role(self, class_id: bytes) -> ManifestRole | None:
         for entry in self._assignments:
             if entry["class_id"].hex() == class_id.hex():
                 return entry["role"]
@@ -492,6 +519,7 @@ class ImageCreator:
         envelope_slot_count: int,
         dir_name: str,
         dfu_max_caches: int,
+        config_file: str
     ) -> None:
         # Update candidate info
         # In the boot path it is used to inform no update candidate is pending.
@@ -502,7 +530,7 @@ class ImageCreator:
 
         combined_hex = IntelHex(uci_hex)
 
-        storage = EnvelopeStorageNrf54h20(installed_envelope_address)
+        storage = EnvelopeStorageNrf54h20(installed_envelope_address, kconfig=config_file)
         for envelope in envelopes:
             storage.add_envelope(envelope)
         combined_hex.merge(storage.as_intelhex())
@@ -518,6 +546,7 @@ class ImageCreator:
         envelope_slot_count: int,
         dir_name: str,
         dfu_max_caches: int,
+        config_file: str,
     ) -> None:
         # Update candidate info
         # In the boot path it is used to inform no update candidate is pending.
@@ -526,7 +555,7 @@ class ImageCreator:
             ImageCreator._prepare_update_candidate_info_for_boot(dfu_max_caches), update_candidate_info_address
         )
 
-        storage = EnvelopeStorageNrf54h20(installed_envelope_address)
+        storage = EnvelopeStorageNrf54h20(installed_envelope_address, kconfig=config_file)
         for envelope in envelopes:
             storage.add_envelope(envelope)
 
@@ -568,16 +597,18 @@ class ImageCreator:
         envelope_slot_size: int,
         envelope_slot_count: int,
         dfu_max_caches: int,
+        config_file: str | None,
     ) -> None:
         """Create storage and payload hex files allowing boot execution path.
 
-        :param input_file: file path to SUIT envelope
+        :param input_files: file paths to SUIT envelope
         :param storage_output_directory: directory path to store hex files with SUIT storage contents
         :param update_candidate_info_address: address of SUIT storage update candidate info
         :param envelope_address: address of installed envelope in SUIT storage
         :param envelope_slot_size: number of bytes, reserved to store a single envelope,
         :param envelope_slot_count: number of envelope slots in SUIT storage,
         :param dfu_max_caches: maximum number of caches, allowed to be passed inside update candidate info,
+        :param config_file: path to KConfig file containing MPI settings
         """
         try:
             envelopes = []
@@ -596,6 +627,7 @@ class ImageCreator:
                 envelope_slot_count,
                 storage_output_directory,
                 dfu_max_caches,
+                config_file,
             )
             ImageCreator._create_suit_storage_files_for_boot(
                 envelopes,
@@ -605,6 +637,7 @@ class ImageCreator:
                 envelope_slot_count,
                 storage_output_directory,
                 dfu_max_caches,
+                config_file,
             )
         except FileNotFoundError as error:
             raise GeneratorError(error)
@@ -627,6 +660,7 @@ class ImageCreator:
         :param dfu_partition_output_file: file path to hex file with DFU partition contents (the SUIT envelope)
         :param update_candidate_info_address: address of SUIT storage update candidate info
         :param dfu_partition_address: address of partition where DFU update candidate is stored
+        :param dfu_max_caches: maximum number of caches
         """
         try:
             ImageCreator._create_suit_storage_file_for_update(
@@ -663,6 +697,7 @@ def main(**kwargs) -> None:
             kwargs["envelope_slot_size"],
             kwargs["envelope_slot_count"],
             kwargs["dfu_max_caches"],
+            kwargs["config_file"],
         )
     elif kwargs["image"] == ImageCreator.IMAGE_CMD_UPDATE:
         ImageCreator.create_files_for_update(
