@@ -61,10 +61,8 @@ def render_template(template_location, data):
 
 def get_absolute_address(node, use_offset: bool = True):
     """Get absolute address of passed node."""
-    # fixme: hardcoded value for parent node due to bug in DTS
-    # return node.parent.parent.regs[0].addr + node.regs[0].addr
     if use_offset:
-        return 0xE000000 + node.regs[0].addr
+        return node.parent.parent.regs[0].addr + node.regs[0].addr
     return node.regs[0].addr
 
 

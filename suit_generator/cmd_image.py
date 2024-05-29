@@ -139,8 +139,18 @@ class EnvelopeStorage:
         },
         {
             "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_sample_app_recovery",
+            "role": ManifestRole.APP_RECOVERY,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
             "class_name": "nRF54H20_sample_rad",
             "role": ManifestRole.RAD_LOCAL_1,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF54H20_sample_rad_recovery",
+            "role": ManifestRole.RAD_RECOVERY,
         },
         {
             "vendor_name": "nordicsemi.com",
@@ -286,7 +296,7 @@ class EnvelopeStorage:
                 envelope_bytes = self._envelopes[role].ljust(max_size, b"\xFF")
                 envelope_count += 1
             else:
-                envelope_bytes = b"\xFF" * max_size
+                continue
 
             envelope_hex = IntelHex()
             envelope_hex.frombytes(envelope_bytes, self._base_address + entry["offset"])
