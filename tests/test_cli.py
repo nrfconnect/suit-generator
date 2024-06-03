@@ -20,19 +20,19 @@ class Namespace:
 def monkey_patched_parse_arguments(cmd):
     """Monkey patched argument parser."""
     args = Namespace(output_file="test1", input_file="test2", input_format="json")
-    return cmd, args
+    return cmd, args, None
 
 
 def monkey_patched_create_arguments(cmd):
     """Monkey patched argument parser."""
     args = Namespace(input_file="test1", output_format="test2", output_file="test3")
-    return cmd, args
+    return cmd, args, None
 
 
 def monkey_patched_keys_arguments(cmd):
     """Monkey patched argument parser."""
     args = Namespace(output_file="test1", key_type="test2")
-    return cmd, args
+    return cmd, args, None
 
 
 def monkey_patched_main_create(input_file: str, output_format: str, output_file: str):

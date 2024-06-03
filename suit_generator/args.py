@@ -19,6 +19,8 @@ from suit_generator.cmd_mpi import add_arguments as mpi_args
 
 def _parser() -> ArgumentParser:
     parser = ArgumentParser()
+    parser.add_argument("--log-filename", default=None, help="Log file path (it will override cli defaults).")
+
     subparsers = parser.add_subparsers(dest="command", required=True, help="Choose subcommand:")
     create_args(subparsers)
     parse_args(subparsers)
@@ -35,13 +37,15 @@ def parse_arguments() -> Tuple:
 
     Parse passed CLI parameters and return argparse.Namespace
 
-    :return: Tuple contains command and it's parameters
+    :return: Tuple contains command, it's parameters and log filename
     """
     parser = _parser()
     arguments = parser.parse_args()
     cmd = str(arguments.command)
+    log_filename = arguments.log_filename
 
     # remove unnecessary arguments to simplify command calling
     del arguments.command
+    del arguments.log_filename
 
-    return cmd, arguments
+    return cmd, arguments, log_filename
