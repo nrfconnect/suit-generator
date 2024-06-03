@@ -40,6 +40,12 @@ def read_configurations(configurations):
         # add prefix _ to the names starting with digits, for example:
         #   802154_rpmsg_subimage will be available in the templates as _802154_rpmsg_subimage
         image_name = f"_{name}" if re.match("^[0-9].*]", name) else name
+
+        if image_name in data:
+            existing_binary = data[image_name]["binary"]
+            raise ValueError("Two images have the same CONFIG_SUIT_ENVELOPE_TARGET value: "
+                             f"{binary} and {existing_binary}")
+
         data[image_name] = {
             "name": name,
             "config": BuildConfiguration(kconfig),
