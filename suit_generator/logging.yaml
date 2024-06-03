@@ -21,12 +21,15 @@ loggers:
   suit_generator.suit.types.common:
     level: DEBUG
     handlers: [file]
+    propagate: no
   suit_generator.logger:
     level: DEBUG
     handlers: [file]
+    propagate: no
   ncs:
     level: DEBUG
-    handler: [file]
-root:
-  level: DEBUG
-  handlers: [file, console]
+    handlers: [file]
+    propagate: no
+  root:
+    level: DEBUG
+    handlers: [file, console]
