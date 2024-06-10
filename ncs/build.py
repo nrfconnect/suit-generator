@@ -53,6 +53,7 @@ def read_configurations(configurations):
         if edt_data:
             data[image_name]["dt"] = edt_data
         if binary:
+            data[image_name]["filename"] = pathlib.Path(binary).name
             data[image_name]["binary"] = binary
     data["get_absolute_address"] = get_absolute_address
     return data
