@@ -147,7 +147,7 @@ class SuitDigestExt(PrettyPrintHelperMixin):
                         sub_envelope = SuitEnvelopeTagged.from_cbor(fh.read())
                 sub_envelope.update_severable_digests()
                 sub_envelope.update_digest()
-                obj[suit_digest_bytes.name] = sub_envelope.get_digest().SuitDigestRaw[1].SuitDigestBytes.hex()
+                obj[suit_digest_bytes.name] = sub_envelope.get_manifest_digest(obj[suit_digest_algorithm_id.name]).hex()
             elif "raw" in digest_dict.keys():
                 obj[suit_digest_bytes.name] = digest_dict["raw"]
             else:

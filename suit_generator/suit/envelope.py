@@ -78,16 +78,23 @@ class SuitBasicEnvelopeOperationsMixin:
         alg = (
             self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest.SuitDigestRaw[0].value
         )
-        manifest = self.value.value.value[suit_manifest].to_cbor()
-        hash_func = SuitHash(alg)
-        new_digest = binascii.a2b_hex(hash_func.hash(manifest))
         self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest.SuitDigestRaw[
             1
-        ].SuitDigestBytes = new_digest
+        ].SuitDigestBytes = self.get_manifest_digest(alg)
 
     def get_digest(self):
         """Return digest from parsed envelope."""
         return self.value.value.value[suit_authentication_wrapper].SuitAuthentication[0].SuitDigest
+
+    def get_manifest(self):
+        """Return manifest from parsed envelope."""
+        return self.value.value.value[suit_manifest]
+
+    def get_manifest_digest(self, alg):
+        """Return digest from parsed envelope."""
+        manifest = self.get_manifest().to_cbor()
+        hash_func = SuitHash(alg)
+        return binascii.a2b_hex(hash_func.hash(manifest))
 
     def update_severable_digests(self):
         """Update digest in the envelope for severed elements."""
