@@ -22,7 +22,7 @@ import uuid
 from argparse import ArgumentParser
 from pathlib import Path
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_der_private_key
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
@@ -162,8 +162,16 @@ class Signer:
 
     def sign(self, private_key_path: Path) -> None:
         """Add signature to the envelope."""
+        loaders = {
+            ".pem": load_pem_private_key,
+            ".der": load_der_private_key,
+        }
+        try:
+            loader = loaders[private_key_path.suffix]
+        except KeyError as e:
+            raise ValueError("Unrecognized private key format. Extension must be {per,der}") from e
         with open(private_key_path, "rb") as private_key:
-            self._key = load_pem_private_key(private_key.read(), None)
+            self._key = loader(private_key.read(), None)
         sign_method = self._get_sign_method()
         protected = {
             SuitIds.COSE_ALG.value: SuitAlgorithms[self._algorithm_name].value,
