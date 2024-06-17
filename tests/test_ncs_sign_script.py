@@ -190,7 +190,7 @@ def test_ncs_signing(setup_and_teardown, private_key):
     """Test if is possible to sign manifest."""
     signer = Signer()
     signer.load_envelope("test_envelope.suit")
-    signer.sign(f"key_private_{private_key}.pem")
+    signer.sign(pathlib.Path(f"key_private_{private_key}.pem"))
     signer.save_envelope("test_envelope_signed.suit")
 
     with open("test_envelope_signed.suit", "rb") as fh:
@@ -233,7 +233,7 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
 
     signer = Signer()
     signer.load_envelope("test_envelope.suit")
-    signer.sign("key_private_es_256.pem")
+    signer.sign(pathlib.Path("key_private_es_256.pem"))
     signer.save_envelope("test_envelope_signed.suit")
 
     with open("test_envelope_signed.suit", "rb") as fh:
@@ -276,7 +276,7 @@ def test_ncs_signing_unsupported(setup_and_teardown):
     signer = Signer()
     signer.load_envelope("test_envelope.suit")
     with pytest.raises(SignerError):
-        signer.sign("key_private_rs2048.pem")
+        signer.sign(pathlib.Path("key_private_rs2048.pem"))
 
 
 @patch("ncs.sign_script.DEFAULT_KEY_ID", 0x0C0FFE)
@@ -291,7 +291,7 @@ def test_ncs_signing_manifest_component_id_known_default_key_used(setup_and_tear
 
     assert parsed_manifest_id == expected_manifest_id
 
-    signer.sign("key_private_es_256.pem")
+    signer.sign(pathlib.Path("key_private_es_256.pem"))
     signer.save_envelope("test_envelope_signed.suit")
 
     with open("test_envelope_signed.suit", "rb") as fh:
@@ -320,7 +320,7 @@ def test_ncs_signing_manifest_component_id_known_non_default(setup_and_teardown)
     signer = Signer()
     signer.load_envelope("test_envelope_manifest_component_id.suit")
 
-    signer.sign("key_private_es_256.pem")
+    signer.sign(pathlib.Path("key_private_es_256.pem"))
     signer.save_envelope("test_envelope_signed.suit")
 
     with open("test_envelope_signed.suit", "rb") as fh:
@@ -342,7 +342,7 @@ def test_ncs_signing_manifest_component_id_unknown(setup_and_teardown):
     signer = Signer()
     signer.load_envelope("test_envelope_manifest_component_id.suit")
 
-    signer.sign("key_private_es_256.pem")
+    signer.sign(pathlib.Path("key_private_es_256.pem"))
     signer.save_envelope("test_envelope_signed.suit")
 
     with open("test_envelope_signed.suit", "rb") as fh:
