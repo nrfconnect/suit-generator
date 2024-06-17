@@ -27,6 +27,7 @@ from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
 from collections import defaultdict
 from enum import Enum, unique
 
@@ -118,7 +119,7 @@ class Signer:
         """Return sign method based on key type."""
         if isinstance(self._key, EllipticCurvePrivateKey):
             return self._create_cose_es_signature
-        elif isinstance(self._key, Ed25519PrivateKey):
+        elif isinstance(self._key, Ed25519PrivateKey) or isinstance(self._key, Ed448PrivateKey):
             return self._create_cose_ed_signature
         else:
             raise SignerError(f"Key {type(self._key)} not supported")
@@ -129,7 +130,7 @@ class Signer:
         hash_alg = SuitAlgorithms(self.get_digest()[0])
         if isinstance(self._key, EllipticCurvePrivateKey):
             return f"COSE_ALG_ES_{self._key.key_size}"
-        elif isinstance(self._key, Ed25519PrivateKey):
+        elif isinstance(self._key, Ed25519PrivateKey) or isinstance(self._key, Ed448PrivateKey):
             return "COSE_ALG_EdDSA"
         else:
             raise SignerError(f"Key {type(self._key)} with {hash_alg} is not supported")
