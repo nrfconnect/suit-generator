@@ -13,15 +13,14 @@ if __name__ == "__main__":
 
 from suit_generator import cmd_parse, cmd_keys, cmd_convert, cmd_create, cmd_image, cmd_mpi, args
 from suit_generator.exceptions import GeneratorError, SUITError
-from suit_generator.logger import configure_logging
 
 import logging
+import logging.config
 import yaml
 
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
-
 
 COMMAND_EXECUTORS = {
     cmd_parse.PARSE_CMD: cmd_parse.main,
@@ -48,13 +47,13 @@ def configure_cli_logging(log_file_name: str = None):
     if log_file_name:
         config['handlers']['file']['filename'] = log_file_name
 
-    configure_logging(config)
+    logging.config.dictConfig(config)
 
     # any logger initialized before call to 'configure_logging' will be disabled because logging.yaml
     # contains entry 'disable_existing_loggers: true', if yaml has no explicit configuration for it
     # so we need to defer logger creation (call to 'getLogger') after 'configure_logging' call or enable it manually
     logger.disabled = False
-    logger.debug("CLI logging configured.")
+    logger.debug("*** suit-generator initialized and logging configuration loaded")
 
 
 def main() -> None:
