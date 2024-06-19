@@ -31,6 +31,10 @@ from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
 from collections import defaultdict
 from enum import Enum, unique
 
+#
+# User note:
+#   Rename the file to 'key_private.der' if you are using keys in DER format.
+#
 PRIVATE_KEY = Path(__file__).parent / "key_private.pem"
 
 
