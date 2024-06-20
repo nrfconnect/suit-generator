@@ -4,12 +4,22 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Logger helper methods."""
+from __future__ import annotations
+
 import functools
 import inspect
 
 import logging
+import logging.config
+
+from typing import Any
+from pathlib import Path
+
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_LOG_FORMAT: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+DEFAULT_LOG_FILE_PATH: Path = 'suit-generator.log'
 
 
 def log_call(func):

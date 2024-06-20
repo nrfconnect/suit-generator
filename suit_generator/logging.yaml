@@ -18,15 +18,10 @@ handlers:
     backupCount: 10  # max 10 files
     maxBytes: 10485760  # max ten mega bytes (1024*1024*10)
 loggers:
-  suit_generator.suit.types.common:
+  suit_generator:
     level: DEBUG
-    handlers: [file]
-  suit_generator.logger:
-    level: DEBUG
-    handlers: [file]
   ncs:
     level: DEBUG
-    handler: [file]
-root:
-  level: DEBUG
-  handlers: [file, console]
+  root:
+    level: DEBUG
+    handlers: [file, console]
