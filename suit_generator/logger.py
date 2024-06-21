@@ -15,7 +15,6 @@ import logging.config
 from typing import Any
 from pathlib import Path
 
-
 logger = logging.getLogger(__name__)
 
 DEFAULT_LOG_FORMAT: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -34,7 +33,7 @@ def log_call(func):
             logger.debug(f"{info.filename}:{info.function}:{info.lineno}:{func.__name__}({args=},{kwargs=})")
             return func(*args, **kwargs)
         except Exception as e:
-            logger.warning(f"{info.filename}:{info.function}:{info.lineno}:{func.__name__}({args=},{kwargs=}):\n{e}")
+            logger.debug(f"Unable to parse data: {args=},{kwargs=}")
             raise
 
     return inner_func
