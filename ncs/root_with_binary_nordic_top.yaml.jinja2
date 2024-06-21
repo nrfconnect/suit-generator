@@ -171,11 +171,21 @@ SUIT_Envelope_Tagged:
             envelope: {{ artifacts_folder ~ radio['name'] }}.suit
     - suit-directive-fetch:
       - suit-send-record-failure
-    - suit-condition-image-match:
-      - suit-send-record-success
-      - suit-send-record-failure
-      - suit-send-sysinfo-success
-      - suit-send-sysinfo-failure
+    # In the case of streaming operations it is worth to retry them at least once.
+    # This increases the robustness against bit flips on the transport,
+    # for example when storing the data on an external memory device.
+    # The suit-directive-try-each will complete on the first successful subsequence.
+    - suit-directive-try-each:
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
     - suit-condition-dependency-integrity:
       - suit-send-record-success
       - suit-send-record-failure
@@ -196,11 +206,21 @@ SUIT_Envelope_Tagged:
             envelope: {{ artifacts_folder ~ application['name'] }}.suit
     - suit-directive-fetch:
       - suit-send-record-failure
-    - suit-condition-image-match:
-      - suit-send-record-success
-      - suit-send-record-failure
-      - suit-send-sysinfo-success
-      - suit-send-sysinfo-failure
+    # In the case of streaming operations it is worth to retry them at least once.
+    # This increases the robustness against bit flips on the transport,
+    # for example when storing the data on an external memory device.
+    # The suit-directive-try-each will complete on the first successful subsequence.
+    - suit-directive-try-each:
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
     - suit-condition-dependency-integrity:
       - suit-send-record-success
       - suit-send-record-failure
@@ -221,11 +241,21 @@ SUIT_Envelope_Tagged:
             envelope: {{ sysbuild['config']['SB_CONFIG_SUIT_ENVELOPE_NORDIC_TOP_DIRECTORY'] }}/nordic_top.suit
     - suit-directive-fetch:
       - suit-send-record-failure
-    - suit-condition-image-match:
-      - suit-send-record-success
-      - suit-send-record-failure
-      - suit-send-sysinfo-success
-      - suit-send-sysinfo-failure
+    # In the case of streaming operations it is worth to retry them at least once.
+    # This increases the robustness against bit flips on the transport,
+    # for example when storing the data on an external memory device.
+    # The suit-directive-try-each will complete on the first successful subsequence.
+    - suit-directive-try-each:
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
     - suit-condition-dependency-integrity:
       - suit-send-record-success
       - suit-send-record-failure
