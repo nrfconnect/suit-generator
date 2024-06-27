@@ -8,10 +8,10 @@
 config SSF_SUIT_SERVICE_ENABLED
     bool
 
-config SUIT_ENVELOPE_TEMPLATE
+config SUIT_ENVELOPE_TEMPLATE_FILENAME
   string "Path to the envelope template"
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
-  default "${ZEPHYR_SUIT_GENERATOR_MODULE_DIR}/ncs/rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD
+  default "app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+  default "rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD
 
 config SUIT_ENVELOPE_TARGET
   string "Target name inside the envelope templates"
