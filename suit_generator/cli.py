@@ -45,7 +45,7 @@ def configure_cli_logging(log_file_name: str = None):
 
     # override log file name if passed as argument
     if log_file_name:
-        config['handlers']['file']['filename'] = log_file_name
+        config["handlers"]["file"]["filename"] = log_file_name
 
     logging.config.dictConfig(config)
 

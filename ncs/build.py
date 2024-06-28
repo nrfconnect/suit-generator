@@ -43,8 +43,9 @@ def read_configurations(configurations):
 
         if image_name in data:
             existing_binary = data[image_name]["binary"]
-            raise ValueError("Two images have the same CONFIG_SUIT_ENVELOPE_TARGET value: "
-                             f"{binary} and {existing_binary}")
+            raise ValueError(
+                "Two images have the same CONFIG_SUIT_ENVELOPE_TARGET value: " f"{binary} and {existing_binary}"
+            )
 
         data[image_name] = {
             "name": name,

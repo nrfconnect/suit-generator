@@ -254,6 +254,39 @@ def setup_and_teardown(tmp_path_factory):
                 rad_local_1_class_name="rad_local_1_custom_class",
             )
         )
+    with open(".config_with_defaults", "w") as fh:
+        fh.write(
+            MPI_KCONFIG_TEMPLATE.format(
+                root_vendor_name="nordicsemi.com",
+                root_class_name="nRF54H20_sample_root",
+                app_local_1_vendor_name="nordicsemi.com",
+                app_local_1_class_name="nRF54H20_sample_app",
+                rad_local_1_vendor_name="rad_local_1_custom_vendor",
+                rad_local_1_class_name="rad_local_1_custom_class",
+            )
+        )
+    with open(".config_duplicates", "w") as fh:
+        fh.write(
+            MPI_KCONFIG_TEMPLATE.format(
+                root_vendor_name="nordicsemi.com",
+                root_class_name="nRF54H20_sample_root",
+                app_local_1_vendor_name="nordicsemi.com",
+                app_local_1_class_name="nRF54H20_sample_app",
+                rad_local_1_vendor_name="nordicsemi.com",
+                rad_local_1_class_name="nRF54H20_sample_app",
+            )
+        )
+    with open(".config_role_exchanged", "w") as fh:
+        fh.write(
+            MPI_KCONFIG_TEMPLATE.format(
+                root_vendor_name="nordicsemi.com",
+                root_class_name="nRF54H20_sample_root",
+                app_local_1_vendor_name="nordicsemi.com",
+                app_local_1_class_name="nRF54H20_sample_rad",
+                rad_local_1_vendor_name="nordicsemi.com",
+                rad_local_1_class_name="nRF54H20_sample_app",
+            )
+        )
     for item_name in ["root", "app_local_1", "rad_local_1"]:
         with open(f"custom_{item_name}_component_id.suit", "wb") as fh:
             envelope_data = SuitEnvelopeTagged.from_obj(
@@ -493,10 +526,10 @@ def test_bin2hex_conversion_error(mocker, monkeypatch):
 
 def test_nrf54_storage_no_defaults():
     storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=False, kconfig=None)
-    assert storage._assignments == []
+    assert storage._assignments == {}
 
 
-def test_nrf54_storage_defaults():
+def test_nrf54_storage_with_defaults():
     storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=None)
     assert len(storage._assignments) == 8
 
@@ -504,6 +537,26 @@ def test_nrf54_storage_defaults():
 def test_nrf54_storage_custom_config_defaults(setup_and_teardown):
     storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=".config")
     assert len(storage._assignments) == 11
+
+
+def test_nrf54_storage_custom_config_with_defaults_overwrite(setup_and_teardown):
+    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=".config_with_defaults")
+    # 8 default assignments + 3 custom assignments: 2 default values + one custom value,
+    # 2 custom assignments with default values are overwritten so final result is 8 + 1 = 9
+    assert len(storage._assignments) == 9
+
+
+def test_nrf54_storage_custom_config_with_role_change_duplicates(setup_and_teardown):
+    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=".config_duplicates")
+    # 8 default assignments + 3 custom assignments: root uses default value, APP and RAD uses the same role.
+    # APP entry will be overwritten by RAD to there will be no APP role in the dictionary, only RAD but duplicated.
+    assert len(storage._assignments) == 8
+
+
+def test_nrf54_storage_custom_config_with_role_change_no_duplicates(setup_and_teardown):
+    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=".config_role_exchanged")
+    # 8 default assignments + 3 custom assignment: root uses default value, APP and RAD have exchanged roles.
+    assert len(storage._assignments) == 8
 
 
 def test_nrf54_storage_custom_config_no_defaults(setup_and_teardown):

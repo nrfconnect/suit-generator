@@ -171,7 +171,7 @@ class EnvelopeStorage:
 
     def __init__(self, base_address: int, load_defaults=True, kconfig=None):
         """Create object generating binary SUIT storage."""
-        self._assignments = []
+        self._assignments = {}
         self._base_address = base_address
         self._envelopes = {}
 
@@ -201,25 +201,21 @@ class EnvelopeStorage:
     def assign_role(self, vendor_name: str, class_name: str, role: ManifestRole):
         """Assign role to envelope, identified by vendor and class name."""
         vid = uuid.uuid5(uuid.NAMESPACE_DNS, vendor_name)
-        self._assignments.append(
-            {
-                "vendor_id": vid.bytes,
-                "class_id": uuid.uuid5(vid, class_name).bytes,
-                "role": role,
-            }
-        )
+        cid = uuid.uuid5(vid, class_name)
+        self._assignments[cid.hex] = {
+            "vendor_id": vid.bytes,
+            "class_id": cid.bytes,
+            "role": role,
+        }
 
     def _find_class(self, role: ManifestRole) -> bytes | None:
-        for entry in self._assignments:
+        for entry in self._assignments.values():
             if entry["role"] == role:
                 return entry["class_id"]
         return None
 
     def _find_role(self, class_id: bytes) -> ManifestRole | None:
-        for entry in self._assignments:
-            if entry["class_id"].hex() == class_id.hex():
-                return entry["role"]
-        return None
+        return self._assignments[class_id.hex()]["role"] if class_id.hex() in self._assignments else None
 
     def _find_slot(self, class_id: bytes) -> (int, int):
         role = self._find_role(class_id)
