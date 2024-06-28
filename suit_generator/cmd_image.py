@@ -215,7 +215,7 @@ class EnvelopeStorage:
         return None
 
     def _find_role(self, class_id: bytes) -> ManifestRole | None:
-        return self._assignments[class_id.hex()]['role'] if class_id.hex() in self._assignments else None
+        return self._assignments[class_id.hex()]["role"] if class_id.hex() in self._assignments else None
 
     def _find_slot(self, class_id: bytes) -> (int, int):
         role = self._find_role(class_id)
