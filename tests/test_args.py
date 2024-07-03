@@ -15,7 +15,7 @@ from suit_generator.args import parse_arguments
 @mock.patch(
     "argparse.ArgumentParser.parse_args",
     return_value=argparse.Namespace(
-        command="create", input_file="test1.json", output_file="test2.suit", log_filename='test.log'
+        command="create", input_file="test1.json", output_file="test2.suit", log_filename="test.log"
     ),
 )
 def test_create_cmd_mode_auto(mock_args):
@@ -23,7 +23,7 @@ def test_create_cmd_mode_auto(mock_args):
     args = parse_arguments()
     assert args[0] == "create"
     assert vars(args[1]) == {"input_file": "test1.json", "output_file": "test2.suit"}
-    assert args[2] == 'test.log'
+    assert args[2] == "test.log"
 
 
 @pytest.mark.parametrize(
