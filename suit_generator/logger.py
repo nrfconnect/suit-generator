@@ -17,8 +17,8 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_LOG_FORMAT: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-DEFAULT_LOG_FILE_PATH: Path = 'suit-generator.log'
+DEFAULT_LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+DEFAULT_LOG_FILE_PATH: Path = "suit-generator.log"
 
 
 def log_call(func):
