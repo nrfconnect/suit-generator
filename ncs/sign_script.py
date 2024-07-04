@@ -89,7 +89,8 @@ class Signer:
     def create_cose_structure(self, protected: dict):
         """Create COSE Sig_structure."""
         data = ["Signature1", cbor2.dumps(protected), b"", cbor2.dumps(self.get_digest())]
-        return cbor2.dumps(data)
+        return cbor2.dumps(cbor2.dumps(data)) # First encode as array, then as bstr
+
 
     def get_digest(self):
         """Return digest object."""
