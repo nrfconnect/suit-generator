@@ -22,7 +22,7 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
 
-from suit_generator.suit.authentication import CoseSigStructure
+from suit_generator.suit.security import CoseSigStructure
 from suit_generator.suit.envelope import SuitEnvelopeTagged
 
 from suit_generator.suit.types.keys import (
