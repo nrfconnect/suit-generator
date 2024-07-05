@@ -6,7 +6,7 @@
 """Unit tests for suit authentication parsing."""
 import binascii
 import pytest
-from suit_generator.suit.authentication import SuitAuthentication, CoseSigStructure
+from suit_generator.suit.security import SuitAuthentication, CoseSigStructure
 from suit_generator.suit.types.keys import suit_cose_algorithm_id
 
 TEST_DATA = {
