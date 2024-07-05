@@ -15,7 +15,7 @@ from cryptography.hazmat.primitives import hashes
 from suit_generator.envelope import SuitEnvelope
 from suit_generator.exceptions import GeneratorError
 from suit_generator.input_output import FileTypeException
-from suit_generator.suit.authentication import SuitDigest, SuitAuthenticationBlock
+from suit_generator.suit.security import SuitDigest, SuitAuthenticationBlock
 from suit_generator.suit.types.common import Metadata, cbstr
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
@@ -681,7 +681,7 @@ def test_envelope_signed_twice_parsing(setup_and_teardown):
 
 
 @patch(
-    "suit_generator.suit.authentication.SuitAuthentication._metadata",
+    "suit_generator.suit.security.SuitAuthentication._metadata",
     Metadata(map={"SuitDigest*": cbstr(SuitDigest), "SuitAuthentication*": SuitAuthenticationBlock}),
 )
 def test_envelope_parsing_wrong_internal_structure_dynamic_element_twice(setup_and_teardown):
@@ -692,7 +692,7 @@ def test_envelope_parsing_wrong_internal_structure_dynamic_element_twice(setup_a
 
 
 @patch(
-    "suit_generator.suit.authentication.SuitAuthentication._metadata",
+    "suit_generator.suit.security.SuitAuthentication._metadata",
     Metadata(map={"SuitDigest*": cbstr(SuitDigest), "SuitAuthentication": SuitAuthenticationBlock}),
 )
 def test_envelope_parsing_wrong_internal_structure_dynamic_element_at_the_beginning(setup_and_teardown):

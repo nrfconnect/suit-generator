@@ -14,7 +14,7 @@ import pathlib
 
 from suit_generator.suit.payloads import SuitIntegratedPayloadMap
 from suit_generator.suit.types.common import SuitKeyValue, SuitTag, Tag, Metadata, SuitBstr, cbstr
-from suit_generator.suit.authentication import SuitDelegationChain, SuitAuthentication, SuitHash
+from suit_generator.suit.security import SuitDelegationChain, SuitAuthentication, SuitHash
 from suit_generator.suit.manifest import SuitManifest, SuitCommandSequence, SuitTextMap
 from suit_generator.suit.types.keys import (
     suit_manifest,
