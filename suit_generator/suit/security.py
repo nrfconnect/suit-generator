@@ -19,6 +19,7 @@ from suit_generator.suit.types.common import (
     SuitKeyValue,
     SuitList,
     SuitBstr,
+    SuitEmptyBstr,
     SuitTag,
     Tag,
     cbstr,
@@ -29,6 +30,7 @@ from cryptography.hazmat.primitives import hashes
 from suit_generator.suit.types.keys import (
     suit_cose_algorithm_id,
     suit_cose_key_id,
+    suit_cose_iv,
     suit_issuer,
     suit_subject,
     suit_audience,
@@ -45,6 +47,12 @@ from suit_generator.suit.types.keys import (
     cose_alg_es_384,
     cose_alg_es_521,
     cose_alg_eddsa,
+    cose_alg_aes_gcm_128,
+    cose_alg_aes_gcm_192,
+    cose_alg_aes_gcm_256,
+    cose_alg_a256kw,
+    cose_alg_a192kw,
+    cose_alg_a128kw,
     suit_digest_algorithm_id,
     suit_digest_bytes,
 )
@@ -162,10 +170,23 @@ class SuitDigest(SuitUnion):
     _metadata = Metadata(children=[SuitDigestRaw, SuitDigestExt])
 
 
-class SuitcoseSignAlg(SuitEnum):
+class SuitcoseAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
-    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384, cose_alg_es_521, cose_alg_eddsa])
+    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384, cose_alg_es_521, cose_alg_eddsa,
+                                   cose_alg_aes_gcm_128, cose_alg_aes_gcm_192, cose_alg_aes_gcm_256,
+                                   cose_alg_a256kw, cose_alg_a192kw, cose_alg_a128kw,
+                                   ])
+
+class SuitcoseKeyId(SuitUnion):
+    """Representation of a KEY ID item."""
+
+    _metadata = Metadata(
+        children=[
+            cbstr(SuitInt),
+            SuitBstr,
+        ]
+    )
 
 
 class SuitHeaderMap(SuitKeyValue):
@@ -173,11 +194,34 @@ class SuitHeaderMap(SuitKeyValue):
 
     _metadata = Metadata(
         map={
-            suit_cose_algorithm_id: SuitcoseSignAlg,
-            suit_cose_key_id: cbstr(SuitInt),
+            suit_cose_algorithm_id: SuitcoseAlg,
+            suit_cose_key_id: SuitcoseKeyId,
+            suit_cose_iv: SuitHex,
         }
     )
 
+class SuitHeaderMapOptional(SuitUnion):
+    """Representation of COSE_Encrypt_ciphertext item."""
+
+    _metadata = Metadata(
+        children=[
+            SuitHeaderMap,
+            SuitEmptyBstr,
+        ]
+    )
+
+    @classmethod
+    def from_obj(cls, obj) -> SuitUnion:
+        """Restore SUIT representation from passed object."""
+        value = None
+        if isinstance(obj, dict):
+            value = SuitEmptyBstr.from_obj("") if obj == {} else SuitHeaderMap.from_obj(obj)
+        elif obj == '' or obj == b'':
+            value = SuitEmptyBstr.from_obj('')
+        else:
+            raise ValueError(f"Expected dict empty string or empty sequence of bytes received: {obj}")
+
+        return cls(value)
 
 class SuitHeaderData(SuitUnion):
     """Abstract element to define possible sub-elements."""
@@ -271,3 +315,59 @@ class SuitDelegationChain(SuitList):
     """Representation of SUIT delegation chain."""
 
     _metadata = Metadata(children=[SuitDelegation])
+
+
+### Encryption
+
+class SuitCiphertextBytes(SuitHex):
+    """Representation of SUIT ciphertext bytes."""
+
+    pass
+
+class CoseEncryptCiphertext(SuitUnion):
+    """Representation of COSE_Encrypt_ciphertext item."""
+
+    _metadata = Metadata(
+        children=[
+            SuitNull,
+            SuitCiphertextBytes,
+        ]
+    )
+
+class CoseRecipient(SuitTupleNamed):
+    """Representation of COSE_Recipient item."""
+
+    _metadata = Metadata(
+        map={
+            "protected": cbstr(SuitHeaderMapOptional),
+            "unprotected": SuitHeaderData,
+            "ciphertext": CoseEncryptCiphertext,
+            "recipients*": SuitList,
+        }
+    )
+
+class CoseRecipientList(SuitList):
+    """Representation of a list of COSE_Recipient items."""
+
+    _metadata = Metadata(children=[CoseRecipient])
+
+
+# Fix cyclic dependencies between types
+CoseRecipient._metadata.map["recipients*"] = CoseRecipientList
+
+class CoseEncrypt(SuitTupleNamed):
+    """Representation of COSE_Encrypt item."""
+
+    _metadata = Metadata(
+        map={
+            "protected": cbstr(SuitHeaderMap),
+            "unprotected": SuitHeaderData,
+            "ciphertext": CoseEncryptCiphertext,
+            "recipients": CoseRecipientList,
+        }
+    )
+
+class CoseEncryptTagged(SuitTag):
+    """Representation of COSE_Encrypt_Tagged item."""
+
+    _metadata = Metadata(children=[CoseEncrypt], tag=Tag(96, "CoseEncryptTagged"))
