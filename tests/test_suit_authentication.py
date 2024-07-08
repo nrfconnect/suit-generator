@@ -136,7 +136,7 @@ def test_sig_structure():
     assert hasattr(structure, "CoseSigStructure")
     assert len(structure.CoseSigStructure) == 4
     assert structure.CoseSigStructure[0].value == "Signature1"
-    assert structure.CoseSigStructure[1].SuitHeaderMap[suit_cose_algorithm_id].SuitcoseSignAlg == "cose-alg-es-256"
+    assert structure.CoseSigStructure[1].SuitHeaderMap[suit_cose_algorithm_id].SuitcoseAlg == "cose-alg-es-256"
     assert structure.CoseSigStructure[2].SuitHex == b""
     assert structure.CoseSigStructure[3].to_cbor().hex().upper() == "4C822F49AAABBBCCCDDDEEEFFF"
     assert hex_value is not None
