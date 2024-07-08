@@ -574,6 +574,11 @@ class suit_cose_key_id(suit_key):
     id = 4
     name = "suit-cose-key-id"
 
+class suit_cose_iv(suit_key):
+    """suit-cose-iv metadata."""
+
+    id = 5
+    name = "suit-cose-iv"
 
 class suit_issuer(suit_key):
     """CWT Issuer metadata."""
@@ -686,6 +691,41 @@ class cose_alg_eddsa(suit_key):
     id = -8
     name = "cose-alg-eddsa"
 
+class cose_alg_aes_gcm_128(suit_key):
+    """Cose algorithm metadata."""
+
+    id = 1
+    name = "cose-alg-aes-gcm-128"
+
+class cose_alg_aes_gcm_192(suit_key):
+    """Cose algorithm metadata."""
+
+    id = 2
+    name = "cose-alg-aes-gcm-192"
+
+class cose_alg_aes_gcm_256(suit_key):
+    """Cose algorithm metadata."""
+
+    id = 3
+    name = "cose-alg-aes-gcm-256"
+
+class cose_alg_a256kw(suit_key):
+    """Cose algorithm metadata."""
+
+    id = -5
+    name = "cose-alg-a256kw"
+
+class cose_alg_a192kw(suit_key):
+    """Cose algorithm metadata."""
+
+    id = -4
+    name = "cose-alg-a192kw"
+
+class cose_alg_a128kw(suit_key):
+    """Cose algorithm metadata."""
+
+    id = -3
+    name = "cose-alg-a128kw"
 
 class suit_send_record_success(suit_key):
     """Reporting policy bit."""

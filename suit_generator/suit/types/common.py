@@ -134,6 +134,10 @@ class SuitObject(PrettyPrintHelperMixin):
         does not contain data which will cause that cbor2 library will request huge amount of memory.
         """
         requested_memory_len = None
+        if (len(cbstr) < 1):
+            raise ValueError(
+                f"The cbstr parsed object is empty"
+            )
         cbor_item_type = cbstr[0] >> 5
         cbor_item_count = cbstr[0] & 31
         # fixme: do not validate CBORTag length
@@ -657,6 +661,17 @@ class SuitBstr(SuitObject):
         """Dump SUIT representation to object."""
         return self.value.hex()
 
+class SuitEmptyBstr(SuitBstr):
+
+    @classmethod
+    def from_cbor(cls, cbstr: bytes) -> SuitBstr:
+        """Restore SUIT representation from passed CBOR."""
+        if (len(cbstr) > 0):
+            raise ValueError(f"{cbstr} is not empty")
+        return cls(cbstr)
+
+    def to_cbor(self) -> bytes:
+        return b''
 
 class SuitHex(SuitBstr):
     """Representation of hex type."""

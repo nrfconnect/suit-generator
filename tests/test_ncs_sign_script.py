@@ -309,7 +309,7 @@ def test_ncs_signing_manifest_component_id_known_default_key_used(setup_and_tear
         .SuitAuthentication[1]
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
         .SuitHeaderMap[suit_cose_key_id]
-        .value
+        .value.value
         == 0x0C0FFE
     )
 
@@ -331,7 +331,7 @@ def test_ncs_signing_manifest_component_id_known_non_default(setup_and_teardown)
         .SuitAuthentication[1]
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
         .SuitHeaderMap[suit_cose_key_id]
-        .value
+        .value.value
         == 0xFFEEDDBB
     )
 
@@ -353,7 +353,7 @@ def test_ncs_signing_manifest_component_id_unknown(setup_and_teardown):
         .SuitAuthentication[1]
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
         .SuitHeaderMap[suit_cose_key_id]
-        .value
+        .value.value
         == 0xDEADBEEF
     )
 
