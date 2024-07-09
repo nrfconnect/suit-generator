@@ -28,7 +28,7 @@ from suit_generator.suit.types.common import (
     SuitBchar,
     cbstr,
 )
-from suit_generator.suit.security import SuitDigest
+from suit_generator.suit.security import CoseEncryptTagged, SuitDigest
 from suit_generator.suit.types.keys import (
     suit_parameter_vendor_identifier,
     suit_parameter_class_identifier,
@@ -38,6 +38,7 @@ from suit_generator.suit.types.keys import (
     suit_parameter_soft_failure,
     suit_parameter_image_size,
     suit_parameter_content,
+    suit_parameter_encryption_info,
     suit_parameter_uri,
     suit_parameter_source_component,
     suit_parameter_invoke_args,
@@ -252,6 +253,7 @@ class SuitParameters(SuitKeyValue):
             suit_parameter_soft_failure: SuitBool,
             suit_parameter_image_size: SuitImageSize,
             suit_parameter_content: SuitBstr,
+            suit_parameter_encryption_info: cbstr(CoseEncryptTagged),
             suit_parameter_uri: SuitTstr,
             suit_parameter_source_component: SuitUint,
             suit_parameter_invoke_args: SuitBstr,

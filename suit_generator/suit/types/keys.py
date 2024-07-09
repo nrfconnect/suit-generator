@@ -203,6 +203,11 @@ class suit_parameter_content(suit_key):
     id = 18
     name = "suit-parameter-content"
 
+class suit_parameter_encryption_info(suit_key):
+    """suit-parameter-encryption-info metadata."""
+
+    id = 19
+    name = "suit-parameter-encryption-info"
 
 class suit_parameter_uri(suit_key):
     """suit-parameter-uri metadata."""
