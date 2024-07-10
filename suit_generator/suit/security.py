@@ -390,3 +390,15 @@ class CoseEncryptTagged(SuitTag):
     """Representation of COSE_Encrypt_Tagged item."""
 
     _metadata = Metadata(children=[CoseEncrypt], tag=Tag(96, "CoseEncryptTagged"))
+
+
+class CoseEncStructure(SuitTupleNamed):
+    """Representation of COSE Enc_structure."""
+
+    _metadata = Metadata(
+        map={
+            "context": SuitTstr,
+            "protected": cbstr(SuitHeaderMapOptional),
+            "external_aad": SuitBstr,
+        }
+    )
