@@ -547,10 +547,9 @@ def test_nrf54_storage_custom_config_with_defaults_overwrite(setup_and_teardown)
 
 
 def test_nrf54_storage_custom_config_with_role_change_duplicates(setup_and_teardown):
-    storage = EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=".config_duplicates")
-    # 8 default assignments + 3 custom assignments: root uses default value, APP and RAD uses the same role.
-    # APP entry will be overwritten by RAD to there will be no APP role in the dictionary, only RAD but duplicated.
-    assert len(storage._assignments) == 8
+    with pytest.raises(GeneratorError):
+        # GeneratorError shall be raised due to duplicated assignments
+        EnvelopeStorageNrf54h20(base_address=0xFF, load_defaults=True, kconfig=".config_duplicates")
 
 
 def test_nrf54_storage_custom_config_with_role_change_no_duplicates(setup_and_teardown):
