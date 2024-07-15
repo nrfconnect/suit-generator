@@ -32,7 +32,19 @@ def read_configurations(configurations):
     """Read configuration stored in the pickled devicetree."""
     data = {}
     for config in configurations:
-        name, binary, edt, kconfig = config.split(",")
+        args = config.split(",")
+        if len(args) < 4:
+            raise ValueError("Invalid number of input arguments")
+
+        # Parse obligatory arguments
+        name, binary, edt, kconfig = args[:4]
+
+        # Parse optional arguments
+        if len(args) > 4:
+            encryption_artifacts_dir = args[4]
+        else:
+            encryption_artifacts_dir = None
+
         edt_data = None
         if edt:
             with open(edt, "rb") as edt_handler:
@@ -56,6 +68,8 @@ def read_configurations(configurations):
         if binary:
             data[image_name]["filename"] = pathlib.Path(binary).name
             data[image_name]["binary"] = binary
+        if encryption_artifacts_dir:
+            data[image_name]["encryption_artifacts_dir"] = encryption_artifacts_dir
     data["get_absolute_address"] = get_absolute_address
     return data
 

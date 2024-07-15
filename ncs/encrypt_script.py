@@ -116,7 +116,8 @@ class Encryptor:
         #         "protected": {"suit-cose-algorithm-id": "cose-alg-aes-gcm-256"},
         #         "external_aad": "",
         # }
-        enc_structure_encoded = "8367456e637279707443a1010340"
+        # bytes(hex): 8367456e637279707443a1010340
+        enc_structure_encoded = "\\x83gEncryptC\\xa1\\x01\\x03@"
 
         subprocess.run(
             "nrfkms wrap"
@@ -127,10 +128,8 @@ class Encryptor:
             + " -c "
             + context
             + " --format native -t aes"
-            + " --aad "
-            + enc_structure_encoded
-            + " -o "
-            + temp_dir.name,
+            # + " --aad \"`echo -e \"" + enc_structure_encoded + "\"`\""
+            + " --aad $" + enc_structure_encoded + " -o " + temp_dir.name,
             shell=True,
             check=True,
         )
@@ -234,6 +233,13 @@ def create_encrypt_and_generate_subparser(top_parser):
         type=SuitDigestAlgorithms,
         choices=list(SuitDigestAlgorithms),
         help="Algorithm used to create plaintext digest.",
+    )
+    parser.add_argument("--kms-backend", required=True, type=str, help="KMS backend to use - vault/local.")
+    parser.add_argument("--kms-vault-url", type=str, help='URL of the KMS vault - only if kms-backend set to "vault".')
+    parser.add_argument("--kms-token", type=str, help='KMS token - only if kms-backend set to "vault"')
+    parser.add_argument("--kms-dir", type=str, help='Local backend directory - only if kms-backend set to "local".')
+    parser.add_argument(
+        "--kms-local-password", type=str, help='KMS local backend password - only if kms-backend set to "local".'
     )
 
 
