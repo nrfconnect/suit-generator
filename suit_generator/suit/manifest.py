@@ -28,7 +28,7 @@ from suit_generator.suit.types.common import (
     SuitBchar,
     cbstr,
 )
-from suit_generator.suit.security import CoseEncryptTagged, SuitDigest
+from suit_generator.suit.security import CoseEncryptTagged, SuitDigest, SuitEncryptionInfo
 from suit_generator.suit.types.keys import (
     suit_parameter_vendor_identifier,
     suit_parameter_class_identifier,
@@ -203,6 +203,11 @@ class SuitImageSize(SuitUint):
 
             binary_data = SuitEnvelopeTagged.return_processed_binary_data(obj["envelope"])
             return super().from_obj(len(binary_data))
+        elif "file_direct" in obj.keys():
+            img_size = 0
+            with open(obj["file_direct"], "r") as file:
+                img_size = int(file.read())
+            return super().from_obj(img_size)
         else:
             raise ValueError(f"Unable to parse image size: {obj}")
 
@@ -240,7 +245,7 @@ class SuitParameters(SuitKeyValue):
             suit_parameter_soft_failure: SuitBool,
             suit_parameter_image_size: SuitImageSize,
             suit_parameter_content: SuitBstr,
-            suit_parameter_encryption_info: cbstr(CoseEncryptTagged),
+            suit_parameter_encryption_info: SuitEncryptionInfo,
             suit_parameter_uri: SuitTstr,
             suit_parameter_source_component: SuitUint,
             suit_parameter_invoke_args: SuitBstr,
