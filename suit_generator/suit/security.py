@@ -12,6 +12,7 @@ from suit_generator.suit.types.common import (
     SuitNull,
     SuitEnum,
     SuitInt,
+    SuitObject,
     SuitTstr,
     SuitHex,
     SuitUnion,
@@ -158,6 +159,9 @@ class SuitDigestExt(PrettyPrintHelperMixin):
                 obj[suit_digest_bytes.name] = sub_envelope.get_manifest_digest(obj[suit_digest_algorithm_id.name]).hex()
             elif "raw" in digest_dict.keys():
                 obj[suit_digest_bytes.name] = digest_dict["raw"]
+            elif "file_direct" in digest_dict.keys():
+                with open(digest_dict["file_direct"], "rb") as fd:
+                    obj[suit_digest_bytes.name] = fd.read().hex()
             else:
                 raise ValueError(f"Unable to calculate digest from: {digest_dict}")
 
@@ -402,3 +406,38 @@ class CoseEncStructure(SuitTupleNamed):
             "external_aad": SuitBstr,
         }
     )
+
+
+class SuitEncryptionInfoExt(SuitBstr):
+    """Representation of SUIT encryption info ext."""
+
+    @classmethod
+    def to_obj(self) -> dict:
+        raise ValueError("Encryption info should be expanded to full structure by to_obj method")
+
+    @classmethod
+    def from_obj(cls, obj: dict) -> SuitBstr:
+        """Restore SUIT representation from passed object."""
+        if not isinstance(obj, dict):
+            raise ValueError(f"Expected dict, received: {obj}")
+        enc_info_bytes = b""
+        if "raw" in obj.keys():
+            enc_info_bytes = bytes.fromhex(obj["raw"])  # TODO: check this
+        elif "file" in obj.keys():
+            with open(obj["file"], "rb") as fd:
+                enc_info_bytes = fd.read()
+        else:
+            raise ValueError(f"Unable to parse encryption info: {obj}")
+        # the value in enc_info_bytes is already bstr wrapped - we have
+        # to deserialize it, so that the SuitBstr to_cbor method returns the correct value
+        return super().from_cbor(super().deserialize_cbor(enc_info_bytes))
+
+    @classmethod
+    def from_cbor(self) -> dict:
+        raise ValueError(f"Encryption info should be created as serialized CoseEncryptTagged object from cbor")
+
+
+class SuitEncryptionInfo(SuitUnion):
+    """Representation of SUIT digest."""
+
+    _metadata = Metadata(children=[cbstr(CoseEncryptTagged), SuitEncryptionInfoExt])
