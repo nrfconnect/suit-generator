@@ -159,7 +159,7 @@ class Encryptor:
 
     def generate_encrypted_payload(self, encrypted_content, tag, output_directory: Path):
         with open(os.path.join(output_directory, "encrypted_content.bin"), "wb") as file:
-            file.write(encrypted_content + tag)
+            file.write(tag + encrypted_content)
 
     def generate_suit_encryption_info(self, iv, encrypted_cek, domain, output_directory: Path):
 
