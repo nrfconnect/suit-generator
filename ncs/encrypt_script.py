@@ -8,15 +8,15 @@ This script allows to output artifacts needed by a SUIT envelope for encrypted f
 """
 
 import os
-import subprocess
 import cbor2
 from argparse import ArgumentParser
 from argparse import RawTextHelpFormatter
 from pathlib import Path
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
-from tempfile import TemporaryDirectory
 from enum import Enum, unique
+from pynrfkms.kms import KMS
+import getpass
 
 
 @unique
@@ -64,6 +64,16 @@ class SuitDigestAlgorithms(Enum):
         return self.value
 
 
+class EncryptionKMSBackends(Enum):
+    """KMS backends."""
+
+    VAULT = "vault"
+    LOCAL = "local"
+
+    def __str__(self):
+        return self.value
+
+
 KEY_IDS = {
     SuitDomains.APPLICATION.value: 0x40020200,
     SuitDomains.RADIO.value: 0x40030200,
@@ -103,13 +113,19 @@ class DigestGenerator:
 
 
 class Encryptor:
-    def generate_kms_artifacts(self, plaintext_file_path: Path, key_name: str, context: str):
-        # KMS generates a UUID which it uses in the generated
-        # file names, however there does not seem to be a way to calculate it. Therefore
-        # a temporary directory is used to store the generated files. The files are then
-        # searched in the directory using a wildcard.
-        temp_dir = TemporaryDirectory()
+    kms = None
 
+    def init_kms_backend(self, cli_arguments):
+        if cli_arguments.kms_backend == EncryptionKMSBackends.VAULT:
+            self.kms = KMS(backend="vault", url=cli_arguments.kms_vault_url, token=cli_arguments.kms_token)
+        elif cli_arguments.kms_backend == EncryptionKMSBackends.LOCAL:
+            pswd = cli_arguments.kms_local_password
+            if pswd is None:
+                pswd = getpass.getpass("Enter password for local KMS backend: ")
+            self.kms = KMS(backend="local", dir=cli_arguments.kms_dir, password=pswd, encoding="der")
+            del pswd
+
+    def generate_kms_artifacts(self, plaintext_file_path: Path, key_name: str, context: str):
         # Enc structure:
         # {
         #         "context": "Encrypt",
@@ -117,35 +133,21 @@ class Encryptor:
         #         "external_aad": "",
         # }
         # bytes(hex): 8367456e637279707443a1010340
-        enc_structure_encoded = "\\x83gEncryptC\\xa1\\x01\\x03@"
-
-        subprocess.run(
-            "nrfkms wrap"
-            + " -k "
-            + key_name
-            + " -f "
-            + str(plaintext_file_path)
-            + " -c "
-            + context
-            + " --format native -t aes"
-            # + " --aad \"`echo -e \"" + enc_structure_encoded + "\"`\""
-            + " --aad $" + enc_structure_encoded + " -o " + temp_dir.name,
-            shell=True,
-            check=True,
+        enc_structure_encoded = bytes(
+            [0x83, 0x67, 0x45, 0x6E, 0x63, 0x72, 0x79, 0x70, 0x74, 0x43, 0xA1, 0x01, 0x03, 0x40]
         )
-        encrypted_asset = None
-        encrypted_cek = None
-        for root, dirs, file in os.walk(temp_dir.name):
-            for f in file:
-                if "encrypted_asset" in f:
-                    encrypted_asset_file = temp_dir.name + "/" + f
-                    with open(encrypted_asset_file, "rb") as file:
-                        encrypted_asset = file.read()
-                if "wrapped_aek-aes" in f:
-                    encrypted_cek_file = temp_dir.name + "/" + f
-                    with open(encrypted_cek_file, "rb") as file:
-                        encrypted_cek = file.read()
-        temp_dir.cleanup()
+
+        asset_plaintext = []
+        with open(plaintext_file_path, "rb") as plaintext_file:
+            asset_plaintext = plaintext_file.read()
+
+        encrypted_asset, encrypted_cek = self.kms.aes_key_wrap(
+            key_name=key_name,
+            context=context,
+            plaintext=asset_plaintext,
+            aek_type="aes",
+            aad=enc_structure_encoded,
+        )
         return encrypted_asset, encrypted_cek
 
     def parse_encrypted_assets(self, asset_bytes):
@@ -234,12 +236,20 @@ def create_encrypt_and_generate_subparser(top_parser):
         choices=list(SuitDigestAlgorithms),
         help="Algorithm used to create plaintext digest.",
     )
-    parser.add_argument("--kms-backend", required=True, type=str, help="KMS backend to use - vault/local.")
+    parser.add_argument(
+        "--kms-backend",
+        required=True,
+        type=EncryptionKMSBackends,
+        choices=list(EncryptionKMSBackends),
+        help="KMS backend to use.",
+    )
     parser.add_argument("--kms-vault-url", type=str, help='URL of the KMS vault - only if kms-backend set to "vault".')
     parser.add_argument("--kms-token", type=str, help='KMS token - only if kms-backend set to "vault"')
     parser.add_argument("--kms-dir", type=str, help='Local backend directory - only if kms-backend set to "local".')
     parser.add_argument(
-        "--kms-local-password", type=str, help='KMS local backend password - only if kms-backend set to "local".'
+        "--kms-local-password",
+        type=str,
+        help='KMS local backend password - only if kms-backend set to "local". If not provided, the script will prompt for it.',
     )
 
 
@@ -301,6 +311,7 @@ Additionally, the encrypt-and-generate mode generates the following file:
     encryptor = Encryptor()
 
     if arguments.command == "encrypt-and-generate":
+        encryptor.init_kms_backend(arguments)
         digest_generator = DigestGenerator(arguments.hash_alg.value)
         digest_generator.generate_digest_size_for_plain_text(arguments.firmware, arguments.output_dir)
         encrypted_asset, encrypted_cek = encryptor.generate_kms_artifacts(
