@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
-"""build_configuration module to create and parse build configuration."""
+"""The module to create and parse build configuration."""
 
 import re
 import string
