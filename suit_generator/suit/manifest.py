@@ -44,8 +44,6 @@ from suit_generator.suit.types.keys import (
     suit_parameter_invoke_args,
     suit_parameter_device_identifier,
     suit_parameter_version,
-    suit_parameter_version_comparison_type,
-    suit_parameter_version_comparison_value,
     suit_directive_set_component_index,
     suit_directive_try_each,
     suit_directive_write,
@@ -209,33 +207,22 @@ class SuitImageSize(SuitUint):
             raise ValueError(f"Unable to parse image size: {obj}")
 
 
-class SuitConditionVersionComparisonType(SuitEnum):
-    """Representation of available SUIT condition version comparison types."""
-
-    _metadata = Metadata(
-        children=[
-            suit_condition_version_comparison_greater,
-            suit_condition_version_comparison_greater_equal,
-            suit_condition_version_comparison_equal,
-            suit_condition_version_comparison_lesser_equal,
-            suit_condition_version_comparison_lesser,
-        ]
-    )
-
-
 class SuitComponentVersion(SuitList):
     """Representation of a single component version."""
 
     _metadata = Metadata(children=[SuitInt])
 
 
-class SuitParameterVersion(SuitKeyValue):
+class SuitParameterVersion(SuitKeyValueTuple):
     """Representation of SUIT version parameter."""
 
     _metadata = Metadata(
         map={
-            suit_parameter_version_comparison_type: SuitConditionVersionComparisonType,
-            suit_parameter_version_comparison_value: SuitComponentVersion,
+            suit_condition_version_comparison_greater: SuitComponentVersion,
+            suit_condition_version_comparison_greater_equal: SuitComponentVersion,
+            suit_condition_version_comparison_equal: SuitComponentVersion,
+            suit_condition_version_comparison_lesser_equal: SuitComponentVersion,
+            suit_condition_version_comparison_lesser: SuitComponentVersion,
         }
     )
 
@@ -258,7 +245,7 @@ class SuitParameters(SuitKeyValue):
             suit_parameter_source_component: SuitUint,
             suit_parameter_invoke_args: SuitBstr,
             suit_parameter_device_identifier: SuitUUID,
-            suit_parameter_version: SuitParameterVersion,
+            suit_parameter_version: cbstr(SuitParameterVersion),
         }
     )
 
