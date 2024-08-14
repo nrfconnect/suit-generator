@@ -173,10 +173,21 @@ class SuitDigest(SuitUnion):
 class SuitcoseAlg(SuitEnum):
     """Representation of SUIT COSE sign algorithm."""
 
-    _metadata = Metadata(children=[cose_alg_es_256, cose_alg_es_384, cose_alg_es_521, cose_alg_eddsa,
-                                   cose_alg_aes_gcm_128, cose_alg_aes_gcm_192, cose_alg_aes_gcm_256,
-                                   cose_alg_a256kw, cose_alg_a192kw, cose_alg_a128kw,
-                                   ])
+    _metadata = Metadata(
+        children=[
+            cose_alg_es_256,
+            cose_alg_es_384,
+            cose_alg_es_521,
+            cose_alg_eddsa,
+            cose_alg_aes_gcm_128,
+            cose_alg_aes_gcm_192,
+            cose_alg_aes_gcm_256,
+            cose_alg_a256kw,
+            cose_alg_a192kw,
+            cose_alg_a128kw,
+        ]
+    )
+
 
 class SuitcoseKeyId(SuitUnion):
     """Representation of a KEY ID item."""
@@ -200,6 +211,7 @@ class SuitHeaderMap(SuitKeyValue):
         }
     )
 
+
 class SuitHeaderMapOptional(SuitUnion):
     """Representation of COSE_Encrypt_ciphertext item."""
 
@@ -216,12 +228,13 @@ class SuitHeaderMapOptional(SuitUnion):
         value = None
         if isinstance(obj, dict):
             value = SuitEmptyBstr.from_obj("") if obj == {} else SuitHeaderMap.from_obj(obj)
-        elif obj == '' or obj == b'':
-            value = SuitEmptyBstr.from_obj('')
+        elif obj == "" or obj == b"":
+            value = SuitEmptyBstr.from_obj("")
         else:
             raise ValueError(f"Expected dict empty string or empty sequence of bytes received: {obj}")
 
         return cls(value)
+
 
 class SuitHeaderData(SuitUnion):
     """Abstract element to define possible sub-elements."""
@@ -319,10 +332,12 @@ class SuitDelegationChain(SuitList):
 
 ### Encryption
 
+
 class SuitCiphertextBytes(SuitHex):
     """Representation of SUIT ciphertext bytes."""
 
     pass
+
 
 class CoseEncryptCiphertext(SuitUnion):
     """Representation of COSE_Encrypt_ciphertext item."""
@@ -333,6 +348,7 @@ class CoseEncryptCiphertext(SuitUnion):
             SuitCiphertextBytes,
         ]
     )
+
 
 class CoseRecipient(SuitTupleNamed):
     """Representation of COSE_Recipient item."""
@@ -346,6 +362,7 @@ class CoseRecipient(SuitTupleNamed):
         }
     )
 
+
 class CoseRecipientList(SuitList):
     """Representation of a list of COSE_Recipient items."""
 
@@ -354,6 +371,7 @@ class CoseRecipientList(SuitList):
 
 # Fix cyclic dependencies between types
 CoseRecipient._metadata.map["recipients*"] = CoseRecipientList
+
 
 class CoseEncrypt(SuitTupleNamed):
     """Representation of COSE_Encrypt item."""
@@ -366,6 +384,7 @@ class CoseEncrypt(SuitTupleNamed):
             "recipients": CoseRecipientList,
         }
     )
+
 
 class CoseEncryptTagged(SuitTag):
     """Representation of COSE_Encrypt_Tagged item."""
