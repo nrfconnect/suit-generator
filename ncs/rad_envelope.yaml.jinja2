@@ -28,8 +28,8 @@ SUIT_Envelope_Tagged:
             RFC4122_UUID: {{ mpi_radio_vendor_name }}
           suit-parameter-class-identifier:
             RFC4122_UUID:
-                namespace: {{ mpi_radio_vendor_name }}
-                name: {{ mpi_radio_class_name }}
+              namespace: {{ mpi_radio_vendor_name }}
+              name: {{ mpi_radio_class_name }}
           suit-parameter-image-digest:
             suit-digest-algorithm-id: cose-alg-sha-256
             suit-digest-bytes:
@@ -46,12 +46,6 @@ SUIT_Envelope_Tagged:
         - suit-send-record-failure
         - suit-send-sysinfo-success
         - suit-send-sysinfo-failure
-      - suit-directive-set-component-index: 1
-      - suit-directive-override-parameters:
-          suit-parameter-image-digest:
-            suit-digest-algorithm-id: cose-alg-sha-256
-            suit-digest-bytes:
-              file: {{ radio['binary'] }}
     suit-validate:
     - suit-directive-set-component-index: 0
     # In the case of streaming operations it is worth to retry them at least once.
@@ -77,6 +71,10 @@ SUIT_Envelope_Tagged:
     - suit-directive-set-component-index: 1
     - suit-directive-override-parameters:
         suit-parameter-uri: '#{{ radio['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            file: {{ radio['binary'] }}
     - suit-directive-fetch:
       - suit-send-record-failure
     - suit-directive-try-each:
@@ -116,6 +114,29 @@ SUIT_Envelope_Tagged:
           - suit-send-sysinfo-failure
     suit-text:
       suit-digest-algorithm-id: cose-alg-sha-256
+
+    suit-candidate-verification:
+    - suit-directive-set-component-index: 1
+    - suit-directive-override-parameters:
+        suit-parameter-uri: '#{{ radio['name'] }}'
+        suit-parameter-image-digest:
+          suit-digest-algorithm-id: cose-alg-sha-256
+          suit-digest-bytes:
+            file: {{ radio['binary'] }}
+    - suit-directive-fetch:
+      - suit-send-record-failure
+    - suit-directive-try-each:
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
+      - - suit-condition-image-match:
+          - suit-send-record-success
+          - suit-send-record-failure
+          - suit-send-sysinfo-success
+          - suit-send-sysinfo-failure
+
     suit-manifest-component-id:
     - INSTLD_MFST
     - RFC4122_UUID:
