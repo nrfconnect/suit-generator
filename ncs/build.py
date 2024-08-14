@@ -15,6 +15,7 @@ import yaml
 
 from jinja2 import Template
 from argparse import ArgumentParser
+from configparser import ConfigParser
 
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1].absolute()))
 
@@ -74,6 +75,16 @@ def read_configurations(configurations):
     return data
 
 
+def read_version_file(version_file):
+    """Read values from the VERSION configuration file."""
+    with open(version_file, "r") as ver_values:
+        cfg = ConfigParser()
+        cfg.optionxform = lambda option: option
+        cfg.read_string("[VERSION]\n" + ver_values.read())
+        return cfg.items("VERSION")
+    return {}
+
+
 def render_template(template_location, data):
     """Render template using passed data."""
     with open(template_location) as template_file:
@@ -119,6 +130,9 @@ if __name__ == "__main__":
     cmd_template_arg_parser.add_argument("--artifacts-folder", required=True, help="Output artifact folder.")
     cmd_template_arg_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
     cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
+    cmd_template_arg_parser.add_argument(
+        "--version_file", required=False, default=None, help="Path to the VERSION file to use."
+    )
 
     cmd_storage_arg_parser.add_argument(
         "--input-envelope", required=True, action="append", help="Location of input envelope(s)."
@@ -178,6 +192,8 @@ if __name__ == "__main__":
     configuration = read_configurations(arguments.core)
 
     if arguments.command == TEMPLATE_CMD:
+        if arguments.version_file is not None:
+            configuration.update(read_version_file(arguments.version_file))
         configuration["output_envelope"] = arguments.output_suit
         configuration["artifacts_folder"] = arguments.artifacts_folder
         output_suit_content = render_template(arguments.template_suit, configuration)
