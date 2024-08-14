@@ -7,8 +7,10 @@
 
 Code inspired by/based on https://github.com/tomchy/suit-composer.
 """
+from enum import Enum
 import uuid
 from os.path import getsize
+from typing import List, Union
 
 from suit_generator.suit.types.common import (
     SuitInt,
@@ -105,6 +107,7 @@ from suit_generator.suit.types.keys import (
     suit_uninstall,
     suit_text,
 )
+from suit_generator.logger import log_call
 
 
 class SuitIndex(SuitUnion):
@@ -216,6 +219,35 @@ class SuitComponentVersion(SuitList):
     """Representation of a single component version."""
 
     _metadata = Metadata(children=[SuitInt])
+
+    @staticmethod
+    def _convert_version_part(part):
+        class PrereleaseType(Enum):
+            alpha = -3
+            beta = -2
+            rc = -1
+
+        if isinstance(part, str):
+            if part.isnumeric():
+                return int(part)
+            else:
+                try:
+                    prerelease = getattr(PrereleaseType, part)
+                    return prerelease.value
+                except AttributeError:
+                    raise ValueError(f"Unsupported prerelease type: {part}")
+        elif isinstance(part, int):
+            return part
+        else:
+            raise ValueError(f"Unsupported version part: {part}")
+
+    @classmethod
+    @log_call
+    def from_obj(cls, obj: Union[List[int], str]) -> SuitList:
+        """Restore SUIT representation from passed object."""
+        if isinstance(obj, str):
+            obj = [cls._convert_version_part(part) for part in obj.replace("-", ".").split(".")]
+        return super().from_obj(obj)
 
 
 class SuitParameterVersion(SuitKeyValueTuple):
