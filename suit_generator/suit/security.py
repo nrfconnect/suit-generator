@@ -334,7 +334,7 @@ class SuitDelegationChain(SuitList):
     _metadata = Metadata(children=[SuitDelegation])
 
 
-### Encryption
+# Encryption
 
 
 class SuitCiphertextBytes(SuitHex):

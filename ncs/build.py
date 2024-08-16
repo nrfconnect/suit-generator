@@ -19,7 +19,7 @@ from argparse import ArgumentParser
 sys.path.insert(0, str(pathlib.Path(__file__).parents[1].absolute()))
 
 from suit_generator.cmd_image import ImageCreator  # noqa: E402
-from build_configuration.configuration import BuildConfiguration
+from build_configuration.configuration import BuildConfiguration  # noqa: E402
 
 TEMPLATE_CMD = "template"
 STORAGE_CMD = "storage"

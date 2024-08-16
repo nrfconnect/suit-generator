@@ -12,7 +12,6 @@ import inspect
 import logging
 import logging.config
 
-from typing import Any
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -32,7 +31,7 @@ def log_call(func):
             info = inspect.getframeinfo(frame)
             logger.debug(f"{info.filename}:{info.function}:{info.lineno}:{func.__name__}({args=},{kwargs=})")
             return func(*args, **kwargs)
-        except Exception as e:
+        except Exception:
             logger.debug(f"Unable to parse data: {args=},{kwargs=}")
             raise
 
