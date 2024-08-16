@@ -135,7 +135,7 @@ class SuitObject(PrettyPrintHelperMixin):
         """
         requested_memory_len = None
         if len(cbstr) < 1:
-            raise ValueError(f"The cbstr parsed object is empty")
+            raise ValueError("The cbstr parsed object is empty")
         cbor_item_type = cbstr[0] >> 5
         cbor_item_count = cbstr[0] & 31
         # fixme: do not validate CBORTag length
