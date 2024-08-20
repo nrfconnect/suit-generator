@@ -728,6 +728,12 @@ class cose_alg_a128kw(suit_key):
     id = -3
     name = "cose-alg-a128kw"
 
+class cose_alg_direct(suit_key):
+    """Cose algorithm metadata."""
+
+    id = -6
+    name = "cose-alg-direct"
+
 
 class suit_send_record_success(suit_key):
     """Reporting policy bit."""
