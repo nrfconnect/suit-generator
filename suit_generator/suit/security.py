@@ -54,6 +54,7 @@ from suit_generator.suit.types.keys import (
     cose_alg_a256kw,
     cose_alg_a192kw,
     cose_alg_a128kw,
+    cose_alg_direct,
     suit_digest_algorithm_id,
     suit_digest_bytes,
 )
@@ -189,6 +190,7 @@ class SuitcoseAlg(SuitEnum):
             cose_alg_a256kw,
             cose_alg_a192kw,
             cose_alg_a128kw,
+            cose_alg_direct,
         ]
     )
 
