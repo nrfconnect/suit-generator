@@ -6,6 +6,8 @@ SUIT_Envelope_Tagged:
     suit-manifest-version: 1
 {%- if NORDIC_TOP_SEQ_NUM is defined %}
     suit-manifest-sequence-number: {{ NORDIC_TOP_SEQ_NUM }}
+{%- elif DEFAULT_SEQ_NUM is defined %}
+    suit-manifest-sequence-number: {{ DEFAULT_SEQ_NUM }}
 {%- else %}
     suit-manifest-sequence-number: 1
 {%- endif %}
@@ -94,6 +96,8 @@ SUIT_Envelope_Tagged:
 
 {%- if NORDIC_TOP_VERSION is defined %}
     suit-current-version: {{ NORDIC_TOP_VERSION }}
+{%- elif DEFAULT_VERSION is defined %}
+    suit-current-version: {{ DEFAULT_VERSION }}
 {%- endif %}
 
     suit-install:
