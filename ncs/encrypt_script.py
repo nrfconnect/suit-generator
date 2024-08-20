@@ -29,6 +29,7 @@ class SuitAlgorithms(Enum):
     COSE_ALG_A128KW = -3
     COSE_ALG_A192KW = -4
     COSE_ALG_A256KW = -5
+    COSE_ALG_DIRECT = -6
 
 
 class SuitIds(Enum):
@@ -59,6 +60,15 @@ class SuitDigestAlgorithms(Enum):
     SHA_512 = "sha-512"
     SHAKE128 = "shake128"
     SHAKE256 = "shake256"
+
+    def __str__(self):
+        return self.value
+
+class SuitKWAlgorithms(Enum):
+    """Supported SUIT Key wrap/derivation algorithms."""
+
+    A256KW = "aes-kw-256"
+    DIRECT = "direct"
 
     def __str__(self):
         return self.value
@@ -115,6 +125,13 @@ class DigestGenerator:
 class Encryptor:
     kms = None
 
+    def __init__(self, kw_alg: SuitKWAlgorithms):
+        if kw_alg == SuitKWAlgorithms.A256KW:
+            self.cose_kw_alg = SuitAlgorithms.COSE_ALG_A256KW.value
+        else:
+            self.cose_kw_alg = SuitAlgorithms.COSE_ALG_DIRECT.value
+        pass
+
     def init_kms_backend(self, cli_arguments):
         if cli_arguments.kms_backend == EncryptionKMSBackends.VAULT:
             self.kms = KMS(backend="vault", url=cli_arguments.kms_vault_url, token=cli_arguments.kms_token)
@@ -141,22 +158,39 @@ class Encryptor:
         with open(plaintext_file_path, "rb") as plaintext_file:
             asset_plaintext = plaintext_file.read()
 
-        encrypted_asset, encrypted_cek = self.kms.aes_key_wrap(
-            key_name=key_name,
-            context=context,
-            plaintext=asset_plaintext,
-            aek_type="aes",
-            aad=enc_structure_encoded,
-        )
+        encrypted_asset = None
+        encrypted_cek = None
+
+        if (self.cose_kw_alg == SuitAlgorithms.COSE_ALG_A256KW.value):
+            encrypted_asset, encrypted_cek = self.kms.aes_key_wrap(
+                key_name=key_name,
+                context=context,
+                plaintext=asset_plaintext,
+                aek_type="aes",
+                aad=enc_structure_encoded,
+            )
+        elif (self.cose_kw_alg == SuitAlgorithms.COSE_ALG_DIRECT.value):
+            encrypted_asset = self.kms.encrypt(
+                plaintext=asset_plaintext,
+                key_name=key_name,
+                context=context,
+                aad=enc_structure_encoded,
+            )
+
         return encrypted_asset, encrypted_cek
 
     def parse_encrypted_assets(self, asset_bytes):
-        init_vector = asset_bytes[:12]  # the names init vector and nonce are used interchangeably in this case
-        # NOTE - it is not yet clear if this is a temporary bug or a difference in format,
-        # but nrfkms wrap returns the encrypted data in format nonce|encrypted_data|tag, instead of nonce|tag|encrypted_data
-        # which is returned by nrfkms encrypt
-        encrypted_content = asset_bytes[12:-16]
-        tag = asset_bytes[-16:]
+        if self.cose_kw_alg == SuitAlgorithms.COSE_ALG_A256KW.value:
+            init_vector = asset_bytes[:12]  # the names init vector and nonce are used interchangeably in this case
+            # nrfkms wrap returns the encrypted data in format nonce|encrypted_data|tag
+            encrypted_content = asset_bytes[12:-16]
+            tag = asset_bytes[-16:]
+        elif self.cose_kw_alg == SuitAlgorithms.COSE_ALG_DIRECT.value:
+            # nrfkms encrypt returns the encrypted data in format nonce|tag|encrypted_data
+            init_vector = asset_bytes[:12]
+            tag = asset_bytes[12:12+16]
+            encrypted_content = asset_bytes[12+16:]
+
         return init_vector, tag, encrypted_content
 
     def generate_encrypted_payload(self, encrypted_content, tag, output_directory: Path):
@@ -185,7 +219,7 @@ class Encryptor:
                     b"",
                     # unprotected
                     {
-                        SuitIds.COSE_ALG.value: SuitAlgorithms.COSE_ALG_A256KW.value,
+                        SuitIds.COSE_ALG.value: self.cose_kw_alg,
                         SuitIds.COSE_KEY_ID.value: cbor2.dumps(KEY_IDS[domain]),
                     },
                     # ciphertext
@@ -237,6 +271,13 @@ def create_encrypt_and_generate_subparser(top_parser):
         help="Algorithm used to create plaintext digest.",
     )
     parser.add_argument(
+        "--kw-alg",
+        default=SuitKWAlgorithms.DIRECT.value,
+        type=SuitKWAlgorithms,
+        choices=list(SuitKWAlgorithms),
+        help="Key wrap algorithm used to wrap the CEK.",
+    )
+    parser.add_argument(
         "--kms-backend",
         required=True,
         type=EncryptionKMSBackends,
@@ -260,7 +301,8 @@ def create_generate_subparser(top_parser):
         "--encrypted-firmware",
         required=True,
         type=Path,
-        help="Input, encrypted firmware in form iv|tag|encrypted_firmware",
+        help="Input, encrypted firmware in form iv|tag|encrypted_firmware for kw-alg=direct (as output from nrfkms encrypt)" +
+             "or iv|encrypted_firmware|tag for kw-alg=aes-kw256 (as output from nrfkms wrap).",
     )
     parser.add_argument("--encrypted-key", required=True, type=Path, help="Encrypted content/asset encryption key")
     parser.add_argument(
@@ -269,6 +311,13 @@ def create_generate_subparser(top_parser):
         type=SuitDomains,
         choices=list(SuitDomains),
         help="The SoC domain of the firmware. Used to determine the key ID.",
+    )
+    parser.add_argument(
+        "--kw-alg",
+        default=SuitKWAlgorithms.DIRECT.value,
+        type=SuitKWAlgorithms,
+        choices=list(SuitKWAlgorithms),
+        help="Key wrap algorithm used to wrap the CEK.",
     )
     parser.add_argument("--output-dir", required=True, type=Path, help="Directory to store the output files")
 
@@ -287,7 +336,8 @@ if __name__ == "__main__":
 It has two modes of operation:
     - encrypt-and-generate: First encrypt the command using nrfkms, then generate the files.
     - generate: Only generate files based on encrypted firmware and the encrypted content/asset encryption key.
-    Note the encrypted firmware should match the format generated by nrfkms iv|tag|encrypted_firmware.
+    Note the encrypted firmware should match the format generated by nrfkms iv|tag|encrypted_firmware if kw-alg=direct is used
+    (format output from nrfkms encrypt) or iv|encrypted_firmware|tag if kw-alg=aes-kw256 is used (format output from nrfkms wrap).
 
 In both cases the output files are:
     encrypted_content.bin - encrypted content of the firmware concatenated with the tag (encrypted firmware|16 byte tag).
@@ -308,7 +358,7 @@ Additionally, the encrypt-and-generate mode generates the following file:
     encrypted_asset = None
     encrypted_cek = None
 
-    encryptor = Encryptor()
+    encryptor = Encryptor(arguments.kw_alg)
 
     if arguments.command == "encrypt-and-generate":
         encryptor.init_kms_backend(arguments)
