@@ -75,12 +75,49 @@ def read_configurations(configurations):
     return data
 
 
+def append_default_version_values(cfg):
+    """Generate DEFAULT_SEQ_NUM and DEFAULT_VERSION variables."""
+    version = cfg["VERSION"]
+    if "APP_ROOT_VERSION" in version:
+        default_version = version["APP_ROOT_VERSION"]
+    elif ("VERSION_MAJOR" in version) and ("VERSION_MINOR" in version) and ("PATCHLEVEL" in version):
+        default_version = version["VERSION_MAJOR"] + "." + version["VERSION_MINOR"] + "." + version["PATCHLEVEL"]
+        if "EXTRAVERSION" in version:
+            if version["EXTRAVERSION"] in ("alpha", "beta", "rc"):
+                default_version += "-" + version["EXTRAVERSION"]
+            elif len(version["EXTRAVERSION"]) > 0:
+                # Use the least important pre-release tag for unsupported values
+                default_version += "-alpha"
+    else:
+        default_version = None
+
+    if "APP_ROOT_SEQ_NUM" in version:
+        default_seq_num = version["APP_ROOT_SEQ_NUM"]
+    elif ("VERSION_MAJOR" in version) and ("VERSION_MINOR" in version) and ("PATCHLEVEL" in version):
+        default_seq_num = (
+            (int(version["VERSION_MAJOR"]) << 24)
+            + (int(version["VERSION_MINOR"]) << 16)
+            + (int(version["PATCHLEVEL"]) << 8)
+        )
+        if "VERSION_TWEAK" in version:
+            default_seq_num += int(version["VERSION_TWEAK"])
+    else:
+        default_seq_num = 1
+
+    if "DEFAULT_VERSION" not in version:
+        if default_version is not None:
+            cfg["VERSION"]["DEFAULT_VERSION"] = default_version
+    if "DEFAULT_SEQ_NUM" not in version:
+        cfg["VERSION"]["DEFAULT_SEQ_NUM"] = f"{default_seq_num}"
+
+
 def read_version_file(version_file):
     """Read values from the VERSION configuration file."""
     with open(version_file, "r") as ver_values:
         cfg = ConfigParser()
         cfg.optionxform = lambda option: option
         cfg.read_string("[VERSION]\n" + ver_values.read())
+        append_default_version_values(cfg)
         return cfg.items("VERSION")
     return {}
 
