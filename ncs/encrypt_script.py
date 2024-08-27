@@ -85,10 +85,10 @@ class EncryptionKMSBackends(Enum):
 
 
 KEY_IDS = {
-    SuitDomains.APPLICATION.value: 0x40020200,
-    SuitDomains.RADIO.value: 0x40030200,
-    SuitDomains.CELL.value: 0x40040200,
-    SuitDomains.WIFI.value: 0x40060200,
+    SuitDomains.APPLICATION.value: 0x40022000,
+    SuitDomains.RADIO.value: 0x40032000,
+    SuitDomains.CELL.value: 0x40042000,
+    SuitDomains.WIFI.value: 0x40062000,
 }
 
 
