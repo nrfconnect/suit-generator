@@ -29,3 +29,27 @@ config SUIT_ENVELOPE_OUTPUT_MPI_MERGE
 config SUIT_LOCAL_ENVELOPE_GENERATE
   bool "Generate local envelope"
   default y if SOC_NRF54H20_CPUAPP || SOC_NRF54H20_CPURAD
+
+config SUIT_DFU_CACHE_EXTRACT_IMAGE
+  bool "Extract firmware image to DFU cache"
+  help
+    Extracts the firmware image to a DFU cache file, which can be then flashed separately
+    to the device (instead of being integrated into the SUIT envelope). If using the default
+    SUIT envelope template, this will also remove the firmware image from the SUIT envelope
+    integrated payloads.
+
+if SUIT_DFU_CACHE_EXTRACT_IMAGE
+
+config SUIT_DFU_CACHE_EXTRACT_IMAGE_PARTITION
+  int "The number of the DFU partition to which the image will be extracted"
+  help
+    This option will ensure that images which set it to the same number will be extracted
+    to the same dfu cache file.
+  default 1
+
+config SUIT_DFU_CACHE_EXTRACT_IMAGE_URI
+  string "The URI used as key for the image in the DFU cache"
+  default "cache://application.bin" if SOC_NRF54H20_CPUAPP
+  default "cache://radio.bin" if SOC_NRF54H20_CPURAD
+
+endif # SUIT_DFU_CACHE_EXTRACT_IMAGE
