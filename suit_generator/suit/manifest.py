@@ -30,7 +30,7 @@ from suit_generator.suit.types.common import (
     SuitBchar,
     cbstr,
 )
-from suit_generator.suit.security import CoseEncryptTagged, SuitDigest, SuitEncryptionInfo
+from suit_generator.suit.security import SuitDigest, SuitEncryptionInfo
 from suit_generator.suit.types.keys import (
     suit_parameter_vendor_identifier,
     suit_parameter_class_identifier,
