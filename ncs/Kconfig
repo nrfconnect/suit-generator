@@ -6,50 +6,50 @@
 
 # Kconfig below is slated for removal once SUIT service is available in the NCS.
 config SSF_SUIT_SERVICE_ENABLED
-    bool
+	bool
 
 config SUIT_ENVELOPE_TEMPLATE_FILENAME
-  string "Path to the envelope template"
-  default "app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
-  default "rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD
+	string "Path to the envelope template"
+	default "app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP
+	default "rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD
 
 config SUIT_ENVELOPE_TARGET
-  string "Target name inside the envelope templates"
-  default "application" if SOC_NRF54H20_CPUAPP
-  default "radio" if SOC_NRF54H20_CPURAD
+	string "Target name inside the envelope templates"
+	default "application" if SOC_NRF54H20_CPUAPP
+	default "radio" if SOC_NRF54H20_CPURAD
 
 config SUIT_ENVELOPE_OUTPUT_ARTIFACT
-  string "Name of the output merged artifact"
-  default "merged.hex"
+	string "Name of the output merged artifact"
+	default "merged.hex"
 
 config SUIT_ENVELOPE_OUTPUT_MPI_MERGE
-  bool "Merge MPI files into final SUIT_ENVELOPE_OUTPUT_ARTIFACT"
-  default y
+	bool "Merge MPI files into final SUIT_ENVELOPE_OUTPUT_ARTIFACT"
+	default y
 
 config SUIT_LOCAL_ENVELOPE_GENERATE
-  bool "Generate local envelope"
-  default y if SOC_NRF54H20_CPUAPP || SOC_NRF54H20_CPURAD
+	bool "Generate local envelope"
+	default y if SOC_NRF54H20_CPUAPP || SOC_NRF54H20_CPURAD
 
 config SUIT_DFU_CACHE_EXTRACT_IMAGE
-  bool "Extract firmware image to DFU cache"
-  help
-    Extracts the firmware image to a DFU cache file, which can be then flashed separately
-    to the device (instead of being integrated into the SUIT envelope). If using the default
-    SUIT envelope template, this will also remove the firmware image from the SUIT envelope
-    integrated payloads.
+	bool "Extract firmware image to DFU cache"
+	help
+	  Extracts the firmware image to a DFU cache file, which can be then flashed separately
+	  to the device (instead of being integrated into the SUIT envelope). If using the default
+	  SUIT envelope template, this will also remove the firmware image from the SUIT envelope
+	  integrated payloads.
 
 if SUIT_DFU_CACHE_EXTRACT_IMAGE
 
 config SUIT_DFU_CACHE_EXTRACT_IMAGE_PARTITION
-  int "The number of the DFU partition to which the image will be extracted"
-  help
-    This option will ensure that images which set it to the same number will be extracted
-    to the same dfu cache file.
-  default 1
+	int "The number of the DFU partition to which the image will be extracted"
+	help
+	  This option will ensure that images which set it to the same number will be extracted
+	  to the same dfu cache file.
+	default 1
 
 config SUIT_DFU_CACHE_EXTRACT_IMAGE_URI
-  string "The URI used as key for the image in the DFU cache"
-  default "cache://application.bin" if SOC_NRF54H20_CPUAPP
-  default "cache://radio.bin" if SOC_NRF54H20_CPURAD
+	string "The URI used as key for the image in the DFU cache"
+	default "cache://application.bin" if SOC_NRF54H20_CPUAPP
+	default "cache://radio.bin" if SOC_NRF54H20_CPURAD
 
 endif # SUIT_DFU_CACHE_EXTRACT_IMAGE
