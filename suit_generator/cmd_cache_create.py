@@ -36,7 +36,8 @@ def add_padding(data: bytes, eb_size: int) -> bytes:
     Add padding to the given data to align it to the specified erase block size.
 
     This function ensures that the data is padded to a size that is a multiple of the erase block size (eb_size).
-    The padding is done according to the CBOR (Concise Binary Object Representation) format.
+    The padding is done by appending a CBOR key-value pair with empty URI as the key and
+    byte-string-encoded zeros as the value.
 
     :param data: The input data to be padded.
     :type data: bytes
