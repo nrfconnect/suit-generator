@@ -3,9 +3,7 @@
 #
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
-"""
-This script allows to output artifacts needed by a SUIT envelope for encrypted firmware.
-"""
+"""Script to create artifacts needed by a SUIT envelope for encrypted firmware."""
 
 import os
 import cbor2
@@ -94,6 +92,7 @@ KEY_IDS = {
 
 
 class DigestGenerator:
+    """Class to generate digests for plaintext files using specified hash algorithms."""
 
     _hash_func = {
         SuitDigestAlgorithms.SHA_256.value: hashes.SHA256(),
@@ -110,6 +109,7 @@ class DigestGenerator:
         self._hash_name = hash_name
 
     def generate_digest_size_for_plain_text(self, plaintext_file_path: Path, output_directory: Path):
+        """Class to generate digests for plaintext files using specified hash algorithms."""
         plaintext = []
         with open(plaintext_file_path, "rb") as plaintext_file:
             plaintext = plaintext_file.read()
@@ -124,9 +124,12 @@ class DigestGenerator:
 
 
 class Encryptor:
+    """Class to handle encryption operations using specified key wrap algorithms."""
+
     kms = None
 
     def __init__(self, kw_alg: SuitKWAlgorithms):
+        """Initialize the Encryptor with a specified key wrap algorithm."""
         if kw_alg == SuitKWAlgorithms.A256KW:
             self.cose_kw_alg = SuitAlgorithms.COSE_ALG_A256KW.value
         else:
@@ -134,6 +137,7 @@ class Encryptor:
         pass
 
     def init_kms_backend(self, cli_arguments):
+        """Initialize the KMS backend based on command line arguments."""
         if cli_arguments.kms_backend == EncryptionKMSBackends.VAULT:
             self.kms = KMS(backend="vault", url=cli_arguments.kms_vault_url, token=cli_arguments.kms_token)
         elif cli_arguments.kms_backend == EncryptionKMSBackends.LOCAL:
@@ -144,6 +148,12 @@ class Encryptor:
             del pswd
 
     def generate_kms_artifacts(self, plaintext_file_path: Path, key_name: str, context: str):
+        """Generate encrypted artifacts using KMS.
+
+        This method reads the plaintext file, encrypts it using the specified key wrap algorithm,
+        and returns the encrypted asset and encrypted content encryption key (CEK).
+
+        """
         # Enc structure:
         # {
         #         "context": "Encrypt",
@@ -181,6 +191,7 @@ class Encryptor:
         return encrypted_asset, encrypted_cek
 
     def parse_encrypted_assets(self, asset_bytes):
+        """Parse the encrypted assets to extract initialization vector, tag, and encrypted content."""
         if self.cose_kw_alg == SuitAlgorithms.COSE_ALG_A256KW.value:
             init_vector = asset_bytes[:12]  # the names init vector and nonce are used interchangeably in this case
             # nrfkms wrap returns the encrypted data in format nonce|encrypted_data|tag
@@ -195,11 +206,18 @@ class Encryptor:
         return init_vector, tag, encrypted_content
 
     def generate_encrypted_payload(self, encrypted_content, tag, output_directory: Path):
+        """Generate the encrypted payload file.
+
+        This method writes the encrypted content and authentication tag to a binary file.
+        """
         with open(os.path.join(output_directory, "encrypted_content.bin"), "wb") as file:
             file.write(tag + encrypted_content)
 
     def generate_suit_encryption_info(self, iv, encrypted_cek, domain, output_directory: Path):
+        """Generate the SUIT encryption information file.
 
+        This method creates a CBOR-encoded SUIT encryption information structure and writes it to a binary file.
+        """
         Cose_Encrypt = [
             # protected
             cbor2.dumps(
@@ -238,12 +256,18 @@ class Encryptor:
     def generate_encryption_info_and_encrypted_payload(
         self, encrypted_asset: Path, encrypted_cek: Path, output_directory: Path, domain: str
     ):
+        """Generate encryption information and encrypted payload files.
+
+        This method parses the encrypted asset to extract the initialization vector, tag, and encrypted content.
+        It then generates the encrypted payload file and the SUIT encryption information file.
+        """
         init_vector, tag, encrypted_content = self.parse_encrypted_assets(encrypted_asset)
         self.generate_encrypted_payload(encrypted_content, tag, output_directory)
         self.generate_suit_encryption_info(init_vector, encrypted_cek, domain, output_directory)
 
 
 def create_encrypt_and_generate_subparser(top_parser):
+    """Create a subparser for the 'encrypt-and-generate' command."""
     parser = top_parser.add_parser(
         "encrypt-and-generate", help="First encrypt the command using nrfkms, then generate the files."
     )
@@ -297,6 +321,7 @@ def create_encrypt_and_generate_subparser(top_parser):
 
 
 def create_generate_subparser(top_parser):
+    """Create a subparser for the 'generate' command."""
     parser = top_parser.add_parser("generate", help="Only generate files based on encrypted firmware")
 
     parser.add_argument(
@@ -326,6 +351,10 @@ def create_generate_subparser(top_parser):
 
 
 def create_subparsers(parser):
+    """Create subparsers for the main parser.
+
+    This function adds subparsers for different commands to the main parser.
+    """
     subparsers = parser.add_subparsers(dest="command", required=True, help="Choose subcommand:")
 
     create_encrypt_and_generate_subparser(subparsers)
