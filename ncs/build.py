@@ -110,6 +110,32 @@ def append_default_version_values(cfg):
     if "DEFAULT_SEQ_NUM" not in version:
         cfg["VERSION"]["DEFAULT_SEQ_NUM"] = f"{default_seq_num}"
 
+    # Handle SCFW versioning schema - it is customized by overwriting the Zephyr's version.cmake file.
+    if ("SYSCTRL_VERSION_MAJOR" in version) and ("SYSCTRL_VERSION_MINOR" in version) and ("SYSCTRL_VERSION_PATCH" in version):
+        default_scfw_version = version["SYSCTRL_VERSION_MAJOR"] + "." + version["SYSCTRL_VERSION_MINOR"] + "." + version["SYSCTRL_VERSION_PATCH"]
+        if "SYSCTRL_VERSION_EXTRA" in version:
+            if version["SYSCTRL_VERSION_EXTRA"] in ("alpha", "beta", "rc"):
+                default_scfw_version += "-" + version["SYSCTRL_VERSION_EXTRA"]
+            elif len(version["SYSCTRL_VERSION_EXTRA"]) > 0:
+                # Use the least important pre-release tag for unsupported values
+                default_scfw_version += "-alpha"
+
+        default_scfw_seq_num = (
+            (int(version["SYSCTRL_VERSION_MAJOR"]) << 24)
+            + (int(version["SYSCTRL_VERSION_MINOR"]) << 16)
+            + (int(version["SYSCTRL_VERSION_PATCH"]) << 8)
+        )
+        if "SYSCTRL_VERSION_TWEAK" in version:
+            default_scfw_seq_num += int(version["SYSCTRL_VERSION_TWEAK"])
+    else:
+        default_scfw_version = None
+        default_scfw_seq_num = 1
+
+    if "SCFW_VERSION" not in version:
+        if default_scfw_version is not None:
+            cfg["VERSION"]["SCFW_VERSION"] = default_scfw_version
+    if "SCFW_SEQ_NUM" not in version:
+        cfg["VERSION"]["SCFW_SEQ_NUM"] = f"{default_scfw_seq_num}"
 
 def read_version_file(version_file):
     """Read values from the VERSION configuration file."""
