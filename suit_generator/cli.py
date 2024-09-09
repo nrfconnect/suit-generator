@@ -29,7 +29,7 @@ COMMAND_EXECUTORS = {
     cmd_convert.CONVERT_CMD: cmd_convert.main,
     cmd_image.ImageCreator.IMAGE_CMD: cmd_image.main,
     cmd_mpi.MPI_CMD: cmd_mpi.main,
-    cmd_cache_create.CACHE_CREATE_CMD: cmd_cache_create.main
+    cmd_cache_create.CACHE_CREATE_CMD: cmd_cache_create.main,
 }
 
 
