@@ -728,6 +728,7 @@ class cose_alg_a128kw(suit_key):
     id = -3
     name = "cose-alg-a128kw"
 
+
 class cose_alg_direct(suit_key):
     """Cose algorithm metadata."""
 

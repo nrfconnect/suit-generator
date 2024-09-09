@@ -661,6 +661,7 @@ class SuitBstr(SuitObject):
 
 
 class SuitEmptyBstr(SuitBstr):
+    """Representation of empty byte string."""
 
     @classmethod
     def from_cbor(cls, cbstr: bytes) -> SuitBstr:
@@ -670,6 +671,7 @@ class SuitEmptyBstr(SuitBstr):
         return cls(cbstr)
 
     def to_cbor(self) -> bytes:
+        """Dump SUIT representation to cbor encoded bytes."""
         return b""
 
 

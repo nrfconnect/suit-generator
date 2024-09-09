@@ -17,6 +17,7 @@ from suit_generator.cmd_convert import add_arguments as convert_args
 from suit_generator.cmd_mpi import add_arguments as mpi_args
 from suit_generator.cmd_cache_create import add_arguments as cache_create_args
 
+
 def _parser() -> ArgumentParser:
     parser = ArgumentParser()
     parser.add_argument("--log-filename", default=None, help="Log file path (it will override cli defaults).")

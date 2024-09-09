@@ -12,7 +12,6 @@ from suit_generator.suit.types.common import (
     SuitNull,
     SuitEnum,
     SuitInt,
-    SuitObject,
     SuitTstr,
     SuitHex,
     SuitUnion,
@@ -415,6 +414,7 @@ class SuitEncryptionInfoExt(SuitBstr):
 
     @classmethod
     def to_obj(self) -> dict:
+        """Dump SUIT representation to object."""
         raise ValueError("Encryption info should be expanded to full structure by to_obj method")
 
     @classmethod
@@ -436,7 +436,8 @@ class SuitEncryptionInfoExt(SuitBstr):
 
     @classmethod
     def from_cbor(self) -> dict:
-        raise ValueError(f"Encryption info should be created as serialized CoseEncryptTagged object from cbor")
+        """Restore SUIT representation from passed CBOR string."""
+        raise ValueError("Encryption info should be created as serialized CoseEncryptTagged object from cbor")
 
 
 class SuitEncryptionInfo(SuitUnion):
