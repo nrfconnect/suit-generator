@@ -77,14 +77,17 @@ def read_configurations(configurations):
 
 def append_default_version_values(cfg):
     """Generate DEFAULT_SEQ_NUM and DEFAULT_VERSION variables."""
+    extraversion_re = r"^(alpha|beta|rc)[\.]{0,1}([0-9]+){0,1}$"
     version = cfg["VERSION"]
+
     if "APP_ROOT_VERSION" in version:
         default_version = version["APP_ROOT_VERSION"]
     elif ("VERSION_MAJOR" in version) and ("VERSION_MINOR" in version) and ("PATCHLEVEL" in version):
         default_version = version["VERSION_MAJOR"] + "." + version["VERSION_MINOR"] + "." + version["PATCHLEVEL"]
         if "EXTRAVERSION" in version:
-            if version["EXTRAVERSION"] in ("alpha", "beta", "rc"):
-                default_version += "-" + version["EXTRAVERSION"]
+            extra = re.match(extraversion_re, version["EXTRAVERSION"])
+            if extra is not None:
+                default_version += "-" + ".".join([v for v in extra.groups() if v is not None])
             elif len(version["EXTRAVERSION"]) > 0:
                 # Use the least important pre-release tag for unsupported values
                 default_version += "-alpha"
@@ -111,11 +114,22 @@ def append_default_version_values(cfg):
         cfg["VERSION"]["DEFAULT_SEQ_NUM"] = f"{default_seq_num}"
 
     # Handle SCFW versioning schema - it is customized by overwriting the Zephyr's version.cmake file.
-    if ("SYSCTRL_VERSION_MAJOR" in version) and ("SYSCTRL_VERSION_MINOR" in version) and ("SYSCTRL_VERSION_PATCH" in version):
-        default_scfw_version = version["SYSCTRL_VERSION_MAJOR"] + "." + version["SYSCTRL_VERSION_MINOR"] + "." + version["SYSCTRL_VERSION_PATCH"]
+    if (
+        ("SYSCTRL_VERSION_MAJOR" in version)
+        and ("SYSCTRL_VERSION_MINOR" in version)
+        and ("SYSCTRL_VERSION_PATCH" in version)
+    ):
+        default_scfw_version = (
+            version["SYSCTRL_VERSION_MAJOR"]
+            + "."
+            + version["SYSCTRL_VERSION_MINOR"]
+            + "."
+            + version["SYSCTRL_VERSION_PATCH"]
+        )
         if "SYSCTRL_VERSION_EXTRA" in version:
-            if version["SYSCTRL_VERSION_EXTRA"] in ("alpha", "beta", "rc"):
-                default_scfw_version += "-" + version["SYSCTRL_VERSION_EXTRA"]
+            extra = re.match(extraversion_re, version["SYSCTRL_VERSION_EXTRA"])
+            if extra is not None:
+                default_scfw_version += "-" + ".".join([v for v in extra.groups() if v is not None])
             elif len(version["SYSCTRL_VERSION_EXTRA"]) > 0:
                 # Use the least important pre-release tag for unsupported values
                 default_scfw_version += "-alpha"
@@ -136,6 +150,7 @@ def append_default_version_values(cfg):
             cfg["VERSION"]["SCFW_VERSION"] = default_scfw_version
     if "SCFW_SEQ_NUM" not in version:
         cfg["VERSION"]["SCFW_SEQ_NUM"] = f"{default_scfw_seq_num}"
+
 
 def read_version_file(version_file):
     """Read values from the VERSION configuration file."""
