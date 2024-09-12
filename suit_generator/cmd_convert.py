@@ -250,17 +250,29 @@ class KeyConverter:
             # TODO: Consider adding support for keys protected by password
             private_key = serialization.load_pem_private_key(data=fd.read(), password=None)
 
-        public_key_numbers = private_key.public_key().public_numbers()
+        public_key_bytes = None
 
-        # Make sure that if bit length is not aligned to 8, full bytes will be used
-        x_byte_length = (public_key_numbers.x.bit_length() + 7) // 8
-        y_byte_length = (public_key_numbers.y.bit_length() + 7) // 8
+        try:
+            public_key_numbers = private_key.public_key().public_numbers()
 
-        # Convert the numbers into bytes
-        x_bytes = public_key_numbers.x.to_bytes(length=x_byte_length, byteorder="big")
-        y_bytes = public_key_numbers.y.to_bytes(length=y_byte_length, byteorder="big")
+            # Make sure that if bit length is not aligned to 8, full bytes will be used
+            x_byte_length = (public_key_numbers.x.bit_length() + 7) // 8
+            y_byte_length = (public_key_numbers.y.bit_length() + 7) // 8
 
-        return x_bytes + y_bytes
+            # Convert the numbers into bytes
+            x_bytes = public_key_numbers.x.to_bytes(length=x_byte_length, byteorder="big")
+            y_bytes = public_key_numbers.y.to_bytes(length=y_byte_length, byteorder="big")
+
+            public_key_bytes = x_bytes + y_bytes
+        except AttributeError:
+            # Depending on the key type, some attributes may not be available
+            # Thus, the method of getting the public key data is different
+            public_key_bytes = private_key.public_key().public_bytes(
+                encoding=serialization.Encoding.Raw,
+                format=serialization.PublicFormat.Raw,
+            )
+
+        return public_key_bytes
 
     def _split_bytes_per_row(self, data: bytes) -> list[bytes]:
         return [data[i : i + self._columns_count] for i in range(0, len(data), self._columns_count)]
