@@ -33,9 +33,14 @@ from enum import Enum, unique
 
 #
 # User note:
-#   Rename the file to 'key_private.der' if you are using keys in DER format.
+#   Rename the files to 'key_private_<KEY>.der' if you are using keys in DER format.
 #
-PRIVATE_KEY = Path(__file__).parent / "key_private.pem"
+PRIVATE_KEYS = {
+    0x7FFFFFE0: Path(__file__).parent / "key_private.pem",
+    0x4000AA00: Path(__file__).parent / "key_private_OEM_ROOT_GEN1.pem",
+    0x40022100: Path(__file__).parent / "key_private_APPLICATION_GEN1.pem",
+    0x40032100: Path(__file__).parent / "key_private_RADIO_GEN1.pem",
+}
 
 
 @unique
@@ -65,7 +70,11 @@ class SuitIds(Enum):
 
 DEFAULT_KEY_ID = 0x7FFFFFE0
 
-KEY_IDS = {"nRF54H20_sample_root": 0x7FFFFFE0, "nRF54H20_sample_app": 0x7FFFFFE0, "nRF54H20_sample_rad": 0x7FFFFFE0}
+KEY_IDS = {
+    "nRF54H20_sample_root": 0x4000AA00,  # MANIFEST_PUBKEY_OEM_ROOT_GEN1
+    "nRF54H20_sample_app": 0x40022100,  # MANIFEST_PUBKEY_APPLICATION_GEN1
+    "nRF54H20_sample_rad": 0x40032100,
+}  # MANIFEST_PUBKEY_RADIO_GEN1
 
 DOMAIN_NAME = "nordicsemi.com"
 
@@ -165,12 +174,20 @@ class Signer:
     def _get_key_id_for_manifest_class(self):
         return self._key_ids[self._get_manifest_class_id()]
 
-    def sign(self, private_key_path: Path) -> None:
+    def _get_private_key_path_for_manifest_class(self) -> Path:
+        key_id = self._key_ids[self._get_manifest_class_id()]
+        return PRIVATE_KEYS[key_id]
+
+    def sign(self, private_key_path: Path = None) -> None:
         """Add signature to the envelope."""
         loaders = {
             ".pem": load_pem_private_key,
             ".der": load_der_private_key,
         }
+
+        if private_key_path is None:
+            private_key_path = self._get_private_key_path_for_manifest_class()
+
         try:
             loader = loaders[private_key_path.suffix]
         except KeyError as e:
@@ -196,5 +213,5 @@ if __name__ == "__main__":
 
     signer = Signer()
     signer.load_envelope(arguments.input_file)
-    signer.sign(PRIVATE_KEY)
+    signer.sign()
     signer.save_envelope(arguments.output_file)
