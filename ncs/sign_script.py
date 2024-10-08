@@ -36,7 +36,7 @@ from enum import Enum, unique
 #   Rename the files to 'key_private_<KEY>.der' if you are using keys in DER format.
 #
 PRIVATE_KEYS = {
-    0x7FFFFFE0: Path(__file__).parent / "key_private.pem",
+    0x40000000: Path(__file__).parent / "key_private.pem",
     0x4000AA00: Path(__file__).parent / "key_private_OEM_ROOT_GEN1.pem",
     0x40022100: Path(__file__).parent / "key_private_APPLICATION_GEN1.pem",
     0x40032100: Path(__file__).parent / "key_private_RADIO_GEN1.pem",
@@ -68,13 +68,13 @@ class SuitIds(Enum):
     SUIT_MANIFEST_COMPONENT_ID = 5
 
 
-DEFAULT_KEY_ID = 0x7FFFFFE0
+DEFAULT_KEY_ID = 0x40000000
 
 KEY_IDS = {
     "nRF54H20_sample_root": 0x4000AA00,  # MANIFEST_PUBKEY_OEM_ROOT_GEN1
     "nRF54H20_sample_app": 0x40022100,  # MANIFEST_PUBKEY_APPLICATION_GEN1
-    "nRF54H20_sample_rad": 0x40032100,
-}  # MANIFEST_PUBKEY_RADIO_GEN1
+    "nRF54H20_sample_rad": 0x40032100,  # MANIFEST_PUBKEY_RADIO_GEN1
+}
 
 DOMAIN_NAME = "nordicsemi.com"
 
