@@ -260,7 +260,7 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
     cose_structure = CoseSigStructure.from_obj(
         {
             "context": "Signature1",
-            "body_protected": {"suit-cose-algorithm-id": algorithm_name, "suit-cose-key-id": 0x7FFFFFE0},
+            "body_protected": {"suit-cose-algorithm-id": algorithm_name, "suit-cose-key-id": 0x40000000},
             "external_add": "",
             "payload": digest_object,
         }

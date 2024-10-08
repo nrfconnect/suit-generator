@@ -649,7 +649,7 @@ TEST_YAML_ENVELOPE_AUTH_TEMPLATE = {
           CoseSign1Tagged:
             protected:
               suit-cose-algorithm-id: cose-alg-es-256
-              suit-cose-key-id: 0x7fffffe0
+              suit-cose-key-id: 0x40000000
             unprotected: {}
             payload: None,
             signature: DEADBEEF,
