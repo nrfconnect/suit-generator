@@ -302,10 +302,17 @@ class suit_payload_fetch(suit_key):
     name = "suit-payload-fetch"
 
 
+class suit_install_legacy(suit_key):
+    """suit-install metadata (before v27)."""
+
+    id = 17
+    name = "suit-install-legacy"
+
+
 class suit_install(suit_key):
     """suit-install metadata."""
 
-    id = 17
+    id = 20
     name = "suit-install"
 
 

@@ -24,6 +24,7 @@ from suit_generator.suit.types.keys import (
     suit_candidate_verification,
     suit_payload_fetch,
     suit_install,
+    suit_install_legacy,
     suit_text,
     suit_integrated_payloads,
     suit_integrated_dependencies,
@@ -42,6 +43,7 @@ class SuitEnvelopeSimplified(SuitKeyValue):
             suit_payload_fetch: SuitBstr,
             suit_candidate_verification: SuitBstr,
             suit_install: SuitBstr,
+            suit_install_legacy: SuitBstr,
             suit_text: SuitBstr,
             suit_integrated_payloads: SuitIntegratedPayloadMap,
             suit_integrated_dependencies: SuitIntegratedPayloadMap,
@@ -62,6 +64,7 @@ class SuitEnvelope(SuitKeyValue):
             suit_payload_fetch: cbstr(SuitCommandSequence),
             suit_candidate_verification: cbstr(SuitCommandSequence),
             suit_install: cbstr(SuitCommandSequence),
+            suit_install_legacy: cbstr(SuitCommandSequence),
             suit_text: cbstr(SuitTextMap),
             suit_integrated_payloads: SuitIntegratedPayloadMap,
             suit_integrated_dependencies: SuitIntegratedPayloadMap,
@@ -104,6 +107,7 @@ class SuitBasicEnvelopeOperationsMixin:
             suit_payload_fetch,
             suit_candidate_verification,
             suit_install,
+            suit_install_legacy,
         ]
         for severable_element in severable_elements:
             if severable_element in self.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest and hasattr(
