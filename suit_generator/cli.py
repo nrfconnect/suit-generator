@@ -11,7 +11,17 @@ if __name__ == "__main__":
 
     sys.path.insert(0, str(pathlib.Path(__file__).parents[1].absolute()))
 
-from suit_generator import cmd_parse, cmd_keys, cmd_convert, cmd_create, cmd_image, cmd_mpi, cmd_cache_create, args
+from suit_generator import (
+    cmd_parse,
+    cmd_keys,
+    cmd_convert,
+    cmd_create,
+    cmd_image,
+    cmd_mpi,
+    cmd_cache_create,
+    cmd_payload_extract,
+    args,
+)
 from suit_generator.exceptions import GeneratorError, SUITError
 
 import logging
@@ -30,6 +40,7 @@ COMMAND_EXECUTORS = {
     cmd_image.ImageCreator.IMAGE_CMD: cmd_image.main,
     cmd_mpi.MPI_CMD: cmd_mpi.main,
     cmd_cache_create.CACHE_CREATE_CMD: cmd_cache_create.main,
+    cmd_payload_extract.PAYLOAD_EXTRACT_CMD: cmd_payload_extract.main,
 }
 
 
