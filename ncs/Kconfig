@@ -10,16 +10,16 @@ config SSF_SUIT_SERVICE_ENABLED
 
 config SUIT_ENVELOPE_TEMPLATE_FILENAME
 	string "Path to the envelope template"
-	default "app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP && !SUIT_RECOVERY
-	default "rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD && !SUIT_RECOVERY
-	default "rad_recovery_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD && SUIT_RECOVERY
+	default "app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP_COMMON && !SUIT_RECOVERY
+	default "rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD_COMMON && !SUIT_RECOVERY
+	default "rad_recovery_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD_COMMON && SUIT_RECOVERY
 
 config SUIT_ENVELOPE_TARGET
 	string "Target name inside the envelope templates"
-	default "application" if SOC_NRF54H20_CPUAPP && !SUIT_RECOVERY
-	default "radio" if SOC_NRF54H20_CPURAD && !SUIT_RECOVERY
-	default "app_recovery" if SOC_NRF54H20_CPUAPP && SUIT_RECOVERY
-	default "rad_recovery" if SOC_NRF54H20_CPURAD && SUIT_RECOVERY
+	default "application" if SOC_NRF54H20_CPUAPP_COMMON && !SUIT_RECOVERY
+	default "radio" if SOC_NRF54H20_CPURAD_COMMON && !SUIT_RECOVERY
+	default "app_recovery" if SOC_NRF54H20_CPUAPP_COMMON && SUIT_RECOVERY
+	default "rad_recovery" if SOC_NRF54H20_CPURAD_COMMON && SUIT_RECOVERY
 
 config SUIT_ENVELOPE_OUTPUT_ARTIFACT
 	string "Name of the output merged artifact"
@@ -39,7 +39,7 @@ config SUIT_LOCAL_ENVELOPE_GENERATE
 	# the application firmware image, is actually the root envelope from
 	# the build system's point of view.
 	# That is why no local envelope is generated for the application.
-	default y if (SOC_NRF54H20_CPUAPP && !SUIT_RECOVERY) || SOC_NRF54H20_CPURAD
+	default y if (SOC_NRF54H20_CPUAPP_COMMON && !SUIT_RECOVERY) || SOC_NRF54H20_CPURAD_COMMON
 
 config SUIT_DFU_CACHE_EXTRACT_IMAGE
 	bool "Extract firmware image to DFU cache"
@@ -60,9 +60,9 @@ config SUIT_DFU_CACHE_EXTRACT_IMAGE_PARTITION
 
 config SUIT_DFU_CACHE_EXTRACT_IMAGE_URI
 	string "The URI used as key for the image in the DFU cache"
-	default "cache://application.bin" if SOC_NRF54H20_CPUAPP && !SUIT_RECOVERY
-	default "cache://radio.bin" if SOC_NRF54H20_CPURAD && !SUIT_RECOVERY
-	default "cache://app_recovery.bin" if SOC_NRF54H20_CPUAPP && SUIT_RECOVERY
-	default "cache://rad_recovery.bin" if SOC_NRF54H20_CPURAD && SUIT_RECOVERY
+	default "cache://application.bin" if SOC_NRF54H20_CPUAPP_COMMON && !SUIT_RECOVERY
+	default "cache://radio.bin" if SOC_NRF54H20_CPURAD_COMMON && !SUIT_RECOVERY
+	default "cache://app_recovery.bin" if SOC_NRF54H20_CPUAPP_COMMON && SUIT_RECOVERY
+	default "cache://rad_recovery.bin" if SOC_NRF54H20_CPURAD_COMMON && SUIT_RECOVERY
 
 endif # SUIT_DFU_CACHE_EXTRACT_IMAGE
