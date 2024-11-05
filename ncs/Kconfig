@@ -12,13 +12,14 @@ config SUIT_ENVELOPE_TEMPLATE_FILENAME
 	string "Path to the envelope template"
 	default "app_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP_COMMON && !SUIT_RECOVERY
 	default "rad_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD_COMMON && !SUIT_RECOVERY
+	default "app_recovery_local_envelope.yaml.jinja2" if SOC_NRF54H20_CPUAPP_COMMON && SUIT_RECOVERY
 	default "rad_recovery_envelope.yaml.jinja2" if SOC_NRF54H20_CPURAD_COMMON && SUIT_RECOVERY
 
 config SUIT_ENVELOPE_TARGET
 	string "Target name inside the envelope templates"
 	default "application" if SOC_NRF54H20_CPUAPP_COMMON && !SUIT_RECOVERY
 	default "radio" if SOC_NRF54H20_CPURAD_COMMON && !SUIT_RECOVERY
-	default "app_recovery" if SOC_NRF54H20_CPUAPP_COMMON && SUIT_RECOVERY
+	default "app_recovery_img" if SOC_NRF54H20_CPUAPP_COMMON && SUIT_RECOVERY
 	default "rad_recovery" if SOC_NRF54H20_CPURAD_COMMON && SUIT_RECOVERY
 
 config SUIT_ENVELOPE_OUTPUT_ARTIFACT
@@ -35,11 +36,7 @@ config SUIT_ENVELOPE_OUTPUT_MPI_MERGE
 
 config SUIT_LOCAL_ENVELOPE_GENERATE
 	bool "Generate local envelope"
-	# In case of the recovery application, the "application" envelope, containing
-	# the application firmware image, is actually the root envelope from
-	# the build system's point of view.
-	# That is why no local envelope is generated for the application.
-	default y if (SOC_NRF54H20_CPUAPP_COMMON && !SUIT_RECOVERY) || SOC_NRF54H20_CPURAD_COMMON
+	default y if SOC_NRF54H20_CPUAPP_COMMON || SOC_NRF54H20_CPURAD_COMMON
 
 config SUIT_DFU_CACHE_EXTRACT_IMAGE
 	bool "Extract firmware image to DFU cache"
