@@ -390,9 +390,9 @@ class EnvelopeStorageNrf54h20(EnvelopeStorage):
 class ImageCreator:
     """Helper class for extracting data from SUIT envelope and creating hex files."""
 
-    default_update_candidate_info_address = 0x0E1ED340
-    default_storage_address = 0x0E1EB000
-    default_dfu_partition_address = 0x0E155000
+    default_update_candidate_info_address = 0x0E1EF340
+    default_storage_address = 0x0E1ED000
+    default_dfu_partition_address = 0x0E100000
     default_dfu_max_caches = 6
 
     UPDATE_MAGIC_VALUE_AVAILABLE = 0x55AA55AA
