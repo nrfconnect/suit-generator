@@ -107,6 +107,8 @@ from suit_generator.suit.types.keys import (
     suit_candidate_verification,
     suit_uninstall,
     suit_text,
+    suit_synchronous_invoke,
+    suit_timeout,
 )
 from suit_generator.logger import log_call
 
@@ -265,6 +267,17 @@ class SuitParameterVersion(SuitKeyValueTuple):
     )
 
 
+class SuitParameterInvokeArgs(SuitKeyValue):
+    """Representation of SUIT version parameter."""
+
+    _metadata = Metadata(
+        map={
+            suit_synchronous_invoke: SuitBool,
+            suit_timeout: SuitUint,
+        }
+    )
+
+
 class SuitParameters(SuitKeyValue):
     """Representation of SUIT parameters."""
 
@@ -281,7 +294,7 @@ class SuitParameters(SuitKeyValue):
             suit_parameter_encryption_info: SuitEncryptionInfo,
             suit_parameter_uri: SuitTstr,
             suit_parameter_source_component: SuitUint,
-            suit_parameter_invoke_args: SuitBstr,
+            suit_parameter_invoke_args: cbstr(SuitParameterInvokeArgs),
             suit_parameter_device_identifier: SuitUUID,
             suit_parameter_version: cbstr(SuitParameterVersion),
         }
