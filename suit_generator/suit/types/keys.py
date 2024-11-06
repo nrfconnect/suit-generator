@@ -769,3 +769,17 @@ class suit_send_sysinfo_failure(suit_key):
 
     id = 8
     name = "suit-send-sysinfo-failure"
+
+
+class suit_synchronous_invoke(suit_key):
+    """Synchronous invoke argument."""
+
+    id = 1
+    name = "suit-synchronous-invoke"
+
+
+class suit_timeout(suit_key):
+    """Timeout invoke argument."""
+
+    id = 2
+    name = "suit-timeout"
