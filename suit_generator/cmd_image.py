@@ -188,20 +188,20 @@ class EnvelopeStorage:
         config = BuildConfiguration(input_file=kconfig)
         kconfig_assignments = []
         for key, value in config.items():
-            if re_value := re.match(r"^CONFIG_SUIT_MPI_(?P<manifest>[A-Z1-9_]+)_VENDOR_NAME$", key):
+            if re_value := re.match(r"^SB_CONFIG_SUIT_MPI_(?P<manifest>[A-Z1-9_]+)_VENDOR_NAME$", key):
                 manifest = re_value.group("manifest")
                 # ensure that the same combination of vid/cid has not been set for different role
                 for item in kconfig_assignments:
                     if (
-                        item["vendor_name"] == config[f"CONFIG_SUIT_MPI_{manifest}_VENDOR_NAME"]
-                        and item["class_name"] == config[f"CONFIG_SUIT_MPI_{manifest}_CLASS_NAME"]
+                        item["vendor_name"] == config[f"SB_CONFIG_SUIT_MPI_{manifest}_VENDOR_NAME"]
+                        and item["class_name"] == config[f"SB_CONFIG_SUIT_MPI_{manifest}_CLASS_NAME"]
                     ):
                         raise GeneratorError(
                             "Duplicate vid/cid combination for different roles detected in the KConfig file."
                         )
                 data = {
-                    "vendor_name": config[f"CONFIG_SUIT_MPI_{manifest}_VENDOR_NAME"],
-                    "class_name": config[f"CONFIG_SUIT_MPI_{manifest}_CLASS_NAME"],
+                    "vendor_name": config[f"SB_CONFIG_SUIT_MPI_{manifest}_VENDOR_NAME"],
+                    "class_name": config[f"SB_CONFIG_SUIT_MPI_{manifest}_CLASS_NAME"],
                     "role": ManifestRole[f"APP_{manifest}" if manifest == "ROOT" else manifest],
                 }
                 kconfig_assignments.append(data)
