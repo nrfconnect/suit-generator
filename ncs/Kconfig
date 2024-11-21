@@ -30,10 +30,6 @@ config SUIT_RECOVERY
 	bool "The given image is part of a SUIT recovery application"
 	depends on !NRF_REGTOOL_GENERATE_UICR
 
-config SUIT_ENVELOPE_OUTPUT_MPI_MERGE
-	bool "Merge MPI files into final SUIT_ENVELOPE_OUTPUT_ARTIFACT"
-	default y if !SUIT_RECOVERY
-
 config SUIT_LOCAL_ENVELOPE_GENERATE
 	bool "Generate local envelope"
 	default y if SOC_NRF54H20_CPUAPP_COMMON || SOC_NRF54H20_CPURAD_COMMON
