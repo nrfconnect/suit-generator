@@ -22,8 +22,21 @@ class SuitKMS(SuitKMSBase):
             self.keys_directory = Path(__file__).parent
             return None
 
-        context_loaded = json.loads(context)
-        self.keys_directory = Path(context_loaded["keys_directory"])
+        # Check if context is a valid path
+        context_path = Path(context)
+        if context_path.is_dir():
+            self.keys_directory = context_path
+            return
+
+        try:
+            context_loaded = json.loads(context)
+        except json.JSONDecodeError:
+            raise ValueError(f"The provided context '{context}' is neither a valid path nor a valid JSON string.")
+
+        try:
+            self.keys_directory = Path(context_loaded["keys_directory"])
+        except KeyError:
+            raise ValueError(f"The provided json context '{context}' does not contain the 'keys_directory' key.")
 
     def init_kms(self, context) -> None:
         """
@@ -35,13 +48,13 @@ class SuitKMS(SuitKMSBase):
 
     def encrypt(self, plaintext, key_name, context, aad) -> tuple[bytes, bytes, bytes]:
         """
-        Encrypt the plainext with an AES key.
+        Encrypt the plaintext with an AES key.
 
         :param plaintext: The plaintext to be encrypted.
         :param key_name: The name of the key to be used.
         :param context: The context to be used
                         If it is passed, it is used to point to the directory where the keys are stored.
-                        In this case, it must be a JSON string in te format '{ "keys_directory":"<path>" }'.
+                        It can either be a path or a JSON string in the format '{ "keys_directory":"<path>" }'.
         :param aad: The additional authenticated data to be used.
         :return: The nonce, tag and ciphertext.
         :rtype: tuple[bytes, bytes, bytes]
