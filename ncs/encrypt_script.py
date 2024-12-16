@@ -39,18 +39,6 @@ class SuitIds(Enum):
     COSE_IV = 5
 
 
-class SuitDomains(Enum):
-    """Suit domains."""
-
-    APPLICATION = "application"
-    RADIO = "radio"
-    CELL = "cell"
-    WIFI = "wifi"
-
-    def __str__(self):
-        return self.value
-
-
 class SuitDigestAlgorithms(Enum):
     """Suit digest algorithms."""
 
@@ -75,10 +63,14 @@ class SuitKWAlgorithms(Enum):
 
 
 KEY_IDS = {
-    SuitDomains.APPLICATION.value: 0x40022000,
-    SuitDomains.RADIO.value: 0x40032000,
-    SuitDomains.CELL.value: 0x40042000,
-    SuitDomains.WIFI.value: 0x40062000,
+    "FWENC_APPLICATION_GEN1": 0x40022000,
+    "FWENC_APPLICATION_GEN2": 0x40022001,
+    "FWENC_RADIOCORE_GEN1": 0x40032000,
+    "FWENC_RADIOCORE_GEN2": 0x40032001,
+    "FWENC_CELL_GEN1": 0x40042000,
+    "FWENC_CELL_GEN2": 0x40042001,
+    "FWENC_WIFICORE_GEN1": 0x40062000,
+    "FWENC_WIFICORE_GEN2": 0x40062001,
 }
 
 
@@ -203,7 +195,7 @@ class Encryptor:
         with open(os.path.join(output_directory, "encrypted_content.bin"), "wb") as file:
             file.write(tag + encrypted_content)
 
-    def generate_suit_encryption_info(self, iv, encrypted_cek, domain, output_directory: Path):
+    def generate_suit_encryption_info(self, iv, encrypted_cek, string_key_id, output_directory: Path):
         """Generate the SUIT encryption information file.
 
         This method creates a CBOR-encoded SUIT encryption information structure and writes it to a binary file.
@@ -229,7 +221,7 @@ class Encryptor:
                     # unprotected
                     {
                         SuitIds.COSE_ALG.value: self.cose_kw_alg,
-                        SuitIds.COSE_KEY_ID.value: cbor2.dumps(KEY_IDS[domain]),
+                        SuitIds.COSE_KEY_ID.value: cbor2.dumps(KEY_IDS[string_key_id]),
                     },
                     # ciphertext
                     encrypted_cek,
@@ -244,7 +236,7 @@ class Encryptor:
             file.write(encryption_info)
 
     def generate_encryption_info_and_encrypted_payload(
-        self, encrypted_asset: Path, encrypted_cek: Path, output_directory: Path, domain: str
+        self, encrypted_asset: Path, encrypted_cek: Path, output_directory: Path, string_key_id: str
     ):
         """Generate encryption information and encrypted payload files.
 
@@ -253,7 +245,7 @@ class Encryptor:
         """
         init_vector, tag, encrypted_content = self.parse_encrypted_assets(encrypted_asset)
         self.generate_encrypted_payload(encrypted_content, tag, output_directory)
-        self.generate_suit_encryption_info(init_vector, encrypted_cek, domain, output_directory)
+        self.generate_suit_encryption_info(init_vector, encrypted_cek, string_key_id, output_directory)
 
 
 def create_encrypt_and_generate_subparser(top_parser):
@@ -265,11 +257,12 @@ def create_encrypt_and_generate_subparser(top_parser):
         "--key-name", required=True, type=str, help="Name of the key used by the KMS to identify the key."
     )
     parser.add_argument(
-        "--domain",
+        "--string-key-id",
         required=True,
-        type=SuitDomains,
-        choices=list(SuitDomains),
-        help="The SoC domain of the firmware. Used to determine the key ID.",
+        type=str,
+        choices=KEY_IDS.keys(),
+        metavar="STRING_KEY_ID",
+        help="The string key ID used to identify the key on the device - translated to a numeric KEY ID.",
     )
     parser.add_argument(
         "--context",
@@ -293,7 +286,6 @@ def create_encrypt_and_generate_subparser(top_parser):
     )
     parser.add_argument(
         "--kms-script",
-        # required=True,
         default=Path(__file__).parent / "basic_kms.py",
         help="Python script containing a SuitKMS class with an encrypt function - used to communicate with a KMS.",
     )
@@ -311,11 +303,11 @@ def create_generate_subparser(top_parser):
     )
     parser.add_argument("--encrypted-key", required=True, type=Path, help="Encrypted content/asset encryption key")
     parser.add_argument(
-        "--domain",
+        "--string-key-id",
         required=True,
-        type=SuitDomains,
-        choices=list(SuitDomains),
-        help="The SoC domain of the firmware. Used to determine the key ID.",
+        type=str,
+        choices=KEY_IDS.keys(),
+        help="The string key ID used to identify the key on the device - translated to a numeric KEY ID.",
     )
     parser.add_argument(
         "--kw-alg",
@@ -383,5 +375,5 @@ Additionally, the encrypt-and-generate mode generates the following file:
             encrypted_cek = file.read()
 
     encryptor.generate_encryption_info_and_encrypted_payload(
-        encrypted_asset, encrypted_cek, arguments.output_dir, arguments.domain.value
+        encrypted_asset, encrypted_cek, arguments.output_dir, arguments.string_key_id
     )
