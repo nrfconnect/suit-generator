@@ -132,6 +132,8 @@ class Encryptor:
         """Initialize the KMS from the provided script backend based on the passed context."""
         module_name = "SuitKMS_module"
         kms_module = _import_module_from_path(module_name, kms_script)
+        if not hasattr(kms_module, "suit_kms_factory"):
+            raise ValueError(f"Python script {kms_script} does not contain the required suit_kms_factory function")
         self.kms = kms_module.suit_kms_factory()
         if not isinstance(self.kms, SuitKMSBase):
             raise ValueError(f"Class {type(self.kms)} does not implement the required SuitKMSBase interface")
