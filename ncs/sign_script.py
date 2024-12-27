@@ -14,44 +14,24 @@ It is highly recommended to execute signing only in the secure environment.
 """
 from __future__ import annotations
 
-import math
-
 import cbor2
-import uuid
+import importlib.util
+import sys
 
-from argparse import ArgumentParser
 from pathlib import Path
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_der_private_key
-from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.asymmetric.ec import EllipticCurvePrivateKey
-from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
-from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
-from collections import defaultdict
 from enum import Enum, unique
-
-#
-# User note:
-#   Rename the files to 'key_private_<KEY>.der' if you are using keys in DER format.
-#
-PRIVATE_KEYS = {
-    0x40000000: Path(__file__).parent / "key_private.pem",
-    0x4000AA00: Path(__file__).parent / "key_private_OEM_ROOT_GEN1.pem",
-    0x40022100: Path(__file__).parent / "key_private_APPLICATION_GEN1.pem",
-    0x40032100: Path(__file__).parent / "key_private_RADIO_GEN1.pem",
-}
+from suit_generator.suit_kms_base import SuitKMSBase
+from suit_generator.suit_sign_script_base import (
+    SuitEnvelopeSignerBase,
+    SignatureAlreadyPresentActions,
+    SuitSignAlgorithms,
+)
 
 
 @unique
-class SuitAlgorithms(Enum):
+class SuitCoseSignAlgorithms(Enum):
     """Suit algorithms."""
 
-    COSE_ALG_SHA_256 = -16
-    COSE_ALG_SHAKE128 = -18
-    COSE_ALG_SHA_384 = -43
-    COSE_ALG_SHA_512 = -44
-    COSE_ALG_SHAKE256 = -45
     COSE_ALG_ES_256 = -7
     COSE_ALG_ES_384 = -35
     COSE_ALG_ES_521 = -36
@@ -68,30 +48,32 @@ class SuitIds(Enum):
     SUIT_MANIFEST_COMPONENT_ID = 5
 
 
-DEFAULT_KEY_ID = 0x40000000
-
-KEY_IDS = {
-    "nRF54H20_sample_root": 0x4000AA00,  # MANIFEST_PUBKEY_OEM_ROOT_GEN1
-    "nRF54H20_sample_app": 0x40022100,  # MANIFEST_PUBKEY_APPLICATION_GEN1
-    "nRF54H20_sample_rad": 0x40032100,  # MANIFEST_PUBKEY_RADIO_GEN1
-}
-
-DOMAIN_NAME = "nordicsemi.com"
-
-
 class SignerError(Exception):
     """Signer exception."""
 
 
-class Signer:
+def _import_module_from_path(module_name: str, file_path: Path):
+    """Import a python module from a file path."""
+    spec = importlib.util.spec_from_file_location(module_name, file_path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+class Signer(SuitEnvelopeSignerBase):
     """Signer implementation."""
 
-    def __init__(self):
-        """Initialize signer."""
-        domain_name = uuid.uuid5(uuid.NAMESPACE_DNS, DOMAIN_NAME)
-        self._key_ids = defaultdict(lambda: DEFAULT_KEY_ID)
-        for name, val in KEY_IDS.items():
-            self._key_ids[uuid.uuid5(domain_name, name).hex] = val
+    def init_kms_backend(self, kms_script: Path):
+        """Initialize the KMS from the provided script backend based on the passed context."""
+        module_name = "SuitKMS_module"
+        kms_module = _import_module_from_path(module_name, kms_script)
+        if not hasattr(kms_module, "suit_kms_factory"):
+            raise ValueError(f"Python script {kms_script} does not contain the required suit_kms_factory function")
+        self.kms = kms_module.suit_kms_factory()
+        if not isinstance(self.kms, SuitKMSBase):
+            raise ValueError(f"Class {type(self.kms)} does not implement the required SuitKMSBase interface")
+        self.kms.init_kms(self._context)
 
     @staticmethod
     def create_authentication_block(protected: dict | None, unprotected: dict | None, signature: bytes):
@@ -100,16 +82,36 @@ class Signer:
         auth_block = cbor2.CBORTag(18, data)
         return auth_block
 
-    def create_cose_structure(self, protected: dict):
+    def create_cose_structure(self, protected: dict) -> bytes:
         """Create COSE Sig_structure."""
         data = ["Signature1", cbor2.dumps(protected), b"", cbor2.dumps(self.get_digest())]
         return cbor2.dumps(data)
 
-    def get_digest(self):
+    def get_digest(self) -> bytes:
         """Return digest object."""
         auth_block = cbor2.loads(self.envelope.value[SuitIds.SUIT_AUTHENTICATION_WRAPPER.value])
         digest = cbor2.loads(auth_block[0])
         return digest
+
+    def already_signed_action(self, action: SignatureAlreadyPresentActions):
+        """Check if the envelope is already signed - if it is, handle this case."""
+        auth_block = cbor2.loads(self.envelope.value[SuitIds.SUIT_AUTHENTICATION_WRAPPER.value])
+        for auth in auth_block:
+            if not isinstance(auth, bytes):
+                continue
+            auth_deserialized = cbor2.loads(auth)
+            if isinstance(auth_deserialized, cbor2.CBORTag) and auth_deserialized.tag == 18:
+                if action == SignatureAlreadyPresentActions.ERROR:
+                    raise SignerError("The envelope has already been signed and already-signed-action is set to error.")
+                elif action == SignatureAlreadyPresentActions.REMOVE_OLD:
+                    auth_block.remove(auth)
+                    self.envelope.value[SuitIds.SUIT_AUTHENTICATION_WRAPPER.value] = cbor2.dumps(auth_block)
+                elif action == SignatureAlreadyPresentActions.SKIP:
+                    self._skip_signing = True
+                    pass
+                elif action == SignatureAlreadyPresentActions.APPEND:
+                    raise NotImplementedError("Append signature action is not implemented yet.")
+                break
 
     def add_signature(self, signature: bytes, protected: dict, unprotected: dict | None = None):
         """Add signature object to the envelope."""
@@ -118,100 +120,54 @@ class Signer:
         auth_block.append(cbor2.dumps(new_auth))
         self.envelope.value[SuitIds.SUIT_AUTHENTICATION_WRAPPER.value] = cbor2.dumps(auth_block)
 
-    def load_envelope(self, input_file: Path) -> None:
-        """Load suit envelope."""
-        with open(input_file, "rb") as fh:
-            self.envelope = cbor2.load(fh)
+    def sign_envelope(
+        self,
+        input_envelope: cbor2.CBORTag,
+        key_name: str,
+        key_id: int,
+        algorithm: SuitSignAlgorithms,
+        context: str,
+        kms_script: Path,
+        already_signed_action: SignatureAlreadyPresentActions,
+    ) -> cbor2.CBORTag:
+        """
+        Add signature to the envelope.
 
-    def save_envelope(self, output_file: Path) -> None:
-        """Store envelope."""
-        with open(output_file, "wb") as fh:
-            cbor2.dump(self.envelope, fh)
+        :param input_envelope: The input envelope to sign.
+        :param key_name: The name of the key used by the KMS to identify the key.
+        :param key_id: The key ID used to identify the key on the device.
+        :param algorithm: The algorithm used to sign the envelope.
+        :param context: Any context information that should be passed to the KMS backend during initialization
+                        and signing.
+        :param kms_script: Python script containing a SuitKMS class with a sign function - used to communicate
+                           with a KMS.
+        :param already_signed_action: Action to take when a signature is already present in the envelope.
 
-    def _get_sign_method(self) -> callable:
-        """Return sign method based on key type."""
-        if isinstance(self._key, EllipticCurvePrivateKey):
-            return self._create_cose_es_signature
-        elif isinstance(self._key, Ed25519PrivateKey) or isinstance(self._key, Ed448PrivateKey):
-            return self._create_cose_ed_signature
-        else:
-            raise SignerError(f"Key {type(self._key)} not supported")
+        :return: The signed envelope.
+        :rtype: bytes
+        """
+        self._key_name = key_name
+        self._key_id = key_id
+        self._algorithm = algorithm
+        self._context = context
+        self._skip_signing = False
+        self.envelope = input_envelope
 
-    @property
-    def _algorithm_name(self) -> str:
-        """Get algorithm name."""
-        hash_alg = SuitAlgorithms(self.get_digest()[0])
-        if isinstance(self._key, EllipticCurvePrivateKey):
-            return f"COSE_ALG_ES_{self._key.key_size}"
-        elif isinstance(self._key, Ed25519PrivateKey) or isinstance(self._key, Ed448PrivateKey):
-            return "COSE_ALG_EdDSA"
-        else:
-            raise SignerError(f"Key {type(self._key)} with {hash_alg} is not supported")
+        self.init_kms_backend(kms_script)
+        self.already_signed_action(already_signed_action)
 
-    def _create_cose_es_signature(self, input_data: bytes) -> bytes:
-        """Create ECDSA signature and return signature bytes."""
-        hash_map = {256: hashes.SHA256(), 384: hashes.SHA384(), 521: hashes.SHA512()}
-        dss_signature = self._key.sign(input_data, ec.ECDSA(hash_map[self._key.key_size]))
-        r, s = decode_dss_signature(dss_signature)
-        return r.to_bytes(math.ceil(self._key.key_size / 8), byteorder="big") + s.to_bytes(
-            math.ceil(self._key.key_size / 8), byteorder="big"
-        )
-
-    def _create_cose_ed_signature(self, input_data: bytes) -> bytes:
-        """Create ECDSA signature and return signature bytes."""
-        return self._key.sign(input_data)
-
-    def _get_manifest_class_id(self):
-        manifest = cbor2.loads(self.envelope.value[SuitIds.SUIT_MANIFEST.value])
-        if (
-            SuitIds.SUIT_MANIFEST_COMPONENT_ID.value in manifest
-            and len(manifest[SuitIds.SUIT_MANIFEST_COMPONENT_ID.value]) == 2
-        ):
-            return manifest[SuitIds.SUIT_MANIFEST_COMPONENT_ID.value][1].hex()
-        else:
-            return None
-
-    def _get_key_id_for_manifest_class(self):
-        return self._key_ids[self._get_manifest_class_id()]
-
-    def _get_private_key_path_for_manifest_class(self) -> Path:
-        key_id = self._key_ids[self._get_manifest_class_id()]
-        return PRIVATE_KEYS[key_id]
-
-    def sign(self, private_key_path: Path = None) -> None:
-        """Add signature to the envelope."""
-        loaders = {
-            ".pem": load_pem_private_key,
-            ".der": load_der_private_key,
-        }
-
-        if private_key_path is None:
-            private_key_path = self._get_private_key_path_for_manifest_class()
-
-        try:
-            loader = loaders[private_key_path.suffix]
-        except KeyError as e:
-            raise ValueError("Unrecognized private key format. Extension must be {per,der}") from e
-        with open(private_key_path, "rb") as private_key:
-            self._key = loader(private_key.read(), None)
-        sign_method = self._get_sign_method()
+        if self._skip_signing:
+            return
         protected = {
-            SuitIds.COSE_ALG.value: SuitAlgorithms[self._algorithm_name].value,
-            SuitIds.COSE_KEY_ID.value: cbor2.dumps(self._get_key_id_for_manifest_class()),
+            SuitIds.COSE_ALG.value: SuitCoseSignAlgorithms["COSE_ALG_" + self._algorithm.name].value,
+            SuitIds.COSE_KEY_ID.value: cbor2.dumps(self._key_id),
         }
         cose = self.create_cose_structure(protected=protected)
-        signature = sign_method(cose)
+        signature = self.kms.sign(cose, self._key_name, self._algorithm.value, self._context)
         self.add_signature(signature, protected=protected)
+        return self.envelope
 
 
-if __name__ == "__main__":
-    parser = ArgumentParser()
-    parser.add_argument("--input-file", required=True, type=Path, help="Input envelope.")
-    parser.add_argument("--output-file", required=True, type=Path, help="Output envelope.")
-
-    arguments = parser.parse_args()
-
-    signer = Signer()
-    signer.load_envelope(arguments.input_file)
-    signer.sign()
-    signer.save_envelope(arguments.output_file)
+def suit_signer_factory():
+    """Get a Signer object."""
+    return Signer()

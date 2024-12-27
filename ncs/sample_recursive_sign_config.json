@@ -1,0 +1,20 @@
+{
+    "key-name": "MANIFEST_OEM_ROOT_GEN1_priv",
+    "key-id": "0x4000AA00",
+    "alg": "eddsa",
+    "context": "<CONTEXT (by default path to key directory)>",
+    "sign-script": "<SIGN_SCRIPT path>",
+    "kms-script": "<KMS_SCRIPT path>",
+    "omit-signing": false,
+    "already-signed-action": "error",
+    "dependencies" : {
+        "#radio" : {
+            "key-name": "MANIFEST_RADIOCORE_GEN1_priv",
+	        "key-id": "0x40032100"
+        },
+        "#application" : {
+            "key-name": "MANIFEST_APPLICATION_GEN1_priv",
+	        "key-id": "0x40022100"
+        }
+    }
+}
