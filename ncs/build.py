@@ -231,13 +231,6 @@ if __name__ == "__main__":
         default=None,
         help="Path to KConfig file",
     )
-    cmd_storage_arg_parser.add_argument(
-        "--soc",
-        required=False,
-        type=str,
-        default="nrf54h20",
-        help="SoC device (nrf54h20 or nrf9280)",
-    )
 
     cmd_update_arg_parser = subparsers.add_parser(
         UPDATE_CMD, help="Generate files needed for Secure Domain update", parents=[parent_parser]
@@ -291,7 +284,6 @@ if __name__ == "__main__":
             storage_output_directory=arguments.storage_output_directory,
             storage_address=arguments.storage_address,
             config_file=arguments.config_file,
-            soc=arguments.soc,
         )
     elif arguments.command == UPDATE_CMD:
         ImageCreator.create_files_for_update(
