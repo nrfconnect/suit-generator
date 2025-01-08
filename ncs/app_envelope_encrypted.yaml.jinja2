@@ -82,23 +82,8 @@ SUIT_Envelope_Tagged:
 {%- else %}
         suit-parameter-uri: '#{{ application['name'] }}'
 {%- endif %}
-        suit-parameter-image-digest:
-          suit-digest-algorithm-id: cose-alg-sha-256
-          suit-digest-bytes:
-            file: {{ application['encryption_artifacts_dir'] }}/encrypted_content.bin
     - suit-directive-fetch:
       - suit-send-record-failure
-    - suit-directive-try-each:
-      - - suit-condition-image-match:
-          - suit-send-record-success
-          - suit-send-record-failure
-          - suit-send-sysinfo-success
-          - suit-send-sysinfo-failure
-      - - suit-condition-image-match:
-          - suit-send-record-success
-          - suit-send-record-failure
-          - suit-send-sysinfo-success
-          - suit-send-sysinfo-failure
     - suit-directive-set-component-index: 0
     - suit-directive-override-parameters:
         suit-parameter-source-component: 1
@@ -136,19 +121,16 @@ SUIT_Envelope_Tagged:
           suit-digest-algorithm-id: cose-alg-sha-256
           suit-digest-bytes:
             file: {{ application['encryption_artifacts_dir'] }}/encrypted_content.bin
+        suit-parameter-encryption-info:
+          file: {{ application['encryption_artifacts_dir'] }}/suit_encryption_info.bin
+    # This fetch directive is used to verify the tag and the AAD of the received encrypted image
+    # The target "CAND_IMG" behaves like a /dev/null device and all the data is discarded.
+    # This way even if the encrypted content is incorrect, the contents of the target memory
+    # will not be affected.
+    # Note that no digest checking is required on the encrypted content itself, as checking the tag
+    # and the AAD verifies the integrity of the content.
     - suit-directive-fetch:
       - suit-send-record-failure
-    - suit-directive-try-each:
-      - - suit-condition-image-match:
-          - suit-send-record-success
-          - suit-send-record-failure
-          - suit-send-sysinfo-success
-          - suit-send-sysinfo-failure
-      - - suit-condition-image-match:
-          - suit-send-record-success
-          - suit-send-record-failure
-          - suit-send-sysinfo-success
-          - suit-send-sysinfo-failure
 
     suit-manifest-component-id:
     - INSTLD_MFST
