@@ -160,6 +160,14 @@ class SuitObject(PrettyPrintHelperMixin):
         SuitObject.validate_cbor(cbstr)
         try:
             return cbor2.loads(cbstr)
+        except ImportError as err:
+            # Can occur due to possible incompatibilities in packages between virtual environment and system scope
+            # (seen on Windows, where cbor2 was installed globally and in virtual environment)
+            raise ValueError(
+                f"ImportError({err}) during data deserialisation.\n"
+                f" When working in virtual environment consider removing package"
+                f" from globally installed packages."
+            )
         except Exception:
             # Catch all exceptions since cbor2.loads raises a lot of different exceptions for invalid data:
             #   Payload in hex -> Exception type
