@@ -167,6 +167,46 @@ class EnvelopeStorage:
             "class_name": "nRF54H20_sys",
             "role": ManifestRole.SEC_SYSCTRL,
         },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_sample_root",
+            "role": ManifestRole.APP_ROOT,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_sample_app",
+            "role": ManifestRole.APP_LOCAL_1,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_sample_app_recovery",
+            "role": ManifestRole.APP_RECOVERY,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_sample_rad",
+            "role": ManifestRole.RAD_LOCAL_1,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_sample_rad_recovery",
+            "role": ManifestRole.RAD_RECOVERY,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_nordic_top",
+            "role": ManifestRole.SEC_TOP,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_sec",
+            "role": ManifestRole.SEC_SDFW,
+        },
+        {
+            "vendor_name": "nordicsemi.com",
+            "class_name": "nRF9280_sys",
+            "role": ManifestRole.SEC_SYSCTRL,
+        },
     ]
 
     def __init__(self, base_address: int, load_defaults=True, kconfig=None):
@@ -391,49 +431,6 @@ class EnvelopeStorageNrf54h20(EnvelopeStorage):
 
 class EnvelopeStorageNrf9280(EnvelopeStorage):
     """Class generating SUIT storage binary in upcoming format."""
-
-    _CLASS_ROLE_ASSIGNMENTS = [
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_root",
-            "role": ManifestRole.APP_ROOT,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_app",
-            "role": ManifestRole.APP_LOCAL_1,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_app_recovery",
-            "role": ManifestRole.APP_RECOVERY,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_rad",
-            "role": ManifestRole.RAD_LOCAL_1,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_rad_recovery",
-            "role": ManifestRole.RAD_RECOVERY,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_nordic_top",
-            "role": ManifestRole.SEC_TOP,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sec",
-            "role": ManifestRole.SEC_SDFW,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sys",
-            "role": ManifestRole.SEC_SYSCTRL,
-        },
-    ]
 
     _LAYOUT = [
         {
