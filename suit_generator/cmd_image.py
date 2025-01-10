@@ -167,46 +167,6 @@ class EnvelopeStorage:
             "class_name": "nRF54H20_sys",
             "role": ManifestRole.SEC_SYSCTRL,
         },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_root",
-            "role": ManifestRole.APP_ROOT,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_app",
-            "role": ManifestRole.APP_LOCAL_1,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_app_recovery",
-            "role": ManifestRole.APP_RECOVERY,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_rad",
-            "role": ManifestRole.RAD_LOCAL_1,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sample_rad_recovery",
-            "role": ManifestRole.RAD_RECOVERY,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_nordic_top",
-            "role": ManifestRole.SEC_TOP,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sec",
-            "role": ManifestRole.SEC_SDFW,
-        },
-        {
-            "vendor_name": "nordicsemi.com",
-            "class_name": "nRF9280_sys",
-            "role": ManifestRole.SEC_SYSCTRL,
-        },
     ]
 
     def __init__(self, base_address: int, load_defaults=True, kconfig=None):
@@ -313,9 +273,7 @@ class EnvelopeStorage:
             raise GeneratorError(f"Unable to find slot for manifest with class id {class_id.hex()}")
 
         if slot[1] < len(envelope_bytes):
-            raise GeneratorError(
-                f"Unable to fit manifest with class id {class_id.hex()} ({len(envelope_bytes)} > {slot[1]})"
-            )
+            raise GeneratorError(f"Unable to fit manifest with class id ({len(class_id.hex())} > {slot})")
 
         if role in self._envelopes.keys():
             raise GeneratorError(f"Manifest with role {role} already added")
@@ -429,79 +387,6 @@ class EnvelopeStorageNrf54h20(EnvelopeStorage):
     ]
 
 
-class EnvelopeStorageNrf9280(EnvelopeStorage):
-    """Class generating SUIT storage binary in upcoming format."""
-
-    _LAYOUT = [
-        {
-            "role": ManifestRole.SEC_TOP,
-            "offset": 4096,
-            "size": 1536,
-            "domain": ManifestDomain.SECURE,
-        },
-        {
-            "role": ManifestRole.SEC_SDFW,
-            "offset": 2048,
-            "size": 1024,
-            "domain": ManifestDomain.SECURE,
-        },
-        {
-            "role": ManifestRole.SEC_SYSCTRL,
-            "offset": 3072,
-            "size": 1024,
-            "domain": ManifestDomain.SECURE,
-        },
-        {
-            "role": ManifestRole.RAD_RECOVERY,
-            "offset": 8192 + 1024 * 1,
-            "size": 1024,
-            "domain": ManifestDomain.RADIO,
-        },
-        {
-            "role": ManifestRole.RAD_LOCAL_1,
-            "offset": 8192 + 1024 * 2,
-            "size": 1024,
-            "domain": ManifestDomain.RADIO,
-        },
-        {
-            "role": ManifestRole.RAD_LOCAL_2,
-            "offset": 8192 + 1024 * 3,
-            "size": 1024,
-            "domain": ManifestDomain.RADIO,
-        },
-        {
-            "role": ManifestRole.APP_ROOT,
-            "offset": 12288 + 1024 * 1,
-            "size": 2048,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.APP_RECOVERY,
-            "offset": 12288 + 1024 * 3,
-            "size": 2048,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.APP_LOCAL_1,
-            "offset": 12288 + 1024 * 5,
-            "size": 1024,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.APP_LOCAL_2,
-            "offset": 12288 + 1024 * 6,
-            "size": 1024,
-            "domain": ManifestDomain.APPLICATION,
-        },
-        {
-            "role": ManifestRole.APP_LOCAL_3,
-            "offset": 12288 + 1024 * 7,
-            "size": 1024,
-            "domain": ManifestDomain.APPLICATION,
-        },
-    ]
-
-
 class ImageCreator:
     """Helper class for extracting data from SUIT envelope and creating hex files."""
 
@@ -561,15 +446,8 @@ class ImageCreator:
         storage_address: int,
         dir_name: str,
         config_file: str,
-        soc: str = "nrf54h20",
     ) -> None:
-        if soc == "nrf54h20":
-            storage = EnvelopeStorageNrf54h20(storage_address, kconfig=config_file)
-        elif soc == "nrf9280":
-            storage = EnvelopeStorageNrf9280(storage_address, kconfig=config_file)
-        else:
-            raise GeneratorError(f"Unknown soc: {soc}")
-
+        storage = EnvelopeStorageNrf54h20(storage_address, kconfig=config_file)
         for envelope in envelopes:
             storage.add_envelope(envelope)
 
@@ -609,7 +487,6 @@ class ImageCreator:
         storage_output_directory: str,
         storage_address: int,
         config_file: str | None,
-        soc: str = "nrf54h20",
     ) -> None:
         """Create storage and payload hex files allowing boot execution path.
 
@@ -617,7 +494,6 @@ class ImageCreator:
         :param storage_output_directory: directory path to store hex files with SUIT storage contents
         :param storage_address: address of SUIT storage
         :param config_file: path to KConfig file containing MPI settings
-        :param soc: soc in use, nrf54h20 or nrf9280
         """
         try:
             envelopes = []
@@ -633,7 +509,6 @@ class ImageCreator:
                 storage_address,
                 storage_output_directory,
                 config_file,
-                soc,
             )
         except FileNotFoundError as error:
             raise GeneratorError(error)
