@@ -278,12 +278,6 @@ class SuitParameterInvokeArgs(SuitKeyValue):
     )
 
 
-class SuitParameterContent(SuitUnion):
-    """Abstract element to define possible sub-elements."""
-
-    _metadata = Metadata(children=[cbstr(SuitUint), SuitBstr])
-
-
 class SuitParameters(SuitKeyValue):
     """Representation of SUIT parameters."""
 
@@ -296,7 +290,7 @@ class SuitParameters(SuitKeyValue):
             suit_parameter_strict_order: SuitBool,
             suit_parameter_soft_failure: SuitBool,
             suit_parameter_image_size: SuitImageSize,
-            suit_parameter_content: SuitParameterContent,
+            suit_parameter_content: SuitBstr,
             suit_parameter_encryption_info: SuitEncryptionInfo,
             suit_parameter_uri: SuitTstr,
             suit_parameter_source_component: SuitUint,
