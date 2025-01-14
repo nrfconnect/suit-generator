@@ -21,7 +21,7 @@ from suit_generator.suit_sign_script_base import (
 from suit_generator.exceptions import GeneratorError
 from argparse import RawTextHelpFormatter
 
-SIGN_SINGLE_LEVEL_CMD = "single_level"
+SIGN_SINGLE_LEVEL_CMD = "single-level"
 SIGN_RECURSIVE_CMD = "recursive"
 
 log = logging.getLogger(__name__)
