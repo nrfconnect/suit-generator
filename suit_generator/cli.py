@@ -21,6 +21,7 @@ from suit_generator import (
     cmd_cache_create,
     cmd_payload_extract,
     cmd_sign,
+    cmd_encrypt,
     args,
 )
 from suit_generator.exceptions import GeneratorError, SUITError
@@ -43,6 +44,7 @@ COMMAND_EXECUTORS = {
     cmd_cache_create.CACHE_CREATE_CMD: cmd_cache_create.main,
     cmd_payload_extract.PAYLOAD_EXTRACT_CMD: cmd_payload_extract.main,
     cmd_sign.SIGN_CMD: cmd_sign.main,
+    cmd_encrypt.ENCRYPT_CMD: cmd_encrypt.main,
 }
 
 
