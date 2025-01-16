@@ -1,5 +1,6 @@
 # created by virtualenv automatically
 /venv/*
+.vscode/*
 /.idea/*
 /suit_generator.egg-info/*
 /suit_generator/_version.py
