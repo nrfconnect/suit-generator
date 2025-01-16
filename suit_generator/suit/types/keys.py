@@ -694,6 +694,13 @@ class cose_alg_eddsa(suit_key):
     name = "cose-alg-eddsa"
 
 
+class cose_alg_vs_hashed_eddsa(suit_key):
+    """Cose algorithm metadata."""
+
+    id = -65537
+    name = "cose-alg-vs-hashed-eddsa"
+
+
 class cose_alg_aes_gcm_128(suit_key):
     """Cose algorithm metadata."""
 
