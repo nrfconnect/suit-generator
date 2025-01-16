@@ -21,8 +21,8 @@ TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
 MAX_CACHE_COUNT = 16
 
-addresses = {0x00000000: b"\x00\x00\x00\x00", 0xDEADBEEF: b"\xEF\xBE\xAD\xDE", 0xFFFFFFFF: b"\xFF\xFF\xFF\xFF"}
-sizes = {0x00000000: b"\x00\x00\x00\x00", 0x01020304: b"\x04\x03\x02\x01", 0xFFFFFFFF: b"\xFF\xFF\xFF\xFF"}
+addresses = {0x00000000: b"\x00\x00\x00\x00", 0xDEADBEEF: b"\xef\xbe\xad\xde", 0xFFFFFFFF: b"\xff\xff\xff\xff"}
+sizes = {0x00000000: b"\x00\x00\x00\x00", 0x01020304: b"\x04\x03\x02\x01", 0xFFFFFFFF: b"\xff\xff\xff\xff"}
 
 signed_envelope_without_class_id_input = (
     b"\xd8k\xa4\x02X'\x81X$\x82/X 7d\x90\xc1\xa5\x84\xc1\xed\xeeO\x0f\xd6\xad\xc5t\xb0\x1dr\xb5r"
@@ -346,7 +346,7 @@ def test_update_candidate_info_verify_class_id_offset():
 @pytest.mark.parametrize("address", addresses)
 @pytest.mark.parametrize("size", sizes)
 def test_update_candidate_info_for_update(address, size, nb_of_caches):
-    magic_bytes = b"\xAA\x55\xAA\x55"
+    magic_bytes = b"\xaa\x55\xaa\x55"
     nregions_bytes = b"\x01\x00\x00\x00"
     address_bytes = addresses[address]
     size_bytes = sizes[size]

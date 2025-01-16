@@ -143,13 +143,13 @@ class MpiGenerator:
             + downgrade_prevention_enabled_bytes
             + independent_updates_bytes
             + signature_verification_bytes
-            + b"\xFF" * 12  # Reserved for future use
+            + b"\xff" * 12  # Reserved for future use
             + vid.bytes
             + cid.bytes
         )
 
         mpi_hex = IntelHex()
-        mpi_hex.frombytes(mpi.ljust(size, b"\xFF"), address)
+        mpi_hex.frombytes(mpi.ljust(size, b"\xff"), address)
         mpi_hex.write_hex_file(output_file)
 
     @staticmethod

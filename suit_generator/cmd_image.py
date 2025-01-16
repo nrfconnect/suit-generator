@@ -300,7 +300,7 @@ class EnvelopeStorage:
                     raise GeneratorError(
                         f"Unable to fit envelope with role {role} inside the envelope slot (max: {max_size} bytes)"
                     )
-                envelope_bytes = self._envelopes[role].ljust(max_size, b"\xFF")
+                envelope_bytes = self._envelopes[role].ljust(max_size, b"\xff")
                 envelope_count += 1
             else:
                 continue

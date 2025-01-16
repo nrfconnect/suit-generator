@@ -36,6 +36,7 @@ class SuitCoseSignAlgorithms(Enum):
     COSE_ALG_ES_384 = -35
     COSE_ALG_ES_521 = -36
     COSE_ALG_EdDSA = -8
+    COSE_ALG_VS_HashedEdDSA = -65537
 
 
 class SuitIds(Enum):
@@ -157,7 +158,7 @@ class Signer(SuitEnvelopeSignerBase):
         self.already_signed_action(already_signed_action)
 
         if self._skip_signing:
-            return
+            return self.envelope
         protected = {
             SuitIds.COSE_ALG.value: SuitCoseSignAlgorithms["COSE_ALG_" + self._algorithm.name].value,
             SuitIds.COSE_KEY_ID.value: cbor2.dumps(self._key_id),

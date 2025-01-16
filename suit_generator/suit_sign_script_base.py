@@ -19,6 +19,7 @@ class SuitSignAlgorithms(Enum):
     ES_384 = "es-384"
     ES_521 = "es-521"
     EdDSA = "eddsa"
+    VS_HashedEdDSA = "hash-eddsa"
 
     def __str__(self):
         return self.value
