@@ -17,6 +17,11 @@ from cryptography.hazmat.primitives.asymmetric.ed448 import Ed448PrivateKey
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
+
+# eddsa25519ph is not supported by cryptography, so we need to use pycryptodome
+from Crypto.PublicKey import ECC
+from Crypto.Signature import eddsa
+from Crypto.Hash import SHA512
 import math
 
 from suit_generator.suit_kms_base import SuitKMSBase
@@ -87,7 +92,7 @@ class SuitKMS(SuitKMSBase):
         if isinstance(private_key, EllipticCurvePrivateKey):
             return f"es-{private_key.key_size}" == algorithm
         elif isinstance(private_key, Ed25519PrivateKey) or isinstance(private_key, Ed448PrivateKey):
-            return "eddsa" == algorithm
+            return "eddsa" == algorithm or "hash-eddsa" == algorithm
         else:
             raise ValueError(f"Key {type(private_key)} not supported")
 
@@ -104,11 +109,19 @@ class SuitKMS(SuitKMSBase):
         """Create ECDSA signature and return signature bytes."""
         return private_key.sign(input_data)
 
-    def _get_sign_method(self, private_key) -> bool:
+    def _create_cose_ed_prehashed_signature(self, input_data, private_key) -> bytes:
+        prehashed_message = SHA512.new(input_data)
+        key = ECC.import_key(private_key)
+        signer = eddsa.new(key, "rfc8032")
+        return signer.sign(prehashed_message)
+
+    def _get_sign_method(self, private_key, algorithm) -> bool:
         """Return sign method based on key type."""
         if isinstance(private_key, EllipticCurvePrivateKey):
             return self._create_cose_es_signature
         elif isinstance(private_key, Ed25519PrivateKey) or isinstance(private_key, Ed448PrivateKey):
+            if algorithm == "hash-eddsa":
+                return self._create_cose_ed_prehashed_signature
             return self._create_cose_ed_signature
         else:
             raise ValueError(f"Key {type(private_key)} not supported")
@@ -146,7 +159,13 @@ class SuitKMS(SuitKMSBase):
         if not self._verify_signing_key_type(private_key, algorithm):
             raise ValueError(f"Key {key_file_name} is not compatible with algorithm {algorithm}")
 
-        sign_method = self._get_sign_method(private_key)
+        sign_method = self._get_sign_method(private_key, algorithm)
+
+        if algorithm == "hash-eddsa":
+            # In the special case of hash-eddsa, we need to use pycryptodome, which needs the raw key
+            # data to import the key
+            private_key = open(private_key_path).read()
+
         signature = sign_method(data, private_key)
 
         return signature

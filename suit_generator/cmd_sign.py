@@ -87,7 +87,7 @@ class RecursiveSigner:
         self.key_id = int(envelope_json["key-id"], 0)
 
         if "sign-script" in envelope_json:
-            self.sign_script = envelope_json["sign_script"]
+            self.sign_script = envelope_json["sign-script"]
         elif self.sign_script is None:
             if os.environ.get("NCS_SUIT_SIGN_SCRIPT"):
                 self.sign_script = os.environ.get("NCS_SUIT_SIGN_SCRIPT")
@@ -102,7 +102,7 @@ class RecursiveSigner:
         self.signer = _import_signer(self.sign_script)
 
         if "kms-script" in envelope_json:
-            self.kms_script = envelope_json["kms_script"]
+            self.kms_script = envelope_json["kms-script"]
         elif self.kms_script is None:
             if os.environ.get("NCS_SUIT_KMS_SCRIPT"):
                 self.kms_script = os.environ.get("NCS_SUIT_KMS_SCRIPT")

@@ -165,7 +165,7 @@ def test_ncs_cose(setup_and_teardown):
 def test_ncs_auth_block(setup_and_teardown):
     """Test if is possible to create authentication block using ncs sign_script.py."""
     signer = suit_signer_factory()
-    auth_block = signer.create_authentication_block({}, {}, b"\xDE\xAD\xBE\xEF")
+    auth_block = signer.create_authentication_block({}, {}, b"\xde\xad\xbe\xef")
     assert isinstance(auth_block, cbor2.CBORTag)
 
 
