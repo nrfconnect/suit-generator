@@ -9,11 +9,14 @@ import binascii
 import pathlib
 import os
 import cbor2
+import json
 
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.asymmetric.utils import encode_dss_signature
+from Crypto.Hash import SHA256
+from Crypto.Hash import SHA384
+from Crypto.Hash import SHA512
+from Crypto.PublicKey import ECC
+from Crypto.Signature import DSS
+from Crypto.Signature import eddsa
 
 from suit_generator.suit.security import CoseSigStructure
 from suit_generator.suit.envelope import SuitEnvelopeTagged
@@ -29,6 +32,8 @@ from suit_generator.suit_sign_script_base import SignatureAlreadyPresentActions,
 
 from ncs.sign_script import Signer, suit_signer_factory
 import ncs.basic_kms
+
+import kms_script_mock
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
@@ -54,7 +59,11 @@ FllgzoE3Rc2ZeGLOuD2SGi9H6iVhwynzSIl7RWnfhW8PtC2bT0smQ7D4YP9aO/k0
 1g==
 -----END PRIVATE KEY-----
 """,
-    "Ed25519": b"""-----BEGIN PRIVATE KEY-----
+    "EDDSA": b"""-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIBiOzhb2OjnrKpySHYKDeeFbKHZdQzitUKd/plugHOJ6
+-----END PRIVATE KEY-----
+""",
+    "HASH_EDDSA": b"""-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIBiOzhb2OjnrKpySHYKDeeFbKHZdQzitUKd/plugHOJ6
 -----END PRIVATE KEY-----
 """,
@@ -138,7 +147,9 @@ def setup_and_teardown(tmp_path_factory):
     with open("key_private_es_521.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["ES_521"])
     with open("key_private_eddsa.pem", "wb") as fh:
-        fh.write(PRIVATE_KEYS["Ed25519"])
+        fh.write(PRIVATE_KEYS["EDDSA"])
+    with open("key_private_hash_eddsa.pem", "wb") as fh:
+        fh.write(PRIVATE_KEYS["HASH_EDDSA"])
     with open("key_private_rs2048.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["RS2048"])
     with open("test_envelope.suit", "wb") as fh:
@@ -183,7 +194,7 @@ def test_ncs_get_digest_object(setup_and_teardown):
 
 @pytest.mark.parametrize(
     "private_key",
-    ["es_256", "es_384", "es_521", "eddsa"],
+    ["es_256", "es_384", "es_521", "eddsa", "hash_eddsa"],
 )
 def test_ncs_signing(setup_and_teardown, private_key):
     """Test if is possible to sign manifest."""
@@ -217,10 +228,17 @@ def test_ncs_signing(setup_and_teardown, private_key):
 
 
 @pytest.mark.parametrize(
-    "input_data, amount_of_payloads",
-    [("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0), ("ENVELOPE_7_UNSIGNED_TWO_INTEGRATED_PAYLOADS", 2)],
+    "input_data, amount_of_payloads, algorithm",
+    [
+        ("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0, "es-256"),
+        ("ENVELOPE_7_UNSIGNED_TWO_INTEGRATED_PAYLOADS", 2, "es-256"),
+        ("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0, "es-384"),
+        ("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0, "es-521"),
+        ("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0, "eddsa"),
+        ("ENVELOPE_6_UNSIGNED_COMPONENT_LIST", 0, "hash-eddsa"),
+    ],
 )
-def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payloads):
+def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payloads, algorithm):
     """Sign an envelope and verify signature using public key."""
     envelope = SuitEnvelopeTagged.from_cbor(binascii.a2b_hex(TEST_DATA[input_data]))
     if amount_of_payloads > 0:
@@ -237,15 +255,16 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
     with open("test_envelope.suit", "wb") as fh:
         fh.write(envelope.to_cbor())
 
+    private_key_file = "key_private_" + algorithm.replace("-", "_")
     signer = suit_signer_factory()
     with open("test_envelope.suit", "rb") as fh:
         envelope_unsigned = cbor2.load(fh)
     envelope_signed_cbor_tag = signer.sign_envelope(
         envelope_unsigned,
-        "key_private_es_256",
+        private_key_file,
         0x40000000,
-        SuitSignAlgorithms("es-256"),
-        os.path.dirname(os.path.realpath("key_private_es_256.pem")),
+        SuitSignAlgorithms(algorithm),
+        os.path.dirname(os.path.realpath("private_key_file")),
         ncs.basic_kms.__file__,
         SignatureAlreadyPresentActions.ERROR,
     )
@@ -257,12 +276,8 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
         .SuitHex
     )
-    # extract r and s from signature and decode_signature
-    int_sig = int.from_bytes(signature, byteorder="big")
-    r = int_sig >> (32 * 8)
-    s = int_sig & sum([0xFF << x * 8 for x in range(0, 32)])
-    dss_signature = encode_dss_signature(r, s)
-    algorithm_name = (
+
+    algorithm_id = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
         .SuitAuthentication[1]
         .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
@@ -272,15 +287,25 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
     cose_structure = CoseSigStructure.from_obj(
         {
             "context": "Signature1",
-            "body_protected": {"suit-cose-algorithm-id": algorithm_name, "suit-cose-key-id": 0x40000000},
+            "body_protected": {"suit-cose-algorithm-id": algorithm_id, "suit-cose-key-id": 0x40000000},
             "external_add": "",
             "payload": digest_object,
         }
     )
     binary_data = cose_structure.to_cbor()
 
-    public_key = load_pem_private_key(PRIVATE_KEYS["ES_256"], None).public_key()
-    public_key.verify(dss_signature, binary_data, ec.ECDSA(hashes.SHA256()))
+    hash_map = {"es-256": SHA256, "es-384": SHA384, "es-521": SHA512, "eddsa": None, "hash-eddsa": SHA512}
+    public_key = ECC.import_key(PRIVATE_KEYS[algorithm.replace("-", "_").upper()]).public_key()
+    if "es-" in algorithm:
+        verifier = DSS.new(public_key, "fips-186-3")
+    else:
+        verifier = eddsa.new(public_key, "rfc8032")
+
+    if hash_map[algorithm] is not None:
+        h = hash_map[algorithm].new(binary_data)
+    else:
+        h = binary_data
+    verifier.verify(h, signature)
 
 
 def test_ncs_signing_unsupported(setup_and_teardown):
@@ -327,3 +352,123 @@ def test_ncs_signing_key_id_check(setup_and_teardown):
         .value.value
         == 0xFFEEDDBB
     )
+
+
+@pytest.mark.parametrize(
+    "ctx, key_name, algorithm, signature_mock",
+    [
+        ("test_ctx", "test_key_name", SuitSignAlgorithms("es-256"), "test_signature"),
+        ("ctx2", "key_name2", SuitSignAlgorithms("eddsa"), "signature2"),
+    ],
+)
+def test_sign_script_kms_script_usage(setup_and_teardown, ctx, key_name, algorithm, signature_mock):
+    """Test if the sign_script uses the KMS script correctly."""
+
+    full_context = json.dumps(
+        {
+            "output_file": "test_sign_output_file.bin",
+            "ctx": ctx,
+            "signature": signature_mock,
+        }
+    )
+
+    with open("test_envelope.suit", "rb") as fh:
+        envelope_unsigned = cbor2.load(fh)
+    signer = suit_signer_factory()
+    envelope_signed_cbor_tag = signer.sign_envelope(
+        envelope_unsigned,
+        key_name,
+        0x40000000,
+        algorithm,
+        full_context,
+        kms_script_mock.__file__,
+        SignatureAlreadyPresentActions.ERROR,
+    )
+
+    envelope = SuitEnvelopeTagged.from_cbor(cbor2.dumps(envelope_signed_cbor_tag))
+    signature = (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
+        .SuitHex
+    )
+
+    digest_object = (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[0]
+        .SuitDigest.to_obj()
+    )
+    algorithm_id = (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
+        .SuitHeaderMap[suit_cose_algorithm_id]
+        .value
+    )
+    cose_structure = CoseSigStructure.from_obj(
+        {
+            "context": "Signature1",
+            "body_protected": {"suit-cose-algorithm-id": algorithm_id, "suit-cose-key-id": 0x40000000},
+            "external_add": "",
+            "payload": digest_object,
+        }
+    )
+
+    saved_data = json.load(open("test_sign_output_file.bin"))
+
+    assert signature == signature_mock.encode()
+    assert saved_data["init_kms_ctx"] == ctx
+    assert saved_data["sign_data"] == cose_structure.to_cbor().hex()
+    assert saved_data["sign_key_name"] == key_name
+    assert saved_data["sign_algorithm"] == algorithm.value
+    assert saved_data["sign_context"] == ctx
+
+
+@pytest.mark.parametrize(
+    "already_signed_action",
+    [SignatureAlreadyPresentActions.REMOVE_OLD, SignatureAlreadyPresentActions.SKIP],
+)
+def test_already_signed_action(setup_and_teardown, already_signed_action):
+    """Test already signed actions"""
+    signer = suit_signer_factory()
+
+    with open("test_envelope.suit", "rb") as fh:
+        envelope_unsigned = cbor2.load(fh)
+    envelope_signed_cbor_tag = signer.sign_envelope(
+        envelope_unsigned,
+        "key_private_es_256",
+        0x40000000,
+        SuitSignAlgorithms("es-256"),
+        os.path.dirname(os.path.realpath("key_private_es_256.pem")),
+        ncs.basic_kms.__file__,
+        SignatureAlreadyPresentActions.ERROR,
+    )
+    envelope = SuitEnvelopeTagged.from_cbor(cbor2.dumps(envelope_signed_cbor_tag))
+    signature1 = (
+        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
+        .SuitHex
+    )
+
+    envelope_signed_cbor_tag_2 = signer.sign_envelope(
+        envelope_signed_cbor_tag,
+        "key_private_eddsa",
+        0x40000000,
+        SuitSignAlgorithms("eddsa"),
+        os.path.dirname(os.path.realpath("key_private_eddsa.pem")),
+        ncs.basic_kms.__file__,
+        already_signed_action,
+    )
+    envelope2 = SuitEnvelopeTagged.from_cbor(cbor2.dumps(envelope_signed_cbor_tag_2))
+    signature2 = (
+        envelope2.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
+        .SuitAuthentication[1]
+        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[3]
+        .SuitHex
+    )
+
+    if already_signed_action == SignatureAlreadyPresentActions.REMOVE_OLD:
+        assert signature1 != signature2
+    elif already_signed_action == SignatureAlreadyPresentActions.SKIP:
+        assert signature1 == signature2
