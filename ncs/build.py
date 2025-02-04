@@ -29,7 +29,7 @@ UPDATE_CMD = "update"
 dir_path = pathlib.Path(__file__).parent.absolute()
 
 
-def read_configurations(configurations):
+def read_configurations(configurations, target):
     """Read configuration stored in the pickled devicetree."""
     data = {}
     for config in configurations:
@@ -51,7 +51,7 @@ def read_configurations(configurations):
         if image_name in data:
             existing_binary = data[image_name]["binary"]
             raise ValueError(
-                "Two images have the same CONFIG_SUIT_ENVELOPE_TARGET value: " f"{binary} and {existing_binary}"
+                f"Two images have the same CONFIG_SUIT_ENVELOPE_TARGET value for image {image_name}: {binary} and {existing_binary}"
             )
 
         data[image_name] = {
@@ -63,6 +63,8 @@ def read_configurations(configurations):
         if binary:
             data[image_name]["filename"] = pathlib.Path(binary).name
             data[image_name]["binary"] = binary
+        if target == image_name:
+            data["target"] = data[image_name]
     data["get_absolute_address"] = get_absolute_address
     return data
 
@@ -186,6 +188,7 @@ if __name__ == "__main__":
         help="Configuration of sample name:location of binaries:location of edt",
     )
     parent_parser.add_argument("--zephyr-base", required=True, help="Location of zephyr directory.")
+    parent_parser.add_argument("--target", required=False, default=None, help="Target name.")    
 
     parser = ArgumentParser(add_help=False)
 
@@ -199,7 +202,7 @@ if __name__ == "__main__":
 
     cmd_template_arg_parser.add_argument("--artifacts-folder", required=True, help="Output artifact folder.")
     cmd_template_arg_parser.add_argument("--template-suit", required=True, help="Input SUIT jinja2 template.")
-    cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Output SUIT configuration.")
+    cmd_template_arg_parser.add_argument("--output-suit", required=True, help="Output SUIT file.")
     cmd_template_arg_parser.add_argument(
         "--version_file", required=False, default=None, help="Path to the VERSION file to use."
     )
@@ -266,7 +269,7 @@ if __name__ == "__main__":
 
     sys.path.insert(0, os.path.join(arguments.zephyr_base, "scripts", "dts", "python-devicetree", "src"))
 
-    configuration = read_configurations(arguments.core)
+    configuration = read_configurations(arguments.core, arguments.target)
 
     if arguments.command == TEMPLATE_CMD:
         if arguments.version_file is not None:
