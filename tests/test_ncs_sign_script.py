@@ -4,18 +4,11 @@
 # SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
 #
 """Unit tests for ncs example signing script."""
-import shutil
-
 import pytest
 import binascii
 import pathlib
 import os
 import cbor2
-import subprocess
-import sys
-import uuid
-
-from unittest.mock import patch
 
 from cryptography.hazmat.primitives.serialization import load_pem_private_key
 from cryptography.hazmat.primitives import hashes
@@ -32,7 +25,10 @@ from suit_generator.suit.types.keys import (
     suit_cose_key_id,
 )
 
-from ncs.sign_script import Signer, SignerError
+from suit_generator.suit_sign_script_base import SignatureAlreadyPresentActions, SuitSignAlgorithms
+
+from ncs.sign_script import Signer, suit_signer_factory
+import ncs.basic_kms
 
 TEMP_DIRECTORY = pathlib.Path("test_test_data")
 
@@ -141,7 +137,7 @@ def setup_and_teardown(tmp_path_factory):
         fh.write(PRIVATE_KEYS["ES_384"])
     with open("key_private_es_521.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["ES_521"])
-    with open("key_private_ed25519.pem", "wb") as fh:
+    with open("key_private_eddsa.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["Ed25519"])
     with open("key_private_rs2048.pem", "wb") as fh:
         fh.write(PRIVATE_KEYS["RS2048"])
@@ -157,8 +153,10 @@ def setup_and_teardown(tmp_path_factory):
 
 def test_ncs_cose(setup_and_teardown):
     """Test if is possible to create cose structure using ncs sign_script.py."""
-    signer = Signer()
-    signer.load_envelope("test_envelope.suit")
+    signer = suit_signer_factory()
+    with open("test_envelope.suit", "rb") as fh:
+        envelope = cbor2.load(fh)
+    signer.envelope = envelope
     cose_binary = signer.create_cose_structure({1: -7})
     cose_cbor = cbor2.loads(cose_binary)
     assert isinstance(cose_cbor, list)
@@ -166,16 +164,17 @@ def test_ncs_cose(setup_and_teardown):
 
 def test_ncs_auth_block(setup_and_teardown):
     """Test if is possible to create authentication block using ncs sign_script.py."""
-    signer = Signer()
-    signer.load_envelope("test_envelope.suit")
+    signer = suit_signer_factory()
     auth_block = signer.create_authentication_block({}, {}, b"\xDE\xAD\xBE\xEF")
     assert isinstance(auth_block, cbor2.CBORTag)
 
 
 def test_ncs_get_digest_object(setup_and_teardown):
     """Test if is possible to extract digest object using ncs sign_script.py."""
-    signer = Signer()
-    signer.load_envelope("test_envelope.suit")
+    signer = suit_signer_factory()
+    with open("test_envelope.suit", "rb") as fh:
+        envelope = cbor2.load(fh)
+    signer.envelope = envelope
     assert signer.get_digest() == [
         -16,
         binascii.a2b_hex("6658ea560262696dd1f13b782239a064da7c6c5cbaf52fded428a6fc83c7e5af"),
@@ -184,17 +183,24 @@ def test_ncs_get_digest_object(setup_and_teardown):
 
 @pytest.mark.parametrize(
     "private_key",
-    ["es_256", "es_384", "es_521", "ed25519"],
+    ["es_256", "es_384", "es_521", "eddsa"],
 )
 def test_ncs_signing(setup_and_teardown, private_key):
     """Test if is possible to sign manifest."""
-    signer = Signer()
-    signer.load_envelope("test_envelope.suit")
-    signer.sign(pathlib.Path(f"key_private_{private_key}.pem"))
-    signer.save_envelope("test_envelope_signed.suit")
+    signer = suit_signer_factory()
 
-    with open("test_envelope_signed.suit", "rb") as fh:
-        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
+    with open("test_envelope.suit", "rb") as fh:
+        envelope_unsigned = cbor2.load(fh)
+    envelope_signed_cbor_tag = signer.sign_envelope(
+        envelope_unsigned,
+        f"key_private_{private_key}",
+        0x40000000,
+        SuitSignAlgorithms(private_key.replace("_", "-")),
+        os.path.dirname(os.path.realpath("key_private_es_256.pem")),
+        ncs.basic_kms.__file__,
+        SignatureAlreadyPresentActions.ERROR,
+    )
+    envelope = SuitEnvelopeTagged.from_cbor(cbor2.dumps(envelope_signed_cbor_tag))
 
     assert envelope is not None
     assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope
@@ -231,13 +237,19 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
     with open("test_envelope.suit", "wb") as fh:
         fh.write(envelope.to_cbor())
 
-    signer = Signer()
-    signer.load_envelope("test_envelope.suit")
-    signer.sign(pathlib.Path("key_private_es_256.pem"))
-    signer.save_envelope("test_envelope_signed.suit")
-
-    with open("test_envelope_signed.suit", "rb") as fh:
-        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
+    signer = suit_signer_factory()
+    with open("test_envelope.suit", "rb") as fh:
+        envelope_unsigned = cbor2.load(fh)
+    envelope_signed_cbor_tag = signer.sign_envelope(
+        envelope_unsigned,
+        "key_private_es_256",
+        0x40000000,
+        SuitSignAlgorithms("es-256"),
+        os.path.dirname(os.path.realpath("key_private_es_256.pem")),
+        ncs.basic_kms.__file__,
+        SignatureAlreadyPresentActions.ERROR,
+    )
+    envelope = SuitEnvelopeTagged.from_cbor(cbor2.dumps(envelope_signed_cbor_tag))
 
     signature = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
@@ -274,57 +286,38 @@ def test_envelope_sign_and_verify(setup_and_teardown, input_data, amount_of_payl
 def test_ncs_signing_unsupported(setup_and_teardown):
     """Test if SignerError is raised in case of unsupported key used."""
     signer = Signer()
-    signer.load_envelope("test_envelope.suit")
-    with pytest.raises(SignerError):
-        signer.sign(pathlib.Path("key_private_rs2048.pem"))
+
+    with open("test_envelope.suit", "rb") as fh:
+        envelope_unsigned = cbor2.load(fh)
+    signer = suit_signer_factory()
+    with pytest.raises(ValueError):
+        signer.sign_envelope(
+            envelope_unsigned,
+            "key_private_rs2048",
+            0x40000000,
+            SuitSignAlgorithms("rs2048"),
+            os.path.dirname(os.path.realpath("key_private_rs2048.pem")),
+            ncs.basic_kms.__file__,
+            SignatureAlreadyPresentActions.ERROR,
+        )
 
 
-@patch("ncs.sign_script.DEFAULT_KEY_ID", 0x0C0FFE)
-def test_ncs_signing_manifest_component_id_known_default_key_used(setup_and_teardown):
-    """Test if default key id is selected in case of unknown suit-manifest-component-id received."""
-    signer = Signer()
-    signer.load_envelope("test_envelope_manifest_component_id.suit")
-    parsed_manifest_id = signer._get_manifest_class_id()
+def test_ncs_signing_key_id_check(setup_and_teardown):
+    """Test if key_id is selected according to the received key-id argument."""
 
-    domain_name = uuid.uuid5(uuid.NAMESPACE_DNS, "nordicsemi.com")
-    expected_manifest_id = uuid.uuid5(domain_name, "unit_test_envelope").hex
-
-    assert parsed_manifest_id == expected_manifest_id
-
-    signer.sign(pathlib.Path("key_private_es_256.pem"))
-    signer.save_envelope("test_envelope_signed.suit")
-
-    with open("test_envelope_signed.suit", "rb") as fh:
-        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
-
-    assert envelope is not None
-    assert suit_authentication_wrapper in envelope.SuitEnvelopeTagged.value.SuitEnvelope
-    assert hasattr(envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper], "SuitAuthentication")
-    assert hasattr(
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper].SuitAuthentication[1],
-        "SuitAuthenticationBlock",
+    with open("test_envelope_manifest_component_id.suit", "rb") as fh:
+        envelope_unsigned = cbor2.load(fh)
+    signer = suit_signer_factory()
+    envelope_signed_cbor_tag = signer.sign_envelope(
+        envelope_unsigned,
+        "key_private_es_256",
+        0xFFEEDDBB,
+        SuitSignAlgorithms("es-256"),
+        os.path.dirname(os.path.realpath("key_private_es_256.pem")),
+        ncs.basic_kms.__file__,
+        SignatureAlreadyPresentActions.ERROR,
     )
-    assert (
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-        .SuitAuthentication[1]
-        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
-        .SuitHeaderMap[suit_cose_key_id]
-        .value.value
-        == 0x0C0FFE
-    )
-
-
-@patch("ncs.sign_script.KEY_IDS", {"unit_test_envelope": 0xFFEEDDBB, "some_other_sample": 0xFFFFFFFF})
-def test_ncs_signing_manifest_component_id_known_non_default(setup_and_teardown):
-    """Test if key_id is selected according to the received suit-manifest-component-id."""
-    signer = Signer()
-    signer.load_envelope("test_envelope_manifest_component_id.suit")
-
-    signer.sign(pathlib.Path("key_private_es_256.pem"))
-    signer.save_envelope("test_envelope_signed.suit")
-
-    with open("test_envelope_signed.suit", "rb") as fh:
-        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
+    envelope = SuitEnvelopeTagged.from_cbor(cbor2.dumps(envelope_signed_cbor_tag))
 
     assert (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
@@ -334,44 +327,3 @@ def test_ncs_signing_manifest_component_id_known_non_default(setup_and_teardown)
         .value.value
         == 0xFFEEDDBB
     )
-
-
-@patch("ncs.sign_script.DEFAULT_KEY_ID", 0xDEADBEEF)
-def test_ncs_signing_manifest_component_id_unknown(setup_and_teardown):
-    """Test if default key_id is used in case of not available suit-manifest-class-id."""
-    signer = Signer()
-    signer.load_envelope("test_envelope_manifest_component_id.suit")
-
-    signer.sign(pathlib.Path("key_private_es_256.pem"))
-    signer.save_envelope("test_envelope_signed.suit")
-
-    with open("test_envelope_signed.suit", "rb") as fh:
-        envelope = SuitEnvelopeTagged.from_cbor(fh.read())
-
-    assert (
-        envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
-        .SuitAuthentication[1]
-        .SuitAuthenticationBlock.CoseSign1Tagged.value.CoseSign1[0]
-        .SuitHeaderMap[suit_cose_key_id]
-        .value.value
-        == 0xDEADBEEF
-    )
-
-
-def test_ncs_sign_cli_interface(setup_and_teardown):
-    """Test if is possible to call cli interface."""
-    shutil.copyfile(
-        "key_private_es_256.pem",
-        pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent / "ncs" / "key_private.pem",
-    )
-    completed_process = subprocess.run(
-        [
-            sys.executable,
-            pathlib.Path(os.path.dirname(os.path.abspath(__file__))).parent / "ncs" / "sign_script.py",
-            "--input-file",
-            "test_envelope.suit",
-            "--output-file",
-            "test_envelope_signed_cli.suit",
-        ]
-    )
-    assert completed_process.returncode == 0

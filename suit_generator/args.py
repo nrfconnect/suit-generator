@@ -17,6 +17,8 @@ from suit_generator.cmd_convert import add_arguments as convert_args
 from suit_generator.cmd_mpi import add_arguments as mpi_args
 from suit_generator.cmd_cache_create import add_arguments as cache_create_args
 from suit_generator.cmd_payload_extract import add_arguments as payload_extract_args
+from suit_generator.cmd_sign import add_arguments as sign_args
+from suit_generator.cmd_encrypt import add_arguments as encrypt_args
 
 
 def _parser() -> ArgumentParser:
@@ -32,6 +34,8 @@ def _parser() -> ArgumentParser:
     mpi_args(subparsers)
     cache_create_args(subparsers)
     payload_extract_args(subparsers)
+    sign_args(subparsers)
+    encrypt_args(subparsers)
     return parser
 
 
