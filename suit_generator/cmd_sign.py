@@ -200,7 +200,7 @@ def add_arguments(parser):
         "--alg",
         type=SuitSignAlgorithms,
         choices=list(SuitSignAlgorithms),
-        default=SuitSignAlgorithms.ES_256,
+        default=SuitSignAlgorithms.EdDSA,
         help="Algorithm used to sign the envelope.",
     )
     cmd_sign_single_level.add_argument(
@@ -275,7 +275,7 @@ def save_envelope(output_file: Path, envelope) -> None:
 
 
 def single_level_sign(envelope, **kwargs) -> cbor2.CBORTag:
-    """Sign a single envelope, without parsing it recursivelu."""
+    """Sign a single envelope, without parsing it recursively."""
     signer = _import_signer(kwargs["sign_script"])
     envelope = signer.sign_envelope(
         envelope,
