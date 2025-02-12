@@ -96,7 +96,6 @@ class Encryptor(SuitEncryptorBase):
 
         This method encrypts asset_plaintext bytes using the specified key wrap algorithm,
         and returns the encrypted asset and encrypted content encryption key (CEK).
-
         """
         # Enc structure:
         # {
@@ -255,7 +254,7 @@ class Encryptor(SuitEncryptorBase):
         if kw_alg == SuitKWAlgorithms.A256KW:
             if encrypted_cek is None:
                 raise ValueError("Encrypted CEK is required for AES Key Wrap 256")
-        self.kw_alg_convert(kw_alg)
+        self._kw_alg_convert(kw_alg)
         return self.generate_encryption_info_and_encrypted_payload(encrypted_asset, encrypted_cek, key_id)
 
 
