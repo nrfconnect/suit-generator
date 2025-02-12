@@ -188,7 +188,7 @@ if __name__ == "__main__":
         help="Configuration of sample name:location of binaries:location of edt",
     )
     parent_parser.add_argument("--zephyr-base", required=True, help="Location of zephyr directory.")
-    parent_parser.add_argument("--target", required=False, default=None, help="Target name.")    
+    parent_parser.add_argument("--target", required=False, default=None, help="Target name.")
 
     parser = ArgumentParser(add_help=False)
 
