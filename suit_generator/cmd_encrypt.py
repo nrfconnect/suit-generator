@@ -175,8 +175,8 @@ def encrypt_and_generate(**kwargs):
         kwargs["key_name"],
         kwargs["key_id"],
         kwargs["context"],
-        kwargs["hash_alg"],
-        kwargs["kw_alg"],
+        SuitDigestAlgorithms(kwargs["hash_alg"]),
+        SuitKWAlgorithms(kwargs["kw_alg"]),
         kwargs["kms_script"],
     )
     with open(os.path.join(kwargs["output_dir"], "plain_text_digest.bin"), "wb") as file:
@@ -200,7 +200,7 @@ def generate_info(**kwargs):
         encrypted_firmware,
         encrypted_key,
         kwargs["key_id"],
-        kwargs["kw_alg"],
+        SuitKWAlgorithms(kwargs["kw_alg"]),
     )
     with open(os.path.join(kwargs["output_dir"], "suit_encryption_info.bin"), "wb") as file:
         file.write(encryption_info)

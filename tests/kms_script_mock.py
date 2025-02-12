@@ -32,16 +32,17 @@ class SuitMockKMS(SuitKMSBase):
     def encrypt(self, plaintext: bytes, key_name: str, context: str, aad: bytes) -> tuple[bytes, bytes, bytes]:
         """Mock of the KMS script encrypt function."""
         context_loaded = json.loads(context)
-        self.json_data["encrypt_plaintext"] = plaintext.decode()
+        self.json_data["encrypt_plaintext"] = plaintext.hex()
         self.json_data["encrypt_key_name"] = key_name
         self.json_data["encrypt_context"] = context_loaded["ctx"]
-        self.json_data["encrypt_aad"] = aad.decode()
+        self.json_data["encrypt_aad"] = aad.hex()
         with open(self.output_file, "w") as f:
             json.dump(self.json_data, f)
+
         return (
-            context_loaded["iv"].encode(),
-            context_loaded["encryption_key"].encode(),
-            context_loaded["encrypted_data"].encode(),
+            bytes.fromhex(context_loaded["iv"]),
+            bytes.fromhex(context_loaded["tag"]),
+            bytes.fromhex(context_loaded["encrypted_data"]),
         )
 
     def sign(self, data: bytes, key_name: str, algorithm: str, context: str) -> bytes:

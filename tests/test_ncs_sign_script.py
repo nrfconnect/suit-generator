@@ -366,7 +366,7 @@ def test_sign_script_kms_script_usage(setup_and_teardown, ctx, key_name, algorit
 
     full_context = json.dumps(
         {
-            "output_file": "test_sign_output_file.bin",
+            "output_file": "test_sign_output_file.json",
             "ctx": ctx,
             "signature": signature_mock,
         }
@@ -414,7 +414,7 @@ def test_sign_script_kms_script_usage(setup_and_teardown, ctx, key_name, algorit
         }
     )
 
-    saved_data = json.load(open("test_sign_output_file.bin"))
+    saved_data = json.load(open("test_sign_output_file.json"))
 
     assert signature == signature_mock.encode()
     assert saved_data["init_kms_ctx"] == ctx
