@@ -13,7 +13,8 @@ import re
 import logging
 import yaml
 
-from jinja2 import Template
+from jinja2 import FileSystemLoader, Environment
+from jinja2.exceptions import TemplateRuntimeError
 from argparse import ArgumentParser
 from configparser import ConfigParser
 
@@ -158,10 +159,21 @@ def read_version_file(version_file):
     return {}
 
 
+def raise_helper(msg):
+    """Raise an error as a result of the raise_err directive the template."""
+    raise TemplateRuntimeError(msg)
+
+
 def render_template(template_location, data):
     """Render template using passed data."""
-    with open(template_location) as template_file:
-        template = Template(template_file.read())
+    macros_path = pathlib.Path(dir_path.parent.parent.parent.parent / "nrf" / "config" / "suit" / "macros").absolute()
+    template_location = pathlib.Path(template_location)
+    env = Environment(
+        loader=FileSystemLoader([macros_path, template_location.parent]), trim_blocks=False, lstrip_blocks=False
+    )
+    env.globals["raise_err"] = raise_helper
+
+    template = env.get_template(template_location.name)
     return template.render(data)
 
 
