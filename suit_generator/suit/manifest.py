@@ -125,6 +125,18 @@ class SuitIndex(SuitUnion):
     )
 
 
+class SuitSequenceNumber(SuitUint):
+    """Representation of SUIT manifest sequence number value."""
+
+    def __init__(self, value: int) -> None:
+        """Init object."""
+        if (value is not None) and ((not isinstance(value, int)) or (value < 0)):
+            raise ValueError(f"Unable to create sequence number from {value}")
+        if value > 2**32 - 1:
+            raise ValueError(f"Sequence number exceeds the maximum 32 unsigned integer value: {value}")
+        super().__init__(value)
+
+
 class SuitRepPolicyBits(SuitEnum):
     """Representation of SUIT reporting policy bits."""
 
@@ -478,7 +490,7 @@ class SuitManifest(SuitKeyValue):
     _metadata = Metadata(
         map={
             suit_manifest_version: SuitUint,
-            suit_manifest_sequence_number: SuitUint,
+            suit_manifest_sequence_number: SuitSequenceNumber,
             suit_common: cbstr(SuitCommon),
             suit_reference_uri: SuitTstr,
             suit_manifest_component_id: SuitComponentIdentifier,

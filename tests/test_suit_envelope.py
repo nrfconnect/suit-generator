@@ -916,7 +916,7 @@ def test_digest_update_after_value_change():
     )
     envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_manifest].SuitManifest[
         suit_manifest_sequence_number
-    ].SuitUint = 123
+    ].SuitSequenceNumber = 123
     envelope.update_digest()
     digest_bytes_after_update = (
         envelope.SuitEnvelopeTagged.value.SuitEnvelope[suit_authentication_wrapper]
