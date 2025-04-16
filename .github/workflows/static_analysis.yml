@@ -2,9 +2,9 @@ name: Code scan
 
 on:
   push:
-    branches: [ main, develop, ncs ]
+    branches: [main, develop, ncs]
   pull_request:
-    branches: [ main, develop, ncs ]
+    branches: [main, develop, ncs]
 
 jobs:
   code-check:
