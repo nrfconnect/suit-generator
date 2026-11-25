@@ -7,6 +7,7 @@
 
 import cbor2
 import logging
+import os
 import re
 from suit_generator.exceptions import GeneratorError
 
@@ -143,7 +144,11 @@ def payload_extract_recursive(
         if payload_file_prefix_to_remove is not None:
             if payload.startswith(payload_file_prefix_to_remove):
                 payload_file_name = payload[len(payload_file_prefix_to_remove) :]
-        with open(payload_file_name, "wb") as fh:
+        output_dir = os.path.realpath(os.getcwd())
+        output_path = os.path.realpath(os.path.join(output_dir, payload_file_name))
+        if os.path.commonpath([output_dir, output_path]) != output_dir:
+            raise GeneratorError(f"Integrated payload name {payload!r} points outside of the output directory")
+        with open(output_path, "wb") as fh:
             fh.write(envelope.value.pop(payload))
 
     for dependency in integrated_dependencies:
